@@ -7,7 +7,7 @@ class APIClient:
         self.base_url = base_url
         self.logger = logging.getLogger("AuraTool.APIClient")
 
-    def connect() -> bool:
+    def connect(self) -> bool:
         """Establishes connection to remote services."""
         self.logger.info(f"Connecting to server: {self.base_url}")
         return True

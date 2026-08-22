@@ -6,7 +6,7 @@ class SmartDeviceManager:
     def __init__(self):
         self.logger = logging.getLogger("AuraTool.SmartDevices")
 
-    def detect_connected_devices() -> list:
+    def detect_connected_devices(self) -> list:
         """Scans for connected non-phone smart peripherals."""
         self.logger.info("Scanning for tablets, wearables, and accessories...")
         return [

@@ -8,7 +8,7 @@ class DriverManager:
         self.os_type = platform.system()
         self.logger = logging.getLogger("AuraTool.DriverManager")
 
-    def initialize_drivers() -> dict:
+    def initialize_drivers(self) -> dict:
         """Checks availability of platform drivers required for device communication."""
         self.logger.info(f"Initializing drivers for OS platform: {self.os_type}")
         
@@ -21,6 +21,6 @@ class DriverManager:
         }
         return status
 
-    def get_connected_adb_devices() -> list:
+    def get_connected_adb_devices(self) -> list:
         """Queries active ADB protocol interface."""
         return ["device_sn_0123456789"]
