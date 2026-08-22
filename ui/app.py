@@ -6,6 +6,7 @@ from modules.localization import LocalizationManager
 from modules.flashing_engine import FlashingEngine
 from modules.biometrics_fix import BiometricsFix
 from modules.smart_devices import SmartDeviceManager
+from modules.data_recovery import DataRecoveryModule
 
 class TextHandler(logging.Handler):
     """Custom logging handler to stream logs directly into UI Console."""
@@ -44,6 +45,7 @@ class AuraToolUI:
         self.flashing_engine = FlashingEngine()
         self.biometrics_fix = BiometricsFix()
         self.smart_dev_mgr = SmartDeviceManager()
+        self.data_recovery = DataRecoveryModule()
 
         self._build_ui()
         self._setup_logging()
@@ -81,12 +83,17 @@ class AuraToolUI:
         self.notebook.add(bio_tab, text="Biometrics & Diagnostics")
         self._build_biometrics_tab(bio_tab)
 
-        # Tab 3: Smart Devices & Peripherals
+        # Tab 3: Data Recovery
+        recovery_tab = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(recovery_tab, text="Data Recovery")
+        self._build_recovery_tab(recovery_tab)
+
+        # Tab 4: Smart Devices & Peripherals
         smart_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(smart_tab, text="Smart Devices")
         self._build_smart_tab(smart_tab)
 
-        # Tab 4: Settings & Language
+        # Tab 5: Settings & Language
         settings_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(settings_tab, text="Settings")
         self._build_settings_tab(settings_tab)
@@ -126,6 +133,17 @@ class AuraToolUI:
         ttk.Label(parent, text="Biometric Hardware Sensor Diagnostics & Calibration", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
         ttk.Button(parent, text="Run Hardware Diagnostics", command=self._action_bio_diag).pack(anchor=tk.W, pady=5)
         ttk.Button(parent, text="Recalibrate Optical Fingerprint Sensor", command=self._action_bio_calib).pack(anchor=tk.W, pady=5)
+
+    def _build_recovery_tab(self, parent):
+        ttk.Label(parent, text="Deep Scan & File Recovery System", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        ttk.Label(parent, text="Scan for lost media files, documents, contacts, SMS messages, and call logs.").pack(anchor=tk.W, pady=2)
+        
+        btn_frame = ttk.Frame(parent, padding=5)
+        btn_frame.pack(fill=tk.X, pady=10)
+        
+        ttk.Button(btn_frame, text="Start Deep Scan", command=self._action_deep_scan).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Export Contacts & Messages", command=self._action_export_data).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Extract Recovered Media", command=self._action_extract_media).pack(side=tk.LEFT, padx=5)
 
     def _build_smart_tab(self, parent):
         ttk.Label(parent, text="Connected Non-Phone Smart Devices (Tablets, Wearables)", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
@@ -169,6 +187,21 @@ class AuraToolUI:
 
     def _action_bio_calib(self):
         self.biometrics_fix.recalibrate_sensors(self.model_cb.get())
+
+    def _action_deep_scan(self):
+        model = self.model_cb.get()
+        res = self.data_recovery.perform_deep_scan(model)
+        messagebox.showinfo("Recovery Scan Complete", f"Scan finished for {model}.\nPhotos: {res['photos_found']}\nContacts: {res['contacts_found']}\nSMS: {res['sms_messages_found']}")
+
+    def _action_export_data(self):
+        model = self.model_cb.get()
+        records = self.data_recovery.extract_contacts_and_logs(model)
+        logging.info(f"Extracted {len(records)} structure records for device {model}.")
+
+    def _action_extract_media(self):
+        model = self.model_cb.get()
+        self.data_recovery.extract_media(model, f"/backups/{model}/recovery_output/")
+        logging.info(f"Media extraction completed for device {model}.")
 
     def _action_scan_smart(self):
         devices = self.smart_dev_mgr.detect_connected_devices()

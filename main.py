@@ -8,6 +8,7 @@ from modules.flashing_engine import FlashingEngine
 from modules.biometrics_fix import BiometricsFix
 from modules.localization import LocalizationManager
 from modules.smart_devices import SmartDeviceManager
+from modules.data_recovery import DataRecoveryModule
 from ui.app import AuraToolUI
 
 def main():
@@ -31,6 +32,7 @@ def main():
     biometrics_fix = BiometricsFix()
     localization_mgr = LocalizationManager()
     smart_dev_mgr = SmartDeviceManager()
+    data_recovery = DataRecoveryModule()
 
     # 4. Launch Graphical Interface
     logger.info("Starting UI application...")
