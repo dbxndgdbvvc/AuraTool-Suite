@@ -7,6 +7,7 @@ from modules.flashing_engine import FlashingEngine
 from modules.biometrics_fix import BiometricsFix
 from modules.smart_devices import SmartDeviceManager
 from modules.data_recovery import DataRecoveryModule
+from modules.account_repair import AccountRepairModule
 
 class TextHandler(logging.Handler):
     """Custom logging handler to stream logs directly into UI Console."""
@@ -46,6 +47,7 @@ class AuraToolUI:
         self.biometrics_fix = BiometricsFix()
         self.smart_dev_mgr = SmartDeviceManager()
         self.data_recovery = DataRecoveryModule()
+        self.account_repair = AccountRepairModule()
 
         self._build_ui()
         self._setup_logging()
@@ -88,12 +90,17 @@ class AuraToolUI:
         self.notebook.add(recovery_tab, text="Data Recovery")
         self._build_recovery_tab(recovery_tab)
 
-        # Tab 4: Smart Devices & Peripherals
+        # Tab 4: Network & Security Maintenance
+        repair_tab = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(repair_tab, text="Network & Repair")
+        self._build_repair_tab(repair_tab)
+
+        # Tab 5: Smart Devices & Peripherals
         smart_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(smart_tab, text="Smart Devices")
         self._build_smart_tab(smart_tab)
 
-        # Tab 5: Settings & Language
+        # Tab 6: Settings & Language
         settings_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(settings_tab, text="Settings")
         self._build_settings_tab(settings_tab)
@@ -144,6 +151,16 @@ class AuraToolUI:
         ttk.Button(btn_frame, text="Start Deep Scan", command=self._action_deep_scan).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Export Contacts & Messages", command=self._action_export_data).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Extract Recovered Media", command=self._action_extract_media).pack(side=tk.LEFT, padx=5)
+
+    def _build_repair_tab(self, parent):
+        ttk.Label(parent, text="Network Partition (EFS/NVRAM) & Diagnostics Maintenance", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        
+        btn_frame = ttk.Frame(parent, padding=5)
+        btn_frame.pack(fill=tk.X, pady=10)
+
+        ttk.Button(btn_frame, text="Run Account & Security Diagnostics", command=self._action_run_acc_diag).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Backup EFS / NVRAM Partitions", command=self._action_backup_efs).grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Restore EFS / NVRAM Partitions", command=self._action_restore_efs).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
 
     def _build_smart_tab(self, parent):
         ttk.Label(parent, text="Connected Non-Phone Smart Devices (Tablets, Wearables)", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
@@ -202,6 +219,19 @@ class AuraToolUI:
         model = self.model_cb.get()
         self.data_recovery.extract_media(model, f"/backups/{model}/recovery_output/")
         logging.info(f"Media extraction completed for device {model}.")
+
+    def _action_run_acc_diag(self):
+        model = self.model_cb.get()
+        res = self.account_repair.run_account_diagnostics(model)
+        logging.info(f"Account & Security Diagnostics Result: {res}")
+
+    def _action_backup_efs(self):
+        model = self.model_cb.get()
+        self.account_repair.backup_efs_nvram(model, f"/backups/{model}/efs_backup/")
+
+    def _action_restore_efs(self):
+        model = self.model_cb.get()
+        self.account_repair.restore_efs_nvram(model, f"/backups/{model}/efs_backup/")
 
     def _action_scan_smart(self):
         devices = self.smart_dev_mgr.detect_connected_devices()

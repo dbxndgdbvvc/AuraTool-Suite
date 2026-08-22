@@ -9,6 +9,7 @@ from modules.biometrics_fix import BiometricsFix
 from modules.localization import LocalizationManager
 from modules.smart_devices import SmartDeviceManager
 from modules.data_recovery import DataRecoveryModule
+from modules.account_repair import AccountRepairModule
 from ui.app import AuraToolUI
 
 def main():
@@ -33,6 +34,7 @@ def main():
     localization_mgr = LocalizationManager()
     smart_dev_mgr = SmartDeviceManager()
     data_recovery = DataRecoveryModule()
+    account_repair = AccountRepairModule()
 
     # 4. Launch Graphical Interface
     logger.info("Starting UI application...")
