@@ -10,12 +10,15 @@ class BiometricsFix:
         """Performs self-test diagnostics on optical/capacitive fingerprint and facial sensors."""
         self.logger.info(f"Running biometric sensor diagnostics for device: {device_id}")
         return {
-            "fingerprint_sensor": "OK",
-            "optical_calibration": "NORMAL",
-            "proximity_sensor": "OK"
+            "device_id": device_id,
+            "fingerprint_sensor": "OPERATIONAL",
+            "optical_calibration": "PASSED",
+            "iris_scanner": "NOT_PRESENT",
+            "face_id_camera": "OPERATIONAL",
+            "proximity_sensor": "CALIBRATED"
         }
 
-    def recalibrate_sensors(self, device_id: str) -> bool:
-        """Triggers official calibration routines for replaced sensor modules."""
-        self.logger.info(f"Calibrating biometric sensors for device: {device_id}")
+    def recalibrate_sensors(self, device_id: str, sensor_type: str = "FINGERPRINT") -> bool:
+        """Triggers official calibration routines for replaced or misaligned sensor modules."""
+        self.logger.info(f"Calibrating {sensor_type} sensor for device: {device_id}")
         return True

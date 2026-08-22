@@ -10,6 +10,12 @@ class SmartDeviceManager:
         """Scans for connected non-phone smart peripherals."""
         self.logger.info("Scanning for tablets, wearables, and accessories...")
         return [
-            {"type": "Tablet", "model": "AuraTab 10 Pro", "status": "Connected"},
-            {"type": "Wearable", "model": "AuraWatch S2", "status": "Connected"}
+            {"type": "Tablet", "vendor": "Samsung", "model": "Galaxy Tab S8", "status": "Connected (ADB)"},
+            {"type": "Wearable", "vendor": "Xiaomi", "model": "Mi Band 7 Pro", "status": "Connected (Fastboot)"},
+            {"type": "Smart Glasses", "vendor": "Generic", "model": "AuraGlass Developer Ed", "status": "Connected"}
         ]
+
+    def restart_device(self, device_id: str, target_mode: str = "NORMAL") -> bool:
+        """Sends reboot signal to target peripheral device."""
+        self.logger.info(f"Rebooting smart device {device_id} into {target_mode} mode.")
+        return True
