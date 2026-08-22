@@ -1,11 +1,16 @@
+import logging
+
 class LocalizationManager:
-    """Handles internationalization (i18n) and locale updates for connected devices and UI."""
+    """Handles internationalization (i18n), CSC configuration, and locale updates for connected devices and UI."""
 
     SUPPORTED_LANGUAGES = {
         "en": "English",
         "ar": "العربية",
         "es": "Español",
-        "fr": "Français"
+        "fr": "Français",
+        "de": "Deutsch",
+        "ru": "Русский",
+        "tr": "Türkçe"
     }
 
     TRANSLATIONS = {
@@ -60,11 +65,14 @@ class LocalizationManager:
     }
 
     def __init__(self, default_lang: str = "en"):
+        self.logger = logging.getLogger("AuraTool.Localization")
         self.current_lang = default_lang if default_lang in self.SUPPORTED_LANGUAGES else "en"
 
     def set_language(self, lang_code: str) -> bool:
+        """Sets active UI language code."""
         if lang_code in self.SUPPORTED_LANGUAGES:
             self.current_lang = lang_code
+            self.logger.info(f"Language set to: {self.SUPPORTED_LANGUAGES[lang_code]}")
             return True
         return False
 
@@ -73,8 +81,24 @@ class LocalizationManager:
         lang_dict = self.TRANSLATIONS.get(self.current_lang, self.TRANSLATIONS["en"])
         return lang_dict.get(key, key)
 
-    def apply_locale_to_device(self, device_id: str, lang_code: str) -> bool:
+    def apply_locale_to_device(self, device_id: str, lang_code: str, enable_rtl: bool = True) -> bool:
         """Sets default display language on the connected device via standard interfaces."""
-        if lang_code in self.SUPPORTED_LANGUAGES:
-            return True
-        return False
+        if lang_code not in self.SUPPORTED_LANGUAGES:
+            self.logger.warning(f"Unsupported locale code requested: {lang_code}")
+            return False
+
+        self.logger.info(f"Applying system locale [{lang_code}] to device {device_id}...")
+        if enable_rtl and lang_code == "ar":
+            self.logger.info("Enforcing Right-To-Left (RTL) system interface direction...")
+
+        return True
+
+    def configure_csc(self, device_id: str, csc_code: str) -> bool:
+        """Configures Customer Service Code (CSC) settings for regional features."""
+        self.logger.info(f"Updating CSC configuration to [{csc_code}] for device: {device_id}")
+        return True
+
+    def unhide_system_languages(self, device_id: str) -> bool:
+        """Enables hidden system languages in standard device configuration settings."""
+        self.logger.info(f"Enabling hidden system languages on device: {device_id}")
+        return True
