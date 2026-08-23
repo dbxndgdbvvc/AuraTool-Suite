@@ -58,16 +58,21 @@ def obfuscate_with_pyarmor():
     """Obfuscate source code using PyArmor if available."""
     print("[*] Checking for PyArmor obfuscation tool...")
     try:
-        subprocess.check_call(["pyarmor", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Resolve pyarmor CLI: prefer venv script, fall back to PATH
+        pyarmor_bin = os.path.join(os.path.dirname(sys.executable), "pyarmor")
+        if not os.path.isfile(pyarmor_bin):
+            pyarmor_bin = "pyarmor"
+        subprocess.check_call([pyarmor_bin, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("[*] PyArmor found. Generating obfuscated package...")
 
         os.makedirs("dist/obfuscated", exist_ok=True)
         pyarmor_cmd = [
-            sys.executable, "-m", "pyarmor",
+            pyarmor_bin,
             "gen",
             "-O", "dist/obfuscated",
-            "--entry", ENTRY_POINT,
-            "main.py",
+            "-r",
+            "--mix-str",
+            ENTRY_POINT,
         ] + PACKAGES
 
         subprocess.check_call(pyarmor_cmd)
