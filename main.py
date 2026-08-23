@@ -20,6 +20,9 @@ from modules.data_recovery import DataRecoveryModule
 from modules.account_repair import AccountRepairModule
 from modules.aura_ai_assistant import AuraAIAssistant
 from modules.ultimate_repair import UltimateRepairModule
+from modules.chat_rooms import ChatRoomManager
+from modules.media_stream import MediaStreamEngine
+from modules.ecommerce import ECommerceManager
 from auratool_factory import FactoryManager
 from ui.app import AuraToolUI
 
@@ -37,7 +40,7 @@ def main():
     logger.info("=" * 60)
 
     # 1. Core Subsystems & HWID Encrypted License Check
-    logger.info("[1/6] Initializing core subsystems & HWID verification...")
+    logger.info("[1/7] Initializing core subsystems & HWID verification...")
     license_mgr = LicenseManager()
     license_status = license_mgr.enforce_or_exit()
 
@@ -58,13 +61,13 @@ def main():
     api_client = APIClient()
 
     # 2. Driver Infrastructure
-    logger.info("[2/6] Initializing driver infrastructure...")
+    logger.info("[2/7] Initializing driver infrastructure...")
     driver_mgr = DriverManager()
     drivers_ready = driver_mgr.initialize_drivers()
     logger.info(f"  Drivers status: {drivers_ready}")
 
     # 3. Feature & AI Modules
-    logger.info("[3/6] Loading maintenance & AI feature modules...")
+    logger.info("[3/7] Loading maintenance & AI feature modules...")
     flashing_engine = FlashingEngine()
     biometrics_fix = BiometricsFix()
     localization_mgr = LocalizationManager()
@@ -74,13 +77,19 @@ def main():
     ai_assistant = AuraAIAssistant()
     ultimate_repair = UltimateRepairModule()
 
-    # 4. Factory / Workshop Subsystem
-    logger.info("[4/6] Initializing workshop & factory manager...")
+    # 4. Chat, Streaming & E-Commerce Subsystems
+    logger.info("[4/7] Loading Live Chat, Media Streaming & E-Commerce Store...")
+    chat_mgr = ChatRoomManager()
+    media_stream = MediaStreamEngine()
+    ecommerce_mgr = ECommerceManager()
+
+    # 5. Factory / Workshop Subsystem
+    logger.info("[5/7] Initializing workshop & factory manager...")
     factory_mgr = FactoryManager()
     logger.info(f"  Factory initialized ({len(factory_mgr.inventory.parts)} parts in stock).")
 
-    # 5. Launch GUI
-    logger.info("[5/6] Launching graphical desktop interface...")
+    # 6. Launch Desktop Native GUI
+    logger.info("[6/7] Launching graphical desktop interface...")
     app = AuraToolUI(
         license_info=license_status,
         driver_status=drivers_ready,

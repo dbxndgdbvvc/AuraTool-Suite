@@ -2,7 +2,7 @@
 AuraTool-Suite — Build & Packaging Script
 ===========================================
 Compiles the entire project into standalone executable desktop apps:
-  - Windows (x64) via PyInstaller
+  - Windows (x64) via PyInstaller (.exe)
   - Linux Ubuntu (x64) via PyInstaller
 Outputs a ready-to-use desktop application directory for direct execution.
 """
@@ -25,7 +25,6 @@ DATA_DIRS = [
 
 
 def clean_build_artifacts():
-    """Remove previous build artifacts."""
     print("[*] Cleaning previous build artifacts...")
     for dirname in ["build", "dist", "__pycache__"]:
         if os.path.isdir(dirname):
@@ -35,7 +34,6 @@ def clean_build_artifacts():
 
 
 def ensure_pyinstaller():
-    """Ensure PyInstaller is installed."""
     try:
         import PyInstaller  # noqa: F401
         print("[+] PyInstaller found.")
@@ -46,7 +44,6 @@ def ensure_pyinstaller():
 
 
 def build_executable():
-    """Build standalone desktop executable package using PyInstaller."""
     print("=" * 60)
     print(f"  AuraTool-Suite Build — {platform.system()} ({platform.machine()})")
     print("=" * 60)
@@ -73,7 +70,6 @@ def build_executable():
         "--hidden-import=core.api",
         "--hidden-import=core.security",
         "--hidden-import=core.licensing",
-        "--hidden-import=core.license_manager",
         "--hidden-import=modules",
         "--hidden-import=modules.flashing_engine",
         "--hidden-import=modules.biometrics_fix",
@@ -83,6 +79,9 @@ def build_executable():
         "--hidden-import=modules.account_repair",
         "--hidden-import=modules.aura_ai_assistant",
         "--hidden-import=modules.ultimate_repair",
+        "--hidden-import=modules.chat_rooms",
+        "--hidden-import=modules.media_stream",
+        "--hidden-import=modules.ecommerce",
         "--hidden-import=drivers",
         "--hidden-import=drivers.driver_manager",
         "--hidden-import=ui",
