@@ -78,7 +78,8 @@ class AuraToolUI:
         self.title_lbl = ttk.Label(header, text="AuraTool-Suite 2030", font=("Helvetica", 16, "bold"))
         self.title_lbl.pack(side=tk.LEFT)
 
-        lic_text = f"License: {self.license_info['tier']} ({self.license_info['days_remaining']} days left)"
+        hwid_text = f"HWID: {self.license_info.get('hwid', 'UNKNOWN')}"
+        lic_text = f"License: {self.license_info['tier']} ({self.license_info['days_remaining']} days left) | {hwid_text}"
         self.lic_lbl = ttk.Label(header, text=lic_text, font=("Helvetica", 10), foreground="green" if self.license_info['is_active'] else "red")
         self.lic_lbl.pack(side=tk.RIGHT)
 
@@ -221,36 +222,29 @@ class AuraToolUI:
 
     def _build_workshop_tab(self, parent):
         """Build the Workshop & Factory Management tab."""
-        # ---- Sub-notebook for sub-sections ----
         sub = ttk.Notebook(parent)
         sub.pack(expand=True, fill=tk.BOTH)
 
-        # --- Sub-tab: Clients ---
         clients_frame = ttk.Frame(sub, padding=8)
         sub.add(clients_frame, text="Clients")
         self._build_workshop_clients(clients_frame)
 
-        # --- Sub-tab: Tickets ---
         tickets_frame = ttk.Frame(sub, padding=8)
         sub.add(tickets_frame, text="Repair Tickets")
         self._build_workshop_tickets(tickets_frame)
 
-        # --- Sub-tab: Inventory ---
         inv_frame = ttk.Frame(sub, padding=8)
         sub.add(inv_frame, text="Spare Parts Inventory")
         self._build_workshop_inventory(inv_frame)
 
-        # --- Sub-tab: Diagnostics ---
         diag_frame = ttk.Frame(sub, padding=8)
         sub.add(diag_frame, text="Diagnostics")
         self._build_workshop_diagnostics(diag_frame)
 
-        # --- Sub-tab: Dashboard ---
         dash_frame = ttk.Frame(sub, padding=8)
         sub.add(dash_frame, text="Dashboard")
         self._build_workshop_dashboard(dash_frame)
 
-    # -- Workshop: Clients Sub-tab ---------------------------------------
     def _build_workshop_clients(self, parent):
         ttk.Label(parent, text="Client Management", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=(0, 5))
 
@@ -289,7 +283,6 @@ class AuraToolUI:
         self.fw_clients_tree.pack(fill=tk.BOTH, expand=True, pady=5)
         self._fw_refresh_clients()
 
-    # -- Workshop: Tickets Sub-tab ---------------------------------------
     def _build_workshop_tickets(self, parent):
         ttk.Label(parent, text="Repair Ticket Management", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=(0, 5))
 
@@ -339,7 +332,6 @@ class AuraToolUI:
         self.fw_tk_tree.pack(fill=tk.BOTH, expand=True, pady=5)
         self._fw_refresh_tickets()
 
-    # -- Workshop: Inventory Sub-tab -------------------------------------
     def _build_workshop_inventory(self, parent):
         ttk.Label(parent, text="Spare Parts Inventory", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=(0, 5))
 
@@ -383,7 +375,6 @@ class AuraToolUI:
         self.fw_inv_tree.pack(fill=tk.BOTH, expand=True, pady=5)
         self._fw_refresh_inventory()
 
-    # -- Workshop: Diagnostics Sub-tab -----------------------------------
     def _build_workshop_diagnostics(self, parent):
         ttk.Label(parent, text="Diagnostic Workflow Tracker", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=(0, 5))
 
@@ -404,7 +395,6 @@ class AuraToolUI:
         self.fw_diag_status = ttk.Label(parent, text="", font=("Helvetica", 10))
         self.fw_diag_status.pack(anchor=tk.W, pady=2)
 
-    # -- Workshop: Dashboard Sub-tab -------------------------------------
     def _build_workshop_dashboard(self, parent):
         ttk.Label(parent, text="Workshop Dashboard & Reports", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=(0, 5))
 
@@ -415,9 +405,6 @@ class AuraToolUI:
         self.fw_dash_text.pack(fill=tk.BOTH, expand=True, pady=5)
         self._fw_refresh_dashboard()
 
-    # ------------------------------------------------------------------
-    #  Workshop — Action Methods
-    # ------------------------------------------------------------------
     def _fw_add_client(self):
         name = self.fw_client_name.get().strip()
         if not name:

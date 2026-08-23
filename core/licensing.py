@@ -1,16 +1,19 @@
 """
-AuraTool-Suite — Smart Licensing Engine
-=========================================
+AuraTool-Suite — Smart Licensing Engine with Hardware ID (HWID) Binding
+========================================================================
 Flexible licensing system providing:
+  - HWID generation (CPU/Motherboard/Disk/Hostname fingerprinting)
   - 15-Day Free Trial (fully featured)
   - 6-Month Professional Plan
-  - 1-Year Ultimate Plan (VIP) with continuous updates valid through 2030
-  - Cryptographic key verification and expiration tracking
+  - 1-Year Ultimate Plan (VIP) through 2030
+  - Cryptographic key verification bound to unique machine HWID
 """
 
 import datetime
 import hashlib
-import secrets
+import platform
+import subprocess
+import os
 from enum import Enum
 
 
@@ -61,13 +64,44 @@ TIER_CONFIG = {
 }
 
 
+def get_hardware_id() -> str:
+    """Generate a unique Hardware ID (HWID) based on machine characteristics."""
+    os_name = platform.system()
+    raw_identifiers = []
+
+    raw_identifiers.append(platform.node())
+    raw_identifiers.append(platform.machine())
+
+    if os_name == "Windows":
+        try:
+            cmd = "wmic csproduct get uuid"
+            uuid = subprocess.check_output(cmd, shell=True).decode().split()[-1]
+            raw_identifiers.append(uuid)
+        except Exception:
+            raw_identifiers.append(os.environ.get("COMPUTERNAME", "WIN_GENERIC"))
+    elif os_name == "Linux":
+        try:
+            if os.path.exists("/etc/machine-id"):
+                with open("/etc/machine-id", "r") as f:
+                    raw_identifiers.append(f.read().strip())
+            elif os.path.exists("/var/lib/dbus/machine-id"):
+                with open("/var/lib/dbus/machine-id", "r") as f:
+                    raw_identifiers.append(f.read().strip())
+        except Exception:
+            raw_identifiers.append("LINUX_GENERIC")
+
+    combined = ":".join(raw_identifiers)
+    hwid_hash = hashlib.sha256(combined.encode("utf-8")).hexdigest()[:16].upper()
+    return f"AT-{hwid_hash[:4]}-{hwid_hash[4:8]}-{hwid_hash[8:12]}-{hwid_hash[12:16]}"
+
+
 class LicenseManager:
     """
-    Handles license activation, cryptographic verification, expiration
-    tracking, and feature-gating across the AuraTool-Suite ecosystem.
+    Handles license activation, HWID binding, cryptographic verification,
+    expiration tracking, and feature-gating across AuraTool-Suite.
     """
 
-    SECRET_SALT = "AuraToolSuite2025SecretKey"
+    SECRET_SALT = "AuraToolSuite2030SecretKey"
     VERSION = "2.0.0"
 
     def __init__(
@@ -78,11 +112,7 @@ class LicenseManager:
         self.activation_date = activation_date or datetime.date.today()
         self.tier = tier
         self.license_key = ""
-        self.logger_name = "AuraTool.License"
-
-    # ================================================================== #
-    #  STATUS CHECK
-    # ================================================================== #
+        self.hwid = get_hardware_id()
 
     def check_license_status(self) -> dict:
         """Check current license status and return detailed info."""
@@ -95,10 +125,12 @@ class LicenseManager:
 
         return {
             "tier": self.tier.value,
+            "tier_label": self.tier.value,
             "is_active": is_active,
             "days_remaining": max(0, (expiration_date - today).days) if is_active else 0,
             "activation_date": str(self.activation_date),
             "expiration_date": str(expiration_date),
+            "hwid": self.hwid,
             "features": config["features"],
             "device_limit": config["device_limit"],
             "cloud_backup": config["cloud_backup"],
@@ -107,13 +139,9 @@ class LicenseManager:
             "supported_until_year": 2030 if self.tier == LicenseTier.ONE_YEAR_VIP else None,
         }
 
-    # ================================================================== #
-    #  KEY GENERATION & ACTIVATION
-    # ================================================================== #
-
     def generate_valid_key(self, prefix: str) -> str:
-        """Generate a valid signed license key for a given prefix."""
-        raw = f"{prefix}-{self.SECRET_SALT}"
+        """Generate a valid signed license key for a given prefix and current HWID."""
+        raw = f"{prefix}-{self.hwid}-{self.SECRET_SALT}"
         checksum = hashlib.sha256(raw.encode()).hexdigest()[:8].upper()
         return f"{prefix}-{checksum}"
 
@@ -130,10 +158,7 @@ class LicenseManager:
         return self.generate_valid_key("AT-1Y")
 
     def activate_key(self, key: str) -> bool:
-        """
-        Validate a license key using cryptographic signature check
-        and update the tier accordingly.
-        """
+        """Validate a license key against HWID signature check."""
         key = key.strip().upper()
         if not key:
             return False
@@ -166,33 +191,12 @@ class LicenseManager:
         self.tier = LicenseTier.EXPIRED
         self.license_key = ""
 
-    # ================================================================== #
-    #  FEATURE GATING
-    # ================================================================== #
+    def enforce_or_exit((self) -> dict:
+        """Return status for system launch initialization."""
+        return self.check_license_status()
 
     def has_feature(self, feature_name: str) -> bool:
         """Check if the current tier includes a specific feature."""
         config = TIER_CONFIG.get(self.tier, {})
         features = config.get("features", [])
         return any(feature_name.lower() in f.lower() for f in features)
-
-    def can_use_device(self, current_count: int = 0) -> bool:
-        """Check if the user can add another device under their plan."""
-        config = TIER_CONFIG.get(self.tier, {})
-        limit = config.get("device_limit", 0)
-        if limit == -1:
-            return True  # Unlimited
-        return current_count < limit
-
-    def get_all_tiers(self) -> dict:
-        """Return all available tier configurations."""
-        result = {}
-        for tier, config in TIER_CONFIG.items():
-            result[tier.value] = {
-                "days": config["days"],
-                "features": config["features"],
-                "device_limit": config["device_limit"],
-                "cloud_backup": config["cloud_backup"],
-                "priority_support": config["priority_support"],
-            }
-        return result
