@@ -8,7 +8,7 @@ Supports Windows and Linux Ubuntu from a single codebase.
 import logging
 import sys
 
-from core.licensing import LicenseManager
+from core.license_manager import LicenseManager
 from core.api import APIClient
 from core.security import SecurityManager
 from drivers.driver_manager import DriverManager
@@ -45,9 +45,16 @@ def main():
     logger.info("[1/6] Initializing core subsystems...")
 
     license_mgr = LicenseManager()
-    license_status = license_mgr.check_license_status()
+    license_status = license_mgr.enforce_or_exit()
+    if not license_status["is_active"]:
+        logger.critical(
+            "License expired (tier: %s, expired: %s). Exiting.",
+            license_status["tier_label"],
+            license_status["expiration_date"],
+        )
+        sys.exit(1)
     logger.info(
-        f"  License: {license_status['tier']} "
+        f"  License: {license_status['tier_label']} "
         f"(Active: {license_status['is_active']}, "
         f"Days left: {license_status['days_remaining']})"
     )

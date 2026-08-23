@@ -121,6 +121,7 @@ def build_executable():
         "--hidden-import=core.api",
         "--hidden-import=core.security",
         "--hidden-import=core.licensing",
+        "--hidden-import=core.license_manager",
         "--hidden-import=modules",
         "--hidden-import=modules.flashing_engine",
         "--hidden-import=modules.biometrics_fix",
@@ -188,7 +189,7 @@ a = Analysis(
     binaries=[],
     datas=[{', '.join(datas)}],
     hiddenimports=[
-        'core', 'core.api', 'core.security', 'core.licensing',
+        'core', 'core.api', 'core.security', 'core.licensing', 'core.license_manager',
         'modules.flashing_engine', 'modules.biometrics_fix',
         'modules.localization', 'modules.smart_devices',
         'modules.data_recovery', 'modules.account_repair',
