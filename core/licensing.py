@@ -191,7 +191,7 @@ class LicenseManager:
         self.tier = LicenseTier.EXPIRED
         self.license_key = ""
 
-    def enforce_or_exit((self) -> dict:
+    def enforce_or_exit(self) -> dict:
         """Return status for system launch initialization."""
         return self.check_license_status()
 
