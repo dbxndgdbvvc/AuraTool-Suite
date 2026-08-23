@@ -53,19 +53,25 @@ from __future__ import annotations
 
 import json
 import sys
+import os
 import argparse
 import logging
+import tempfile
 from enum import Enum
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from typing import Any
 
-import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from auratool_factory import (
     FactoryManager, DeviceCategory, RepairStatus, PartType,
     COMMON_PARTS,
+)
+from modules.factory_export import (
+    export_clients_csv, export_tickets_csv, export_inventory_csv,
+    export_revenue_csv, export_dashboard_csv, export_dashboard_pdf,
+    export_tickets_pdf, export_inventory_pdf, export_ticket_invoice_pdf,
 )
 
 logger = logging.getLogger("AuraTool.API")
@@ -185,6 +191,18 @@ class FactoryAPIHandler(BaseHTTPRequestHandler):
 
     def _send_error(self, message: str, status: int = 400) -> None:
         self._send_json({"error": message}, status)
+
+    def _send_file(self, filepath: str, download_name: str, content_type: str) -> None:
+        """Send a file as a download response."""
+        with open(filepath, "rb") as f:
+            body = f.read()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Disposition", f'attachment; filename="{download_name}"')
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _read_body(self) -> dict:
         length = int(self.headers.get("Content-Length", 0))
@@ -524,6 +542,71 @@ def register_routes(r: Router) -> None:
         report = h.factory.dashboard()
         report["exported_at"] = __import__("datetime").datetime.now().isoformat()
         h._send_json(report)
+
+    # === Export (CSV / PDF) =================================================
+
+    @r.get("/api/export/clients.csv")
+    def export_clients(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), "aura_clients.csv")
+        export_clients_csv(h.factory, tmp)
+        h._send_file(tmp, "clients.csv", "text/csv")
+
+    @r.get("/api/export/tickets.csv")
+    def export_tickets_csv_route(h: FactoryAPIHandler, params: dict):
+        q = h._query()
+        status = RepairStatus(q["status"][0]) if "status" in q else None
+        cat = DeviceCategory(q["category"][0]) if "category" in q else None
+        tmp = os.path.join(tempfile.gettempdir(), "aura_tickets.csv")
+        export_tickets_csv(h.factory, tmp, status, cat)
+        h._send_file(tmp, "tickets.csv", "text/csv")
+
+    @r.get("/api/export/inventory.csv")
+    def export_inventory(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), "aura_inventory.csv")
+        export_inventory_csv(h.factory, tmp)
+        h._send_file(tmp, "inventory.csv", "text/csv")
+
+    @r.get("/api/export/revenue.csv")
+    def export_revenue(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), "aura_revenue.csv")
+        export_revenue_csv(h.factory, tmp)
+        h._send_file(tmp, "revenue.csv", "text/csv")
+
+    @r.get("/api/export/dashboard.csv")
+    def export_dashboard_csv_route(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), "aura_dashboard.csv")
+        export_dashboard_csv(h.factory, tmp)
+        h._send_file(tmp, "dashboard.csv", "text/csv")
+
+    @r.get("/api/export/dashboard.pdf")
+    def export_dashboard_pdf_route(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), "aura_dashboard.pdf")
+        export_dashboard_pdf(h.factory, tmp)
+        h._send_file(tmp, "dashboard.pdf", "application/pdf")
+
+    @r.get("/api/export/tickets.pdf")
+    def export_tickets_pdf_route(h: FactoryAPIHandler, params: dict):
+        q = h._query()
+        status = RepairStatus(q["status"][0]) if "status" in q else None
+        cat = DeviceCategory(q["category"][0]) if "category" in q else None
+        tmp = os.path.join(tempfile.gettempdir(), "aura_tickets.pdf")
+        export_tickets_pdf(h.factory, tmp, status, cat)
+        h._send_file(tmp, "tickets.pdf", "application/pdf")
+
+    @r.get("/api/export/inventory.pdf")
+    def export_inventory_pdf_route(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), "aura_inventory.pdf")
+        export_inventory_pdf(h.factory, tmp)
+        h._send_file(tmp, "inventory.pdf", "application/pdf")
+
+    @r.get("/api/export/invoice/<id>.pdf")
+    def export_invoice_pdf(h: FactoryAPIHandler, params: dict):
+        tmp = os.path.join(tempfile.gettempdir(), f"aura_invoice_{params['id']}.pdf")
+        try:
+            export_ticket_invoice_pdf(h.factory, params["id"], tmp)
+        except ValueError as e:
+            raise ErrorResponse(str(e), 404)
+        h._send_file(tmp, f"invoice_{params['id']}.pdf", "application/pdf")
 
 
 # ---------------------------------------------------------------------------
