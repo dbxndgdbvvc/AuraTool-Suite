@@ -6,6 +6,7 @@ Provides:
   - Secure token generation and key management
   - AES-like symmetric encryption/decryption (using stdlib only)
   - UFS/eMMC Health Guardian — storage memory lifecycle monitoring
+  - System clock tamper detection for licensing enforcement
   - Secure data wipe utilities for decommissioned devices
 """
 
@@ -20,7 +21,7 @@ import time
 class SecurityManager:
     """
     Central security engine providing cryptographic utilities, data
-    protection, and hardware storage health monitoring.
+    protection, system clock anti-tamper, and hardware storage health monitoring.
     """
 
     SECRET_SALT = b"AuraToolSuite2025SecureSalt"
@@ -37,6 +38,19 @@ class SecurityManager:
 
     def __init__(self):
         self._master_key = secrets.token_bytes(32)
+
+    # ================================================================== #
+    #  SYSTEM CLOCK ANTI-TAMPER CHECK
+    # ================================================================== #
+
+    @staticmethod
+    def detect_system_clock_tamper(stored_timestamp: float) -> bool:
+        """
+        Detects if user rolled back the operating system date/time.
+        Returns True if system clock is behind the stored timestamp by > 1 hour.
+        """
+        current_now = time.time()
+        return current_now < (stored_timestamp - 3600)
 
     # ================================================================== #
     #  HASHING UTILITIES
@@ -99,7 +113,6 @@ class SecurityManager:
         iv = secrets.token_bytes(16)
         data = plaintext.encode("utf-8")
 
-        # Generate key stream via HMAC-based expansion
         keystream = b""
         counter = 0
         while len(keystream) < len(data):
@@ -137,12 +150,7 @@ class SecurityManager:
     # ================================================================== #
 
     def scan_storage_health(self, device_id: str, stats: dict = None) -> dict:
-        """
-        Analyse UFS/eMMC health indicators and return a lifecycle report.
-        *stats* may contain:
-            - total_blocks, bad_blocks, wear_level, read_errors,
-              write_errors, power_cycles, temperature_celsius
-        """
+        """Analyse UFS/eMMC health indicators and return a lifecycle report."""
         if stats is None:
             stats = {
                 "total_blocks": 61440,
@@ -161,7 +169,6 @@ class SecurityManager:
         wear = stats.get("wear_level", 100)
         bad_pct = (bad / total * 100) if total else 0
 
-        # Calculate composite health score
         health_score = max(
             0,
             100 - (bad_pct * 2) - ((100 - wear) * 0.5)
@@ -212,25 +219,15 @@ class SecurityManager:
     # ================================================================== #
 
     def secure_wipe_data(self, data: bytearray) -> bytearray:
-        """
-        Overwrite data in-place with pseudo-random patterns (3-pass wipe).
-        Pass 1: zeros, Pass 2: ones, Pass 3: random.
-        """
+        """Overwrite data in-place with pseudo-random patterns (3-pass wipe)."""
         length = len(data)
-
-        # Pass 1: zeros
         for i in range(length):
             data[i] = 0x00
-
-        # Pass 2: ones
         for i in range(length):
             data[i] = 0xFF
-
-        # Pass 3: random
         random_bytes = secrets.token_bytes(length)
         for i in range(length):
             data[i] = random_bytes[i]
-
         return data
 
     def wipe_file_secure(self, filepath: str, passes: int = 3) -> bool:
@@ -250,26 +247,10 @@ class SecurityManager:
                     os.fsync(f.fileno())
             os.remove(filepath)
             return True
-        except (OSError, IOError) as e:
+        except (OSError, IOError):
             return False
-
-    # ================================================================== #
-    #  INTEGRITY VERIFICATION
-    # ================================================================== #
 
     def verify_file_integrity(self, filepath: str, expected_sha256: str) -> bool:
         """Verify a file's SHA-256 hash matches the expected value."""
         actual = self.hash_file(filepath, "sha256")
         return hmac.compare_digest(actual, expected_sha256)
-
-    def create_integrity_manifest(self, directory: str) -> dict:
-        """Create a SHA-256 manifest of all files in a directory."""
-        manifest = {}
-        for root, _dirs, files in os.walk(directory):
-            for fname in sorted(files):
-                fpath = os.path.join(root, fname)
-                try:
-                    manifest[fpath] = self.hash_file(fpath, "sha256")
-                except (OSError, IOError):
-                    pass
-        return manifest
