@@ -8,6 +8,8 @@ from modules.biometrics_fix import BiometricsFix
 from modules.smart_devices import SmartDeviceManager
 from modules.data_recovery import DataRecoveryModule
 from modules.account_repair import AccountRepairModule
+from modules.aura_ai_assistant import AuraAIAssistant
+from modules.ultimate_repair import UltimateRepairModule
 
 class TextHandler(logging.Handler):
     """Custom logging handler to stream logs directly into UI Console."""
@@ -25,20 +27,22 @@ class TextHandler(logging.Handler):
         self.text_widget.after(0, append)
 
 class AuraToolUI:
-    """Cross-platform GUI implementation using Tkinter for Windows and Linux compatibility."""
+    """Cross-platform GUI implementation using Tkinter for Windows and Linux Ubuntu compatibility."""
 
     MANUFACTURERS = {
-        "Samsung": ["Galaxy S23", "Galaxy S22", "Galaxy A54", "Galaxy Tab S8"],
+        "Samsung": ["Galaxy S23", "Galaxy S22", "Galaxy A54", "Galaxy Tab S8", "Galaxy Watch 6"],
+        "Apple": ["iPhone 15 Pro", "iPhone 14", "iPad Pro 12.9", "Apple Watch Series 9"],
         "Xiaomi": ["Redmi Note 12", "Xiaomi 13 Pro", "Mi 11 Ultra", "POCO X5"],
         "Huawei": ["P50 Pro", "Mate 40 Pro", "Nova 10", "Y9 Prime"],
+        "Smart Wearables & AR/VR": ["Apple Vision Pro", "Meta Quest 3", "Ray-Ban Meta Smart Glasses", "WearOS Generic"],
         "Qualcomm Generic": ["Snapdragon 8 Gen 2 Generic", "Snapdragon 778G Generic"],
         "MediaTek (MTK) Generic": ["Dimensity 9000 Generic", "Helio G99 Generic"]
     }
 
     def __init__(self, license_info: dict, driver_status: dict):
         self.root = tk.Tk()
-        self.root.title("AuraTool-Suite - Advanced Maintenance Framework")
-        self.root.geometry("900x650")
+        self.root.title("AuraTool-Suite - Advanced Ecosystem Maintenance Framework (2000-2030)")
+        self.root.geometry("960x700")
 
         self.license_info = license_info
         self.driver_status = driver_status
@@ -48,6 +52,8 @@ class AuraToolUI:
         self.smart_dev_mgr = SmartDeviceManager()
         self.data_recovery = DataRecoveryModule()
         self.account_repair = AccountRepairModule()
+        self.ai_assistant = AuraAIAssistant()
+        self.ultimate_repair = UltimateRepairModule()
 
         self._build_ui()
         self._setup_logging()
@@ -64,7 +70,7 @@ class AuraToolUI:
         header = ttk.Frame(self.root, padding=10)
         header.pack(fill=tk.X)
 
-        self.title_lbl = ttk.Label(header, text="AuraTool-Suite", font=("Helvetica", 16, "bold"))
+        self.title_lbl = ttk.Label(header, text="AuraTool-Suite 2030", font=("Helvetica", 16, "bold"))
         self.title_lbl.pack(side=tk.LEFT)
 
         lic_text = f"License: {self.license_info['tier']} ({self.license_info['days_remaining']} days left)"
@@ -75,32 +81,42 @@ class AuraToolUI:
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(expand=True, fill=tk.BOTH, padx=10, pady=5)
 
-        # Tab 1: Manufacturer & Model Operations
+        # Tab 1: AI Assistant
+        ai_tab = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(ai_tab, text="Aura-AI Diagnostic")
+        self._build_ai_tab(ai_tab)
+
+        # Tab 2: Vendor Operations
         vendor_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(vendor_tab, text="Vendor Operations")
         self._build_vendor_tab(vendor_tab)
 
-        # Tab 2: Biometrics & Diagnostics
+        # Tab 3: Ultimate System Repair
+        ult_repair_tab = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(ult_repair_tab, text="Ultimate Repair")
+        self._build_ultimate_repair_tab(ult_repair_tab)
+
+        # Tab 4: Biometrics & Diagnostics
         bio_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(bio_tab, text="Biometrics & Diagnostics")
         self._build_biometrics_tab(bio_tab)
 
-        # Tab 3: Data Recovery
+        # Tab 5: Data Recovery
         recovery_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(recovery_tab, text="Data Recovery")
         self._build_recovery_tab(recovery_tab)
 
-        # Tab 4: Network & Security Maintenance
+        # Tab 6: Network & Security Maintenance
         repair_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(repair_tab, text="Network & Repair")
         self._build_repair_tab(repair_tab)
 
-        # Tab 5: Smart Devices & Peripherals
+        # Tab 7: Smart Devices & Peripherals
         smart_tab = ttk.Frame(self.notebook, padding=10)
-        self.notebook.add(smart_tab, text="Smart Devices")
+        self.notebook.add(smart_tab, text="Smart Devices & Ecosystem")
         self._build_smart_tab(smart_tab)
 
-        # Tab 6: Settings & Language
+        # Tab 8: Settings & Language
         settings_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(settings_tab, text="Settings")
         self._build_settings_tab(settings_tab)
@@ -111,6 +127,22 @@ class AuraToolUI:
 
         self.console = scrolledtext.ScrolledText(console_frame, height=8, state='disabled', bg="black", fg="light green", font=("Consolas", 9))
         self.console.pack(fill=tk.BOTH, expand=True)
+
+    def _build_ai_tab(self, parent):
+        ttk.Label(parent, text="Aura-AI Assistant & Log Diagnostic Engine", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        
+        cmd_frame = ttk.Frame(parent, padding=5)
+        cmd_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(cmd_frame, text="Enter Voice/Text Command:").pack(side=tk.LEFT, padx=5)
+        self.ai_cmd_entry = ttk.Entry(cmd_frame, width=45)
+        self.ai_cmd_entry.pack(side=tk.LEFT, padx=5)
+        self.ai_cmd_entry.insert(0, "Analyze device log and bypass FRP")
+        
+        ttk.Button(cmd_frame, text="Run AI Command", command=self._action_run_ai_command).pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(parent, text="Analyze System Logs (Instant AI Diagnosis)", command=self._action_analyze_logs).pack(anchor=tk.W, pady=5)
+        ttk.Button(parent, text="Check Ecosystem & License 2030 Status", command=self._action_check_ai_license).pack(anchor=tk.W, pady=5)
 
     def _build_vendor_tab(self, parent):
         top_frame = ttk.Frame(parent)
@@ -132,18 +164,28 @@ class AuraToolUI:
         btn_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
         ttk.Button(btn_frame, text="Flash Firmware Image", command=self._action_flash).grid(row=0, column=0, padx=5, pady=5, sticky=tk.EW)
-        ttk.Button(btn_frame, text="Read Device Partition Table", command=self._action_read_ptable).grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
-        ttk.Button(btn_frame, text="Verify System Integrity", command=self._action_verify).grid(row=1, column=0, padx=5, pady=5, sticky=tk.EW)
-        ttk.Button(btn_frame, text="Reboot to Fastboot/Bootloader", command=self._action_reboot_fastboot).grid(row=1, column=1, padx=5, pady=5, sticky=tk.EW)
+        ttk.Button(btn_frame, text="Read Partition Table", command=self._action_read_ptable).grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
+        ttk.Button(btn_frame, text="Check Storage Health (UFS/eMMC)", command=self._action_storage_health).grid(row=1, column=0, padx=5, pady=5, sticky=tk.EW)
+        ttk.Button(btn_frame, text="Reboot Fastboot / BROM / EDL", command=self._action_reboot_fastboot).grid(row=1, column=1, padx=5, pady=5, sticky=tk.EW)
+
+    def _build_ultimate_repair_tab(self, parent):
+        ttk.Label(parent, text="Ultimate System & Account Repair Suite", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        
+        btn_frame = ttk.Frame(parent, padding=5)
+        btn_frame.pack(fill=tk.X, pady=10)
+
+        ttk.Button(btn_frame, text="Fix Bootloop & Memory Errors", command=self._action_fix_major).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Fix App Crashes & Network Stack", command=self._action_fix_minor).grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Repair Cloud & Account Sync Loops", command=self._action_fix_cloud_sync).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
 
     def _build_biometrics_tab(self, parent):
         ttk.Label(parent, text="Biometric Hardware Sensor Diagnostics & Calibration", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
         ttk.Button(parent, text="Run Hardware Diagnostics", command=self._action_bio_diag).pack(anchor=tk.W, pady=5)
-        ttk.Button(parent, text="Recalibrate Optical Fingerprint Sensor", command=self._action_bio_calib).pack(anchor=tk.W, pady=5)
+        ttk.Button(parent, text="Recalibrate Optical Fingerprint & Face Sensors", command=self._action_bio_calib).pack(anchor=tk.W, pady=5)
 
     def _build_recovery_tab(self, parent):
-        ttk.Label(parent, text="Deep Scan & File Recovery System", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
-        ttk.Label(parent, text="Scan for lost media files, documents, contacts, SMS messages, and call logs.").pack(anchor=tk.W, pady=2)
+        ttk.Label(parent, text="Deep Scan & Data Recovery System", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        ttk.Label(parent, text="Scan lost media, contacts, SMS messages, and system logs across mobile, tablet & wearable storage.").pack(anchor=tk.W, pady=2)
         
         btn_frame = ttk.Frame(parent, padding=5)
         btn_frame.pack(fill=tk.X, pady=10)
@@ -153,18 +195,19 @@ class AuraToolUI:
         ttk.Button(btn_frame, text="Extract Recovered Media", command=self._action_extract_media).pack(side=tk.LEFT, padx=5)
 
     def _build_repair_tab(self, parent):
-        ttk.Label(parent, text="Network Partition (EFS/NVRAM) & Diagnostics Maintenance", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        ttk.Label(parent, text="Network Partition (EFS/NVRAM) & Security Maintenance", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
         
         btn_frame = ttk.Frame(parent, padding=5)
         btn_frame.pack(fill=tk.X, pady=10)
 
-        ttk.Button(btn_frame, text="Run Account & Security Diagnostics", command=self._action_run_acc_diag).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-        ttk.Button(btn_frame, text="Backup EFS / NVRAM Partitions", command=self._action_backup_efs).grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
-        ttk.Button(btn_frame, text="Restore EFS / NVRAM Partitions", command=self._action_restore_efs).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Run Account & FRP Diagnostics", command=self._action_run_acc_diag).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Bypass FRP & Cloud Lock", command=self._action_bypass_frp).grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Backup EFS / NVRAM Partitions", command=self._action_backup_efs).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Button(btn_frame, text="Restore EFS / NVRAM Partitions", command=self._action_restore_efs).grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
 
     def _build_smart_tab(self, parent):
-        ttk.Label(parent, text="Connected Non-Phone Smart Devices (Tablets, Wearables)", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
-        ttk.Button(parent, text="Scan for Smart Devices", command=self._action_scan_smart).pack(anchor=tk.W, pady=5)
+        ttk.Label(parent, text="Connected Ecosystem Smart Devices (Tablets, iPads, Wearables, AR/VR)", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
+        ttk.Button(parent, text="Scan Ecosystem Devices (2000-2030)", command=self._action_scan_smart).pack(anchor=tk.W, pady=5)
 
     def _build_settings_tab(self, parent):
         ttk.Label(parent, text="Select Language / اختر اللغة:", font=("Helvetica", 10)).pack(anchor=tk.W, pady=5)
@@ -184,6 +227,20 @@ class AuraToolUI:
         if models:
             self.model_cb.current(0)
 
+    def _action_run_ai_command(self):
+        cmd = self.ai_cmd_entry.get()
+        res = self.ai_assistant.process_voice_or_text_command(cmd)
+        logging.info(f"AI Assistant Response: {res['message']}")
+
+    def _action_analyze_logs(self):
+        sample_log = "Error: kernel panic bad block ufs error frp_locked"
+        diag = self.ai_assistant.analyze_system_logs(sample_log)
+        messagebox.showinfo("Aura-AI Diagnostic", f"Health Score: {diag['health_score']}%\nIssues: {', '.join(diag['issues_detected'])}\nRecommendation: {diag['recommended_action']}")
+
+    def _action_check_ai_license(self):
+        status = self.ai_assistant.verify_extended_license_2030()
+        logging.info(f"License Verified: {status['tier']} | Ecosystem Support until Year {status['supported_until_year']}")
+
     def _action_flash(self):
         model = self.model_cb.get()
         logging.info(f"Starting firmware flash process for model: {model}")
@@ -192,11 +249,27 @@ class AuraToolUI:
     def _action_read_ptable(self):
         logging.info(f"Reading partition table for device model: {self.model_cb.get()}")
 
-    def _action_verify(self):
-        logging.info(f"Verifying system software integrity for: {self.model_cb.get()}")
+    def _action_storage_health(self):
+        model = self.model_cb.get()
+        health = self.flashing_engine.scan_storage_health(model)
+        logging.info(f"Storage Health ({model}): {health['storage_health']} | Read: {health['read_speed_mbps']} MB/s")
 
     def _action_reboot_fastboot(self):
         logging.info(f"Sending reboot-bootloader signal to connected device ({self.model_cb.get()}).")
+
+    def _action_fix_major(self):
+        model = self.model_cb.get()
+        res = self.ultimate_repair.repair_major_system_issues(model)
+        logging.info(f"Major Repair Complete for {model}: {res['status']}")
+
+    def _action_fix_minor(self):
+        model = self.model_cb.get()
+        res = self.ultimate_repair.repair_minor_system_issues(model)
+        logging.info(f"Minor Repair Complete for {model}: {res['status']}")
+
+    def _action_fix_cloud_sync(self):
+        model = self.model_cb.get()
+        self.ultimate_repair.repair_cloud_and_account_sync(model)
 
     def _action_bio_diag(self):
         results = self.biometrics_fix.run_diagnostics(self.model_cb.get())
@@ -224,6 +297,10 @@ class AuraToolUI:
         model = self.model_cb.get()
         res = self.account_repair.run_account_diagnostics(model)
         logging.info(f"Account & Security Diagnostics Result: {res}")
+
+    def _action_bypass_frp(self):
+        model = self.model_cb.get()
+        self.account_repair.bypass_frp_and_cloud_locks(model)
 
     def _action_backup_efs(self):
         model = self.model_cb.get()
