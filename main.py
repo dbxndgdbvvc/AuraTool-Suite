@@ -23,6 +23,7 @@ from modules.ultimate_repair import UltimateRepairModule
 from modules.android import AndroidDeviceManager
 from modules.apple import AppleDeviceManager
 from modules.download import DownloadManager
+from auratool_factory import FactoryManager
 from ui.app import AuraToolUI
 
 
@@ -93,13 +94,24 @@ def main():
     download_mgr = DownloadManager()
 
     # ------------------------------------------------------------------ #
-    #  6. Launch GUI
+    #  6. Factory / Workshop Management
     # ------------------------------------------------------------------ #
-    logger.info("[6/6] Launching graphical interface...")
+    logger.info("[6/7] Initializing workshop & factory management...")
+
+    factory_mgr = FactoryManager()
+    logger.info(f"  Factory: {len(factory_mgr.inventory.parts)} parts, "
+                f"{len(factory_mgr.clients.clients)} clients, "
+                f"{len(factory_mgr.tickets)} tickets")
+
+    # ------------------------------------------------------------------ #
+    #  7. Launch GUI
+    # ------------------------------------------------------------------ #
+    logger.info("[7/7] Launching graphical interface...")
 
     app = AuraToolUI(
         license_info=license_status,
         driver_status=drivers_ready,
+        factory_mgr=factory_mgr,
     )
     app.run()
 
