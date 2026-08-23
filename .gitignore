@@ -1,2 +1,11 @@
 .aider*
 __pycache__/
+
+# Build artifacts
+AuraTool-Suite.spec
+build/
+dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
