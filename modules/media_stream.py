@@ -22,7 +22,7 @@ class MediaStreamEngine:
     def __init__(self):
         self.logger = logging.getLogger("AuraTool.MediaStream")
 
-    def list_streams(() -> list[dict]:
+    def list_streams(self) -> list[dict]:
         return self.TUTORIAL_CATALOGUE
 
     def start_stream(self, stream_id: str) -> dict:
