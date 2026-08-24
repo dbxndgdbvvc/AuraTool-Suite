@@ -74,7 +74,88 @@ QUICK START GUIDE
    - Workshop Ticket & Client Inventory Management Subsystem
 
 For technical support or feature requests, contact your distributor.
-===============================================================================
+==============================================================================="""
+
+INSTALL_DESKTOP_TEXT = """#!/bin/bash
+# AuraTool-Suite — Linux Desktop Integration Installer
+# Run this script to install the application launcher and icons
+# into your system's desktop environment.
+#
+# Usage:  chmod +x install-desktop.sh && ./install-desktop.sh
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_NAME="auratool-suite"
+
+# Detect install location
+if [ -w /usr/local ]; then
+    INSTALL_PREFIX="/usr/local"
+elif [ -w "$HOME/.local" ]; then
+    INSTALL_PREFIX="$HOME/.local"
+else
+    echo "[!] Cannot write to /usr/local or ~/.local"
+    echo "    Try: sudo ./install-desktop.sh"
+    exit 1
+fi
+
+echo "AuraTool-Suite — Desktop Integration Installer"
+echo "================================================"
+echo "  Install prefix: $INSTALL_PREFIX"
+
+# 1. Install binary
+echo "\n[1/4] Installing binary..."
+cp "$SCRIPT_DIR/AuraTool-Suite" "$INSTALL_PREFIX/bin/AuraTool-Suite"
+chmod +x "$INSTALL_PREFIX/bin/AuraTool-Suite"
+echo "  → $INSTALL_PREFIX/bin/AuraTool-Suite"    # 2. Install icons
+echo "\n[2/4] Installing icons..."
+for size_dir in "$SCRIPT_DIR/icons"/*/; do
+    size=$(basename "$size_dir")
+    icon_dir="$INSTALL_PREFIX/share/icons/hicolor/$size/apps"
+    mkdir -p "$icon_dir"
+    cp "$size_dir/${APP_NAME}.png" "$icon_dir/${APP_NAME}.png"
+    echo "  → $icon_dir/${APP_NAME}.png"
+done
+
+# Also install the main PNG as scalable
+mkdir -p "$INSTALL_PREFIX/share/icons/hicolor/scalable/apps"
+cp "$SCRIPT_DIR/icon.png" "$INSTALL_PREFIX/share/icons/hicolor/scalable/apps/${APP_NAME}.png"
+echo "  → scalable/${APP_NAME}.png"    # 3. Install .desktop file
+echo "\n[3/4] Installing desktop entry..."
+DESKTOP_DIR="$INSTALL_PREFIX/share/applications"
+mkdir -p "$DESKTOP_DIR"
+
+# Write .desktop with correct Exec path
+cat > "$DESKTOP_DIR/${APP_NAME}.desktop" << EOF
+[Desktop Entry]
+Type=Application
+Name=AuraTool-Suite
+GenericName=Mobile Device Repair Tool
+Comment=Universal mobile device maintenance and repair framework
+Exec=$INSTALL_PREFIX/bin/AuraTool-Suite
+Icon=${APP_NAME}
+Terminal=false
+Categories=Utility;System;Development;
+Keywords=mobile;repair;firmware;flash;android;apple;
+StartupNotify=true
+StartupWMClass=AuraTool-Suite
+EOF
+echo "  → $DESKTOP_DIR/${APP_NAME}.desktop"    # 4. Update icon cache
+echo "\n[4/4] Updating icon cache..."
+if command -v gtk-update-icon-cache &>/dev/null; then
+    gtk-update-icon-cache -f -t "$INSTALL_PREFIX/share/icons/hicolor" 2>/dev/null || true
+    echo "  → Icon cache updated"
+fi
+if command -v update-desktop-database &>/dev/null; then
+    update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
+    echo "  → Desktop database updated"
+fi
+
+echo "\n================================================"
+echo "  ✅ Installation complete!"
+echo "  You can now find AuraTool-Suite in your application menu."
+echo "  Or run: $INSTALL_PREFIX/bin/AuraTool-Suite"
+echo "================================================"
 """
 
 # ---------------------------------------------------------------------------
@@ -132,7 +213,11 @@ def get_entry_point() -> str:
 
 
 def get_data_dirs() -> list[tuple[str, str]]:
-    """Returns (source, dest) pairs for --add-data."""
+    """Returns (absolute_source, dest) pairs for --add-data.
+    
+    Uses absolute source paths so PyInstaller can find them regardless
+    of where the spec file is located (e.g. build/ directory).
+    """
     dirs = [
         ("languages", "languages"),
         ("ui", "ui"),
@@ -140,9 +225,18 @@ def get_data_dirs() -> list[tuple[str, str]]:
     ]
     result = []
     for src, dst in dirs:
-        if os.path.isdir(os.path.join(PROJECT_ROOT, src)):
-            result.append((src, dst))
+        abs_src = os.path.join(PROJECT_ROOT, src)
+        if os.path.isdir(abs_src):
+            result.append((abs_src, dst))
     return result
+
+def get_icon_args() -> list[str]:
+    """Return --icon argument if assets/icon.ico exists."""
+    icon = os.path.join(PROJECT_ROOT, "assets", "icon.ico")
+    if os.path.isfile(icon):
+        return [f"--icon={icon}"]
+    return []
+
 
 # ---------------------------------------------------------------------------
 # Workspace Cleaning & Tool Detection
@@ -222,6 +316,7 @@ def file_size_mb(path: str) -> float:
 def create_portable_package(platform_name: str, binary_path: str) -> str:
     """
     Organizes binary and assets into a clean folder and produces a portable archive.
+    For Linux, includes: .desktop file, icon theme, and install script.
     """
     pkg_folder_name = f"{APP_NAME}-v{VERSION}-{platform_name}"
     pkg_dir = os.path.join(RELEASE_DIR, pkg_folder_name)
@@ -240,8 +335,33 @@ def create_portable_package(platform_name: str, binary_path: str) -> str:
     with open(os.path.join(pkg_dir, "README.txt"), "w") as f:
         f.write(README_TEXT)
 
-    # 3. Create Archive
-    if "Linux" in platform_name:
+    # 3. Linux-specific: desktop integration files
+    is_linux = "Linux" in platform_name
+    if is_linux:
+        # Copy .desktop file (keep relative Exec path for portability)
+        desktop_src = os.path.join(PROJECT_ROOT, "assets", "auratool-suite.desktop")
+        if os.path.isfile(desktop_src):
+            shutil.copy2(desktop_src, os.path.join(pkg_dir, "auratool-suite.desktop"))
+
+        # Copy icon theme directory
+        icons_src = os.path.join(PROJECT_ROOT, "assets", "icons")
+        icons_dst = os.path.join(pkg_dir, "icons")
+        if os.path.isdir(icons_src):
+            shutil.copytree(icons_src, icons_dst)
+
+        # Copy main PNG icon for easy reference
+        icon_png = os.path.join(PROJECT_ROOT, "assets", "icon.png")
+        if os.path.isfile(icon_png):
+            shutil.copy2(icon_png, os.path.join(pkg_dir, "icon.png"))
+
+        # Write install helper script
+        install_script = os.path.join(pkg_dir, "install-desktop.sh")
+        with open(install_script, "w") as f:
+            f.write(INSTALL_DESKTOP_TEXT)
+        os.chmod(install_script, 0o755)
+
+    # 4. Create Archive
+    if is_linux:
         archive_path = os.path.join(RELEASE_DIR, f"{pkg_folder_name}.tar.gz")
         with tarfile.open(archive_path, "w:gz") as tar:
             tar.add(pkg_dir, arcname=pkg_folder_name)
@@ -280,6 +400,8 @@ def build_linux(entry_point: str, hidden_imports: list[str]) -> bool:
         f"--workpath={BUILD_DIR}",
         f"--specpath={BUILD_DIR}",
     ]
+
+    cmd += get_icon_args()
 
     separator = ":"
     for src, dst in get_data_dirs():
@@ -337,6 +459,8 @@ def build_windows_wine(entry_point: str, hidden_imports: list[str]) -> bool:
         f"--workpath={BUILD_DIR}",
         f"--specpath={BUILD_DIR}",
     ]
+
+    cmd += get_icon_args()
 
     for src, dst in get_data_dirs():
         cmd.append(f"--add-data={src}{separator}{dst}")
