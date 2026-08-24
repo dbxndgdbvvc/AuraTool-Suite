@@ -1,122 +1,107 @@
-"""
-AuraTool-Suite — Build & Packaging Script
-===========================================
-Compiles the entire project into standalone executable desktop apps:
-  - Windows (x64) via PyInstaller (.exe)
-  - Linux Ubuntu (x64) via PyInstaller
-Outputs a ready-to-use desktop application directory for direct execution.
-"""
-
 import os
-import platform
-import shutil
-import subprocess
 import sys
+import shutil
+import platform
+import subprocess
 
-APP_NAME = "AuraTool-Suite"
-ENTRY_POINT = "main.py"
-
-DATA_DIRS = [
-    ("core", "core"),
-    ("modules", "modules"),
-    ("drivers", "drivers"),
-    ("ui", "ui"),
-]
-
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+RELEASE_DIR = os.path.join(PROJECT_ROOT, "release")
+BUILD_DIR = os.path.join(PROJECT_ROOT, "build")
+DIST_DIR = os.path.join(PROJECT_ROOT, "dist")
 
 def clean_build_artifacts():
-    print("[*] Cleaning previous build artifacts...")
-    for dirname in ["build", "dist", "__pycache__"]:
-        if os.path.isdir(dirname):
-            shutil.rmtree(dirname)
-            print(f"    Removed: {dirname}/")
-    print("[+] Clean complete.\n")
+    """Removes temporary build directories and spec files to maintain a clean workspace."""
+    print("[*] Cleaning up build artifacts and temporary files...")
+    dirs_to_remove = [BUILD_DIR, DIST_DIR]
+    for d in dirs_to_remove:
+        if os.path.exists(d):
+            shutil.rmtree(d, ignore_errors=True)
+            print(f"    Removed: {d}")
 
+    for file in os.listdir(PROJECT_ROOT):
+        if file.endswith(".spec"):
+            spec_path = os.path.join(PROJECT_ROOT, file)
+            os.remove(spec_path)
+            print(f"    Removed: {spec_path}")
 
 def ensure_pyinstaller():
+    """Ensures PyInstaller is installed in the current Python environment."""
     try:
-        import PyInstaller  # noqa: F401
-        print("[+] PyInstaller found.")
+        import PyInstaller
+        print("[*] PyInstaller is installed and available.")
     except ImportError:
-        print("[*] Installing PyInstaller...")
+        print("[!] PyInstaller not found. Installing...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
-        print("[+] PyInstaller installed.\n")
-
 
 def build_executable():
-    print("=" * 60)
-    print(f"  AuraTool-Suite Build — {platform.system()} ({platform.machine()})")
-    print("=" * 60)
-
+    """Bundles the entire application into a single executable located inside the release directory."""
     clean_build_artifacts()
     ensure_pyinstaller()
 
-    os_type = platform.system()
-    separator = ";" if os_type == "Windows" else ":"
+    os.makedirs(RELEASE_DIR, exist_ok=True)
+    
+    os_name = platform.system().lower()
+    app_name = "AuraTool.exe" if os_name == "windows" else "AuraTool"
+    entry_point = os.path.join(PROJECT_ROOT, "ui", "app.py")
+    if not os.path.exists(entry_point):
+        entry_point = os.path.join(PROJECT_ROOT, "auratool_factory.py")
 
-    add_data_args = []
-    for src, dst in DATA_DIRS:
-        add_data_args.extend([f"--add-data={src}{separator}{dst}"])
+    print(f"[*] Starting build process for platform: {platform.system()}")
+    print(f"[*] Entry point: {entry_point}")
+    print(f"[*] Output directory: {RELEASE_DIR}")
 
-    pyinstaller_args = [
-        sys.executable, "-m", "PyInstaller",
-        "--noconfirm",
-        "--onedir",
-        "--windowed",
-        f"--name={APP_NAME}",
-        "--clean",
-    ] + add_data_args + [
-        "--hidden-import=core",
-        "--hidden-import=core.api",
-        "--hidden-import=core.security",
-        "--hidden-import=core.licensing",
-        "--hidden-import=modules",
-        "--hidden-import=modules.flashing_engine",
-        "--hidden-import=modules.biometrics_fix",
-        "--hidden-import=modules.localization",
-        "--hidden-import=modules.smart_devices",
-        "--hidden-import=modules.data_recovery",
-        "--hidden-import=modules.account_repair",
-        "--hidden-import=modules.aura_ai_assistant",
-        "--hidden-import=modules.ultimate_repair",
-        "--hidden-import=modules.chat_rooms",
-        "--hidden-import=modules.media_stream",
-        "--hidden-import=modules.ecommerce",
-        "--hidden-import=drivers",
-        "--hidden-import=drivers.driver_manager",
-        "--hidden-import=ui",
-        "--hidden-import=ui.app",
-        ENTRY_POINT,
+    # Define module hidden imports to ensure all submodules are included in single-file mode
+    hidden_imports = [
+        "core.factory_api",
+        "core.licensing",
+        "core.security",
+        "drivers.driver_manager",
+        "modules.account_repair",
+        "modules.android",
+        "modules.apple",
+        "modules.aura_ai_assistant",
+        "modules.biometrics_fix",
+        "modules.chat_rooms",
+        "modules.data_recovery",
+        "modules.ecommerce",
+        "modules.factory_export",
+        "modules.flashing_engine",
+        "modules.localization",
+        "modules.media_stream",
+        "modules.smart_devices",
+        "modules.ultimate_repair",
+        "auratool_factory"
     ]
 
-    print(f"\n[*] Executing PyInstaller command for {os_type}:")
-    print("    " + " ".join(pyinstaller_args) + "\n")
+    pyinstaller_cmd = [
+        sys.executable,
+        "-m",
+        "PyInstaller",
+        "--onefile",
+        "--name=" + os.path.splitext(app_name)[0],
+        "--distpath=" + RELEASE_DIR,
+        "--workpath=" + BUILD_DIR,
+        "--clean",
+        "--noconfirm"
+    ]
 
-    try:
-        subprocess.check_call(pyinstaller_args)
-        print(f"\n[+] Build SUCCESS!")
-        print(f"    Output directory: dist/{APP_NAME}/")
+    for imp in hidden_imports:
+        pyinstaller_cmd.extend(["--hidden-import", imp])
 
-        dist_path = os.path.join("dist", APP_NAME)
-        if os.path.isdir(dist_path):
-            total_size = sum(
-                os.path.getsize(os.path.join(dp, f))
-                for dp, _, files in os.walk(dist_path)
-                for f in files
-            )
-            size_mb = total_size / (1024 * 1024)
-            print(f"    Application bundle size: {size_mb:.1f} MB")
+    pyinstaller_cmd.append(entry_point)
 
-        print("\n[+] Direct launcher path:")
-        if os_type == "Windows":
-            print(f"    dist\\{APP_NAME}\\{APP_NAME}.exe")
-        else:
-            print(f"    ./dist/{APP_NAME}/{APP_NAME}")
+    print(f"[*] Executing command: {' '.join(pyinstaller_cmd)}")
+    result = subprocess.run(pyinstaller_cmd)
 
-    except subprocess.CalledProcessError as e:
-        print(f"\n[-] Build FAILED with error code: {e.returncode}")
-        sys.exit(1)
+    if result.returncode == 0:
+        output_path = os.path.join(RELEASE_DIR, app_name)
+        print(f"\n[SUCCESS] Build complete! Executable generated successfully:")
+        print(f"          -> {output_path}")
+    else:
+        print("\n[ERROR] Build failed! Check PyInstaller output logs above.")
 
+    # Post-build cleanup of intermediate files
+    clean_build_artifacts()
 
 if __name__ == "__main__":
     build_executable()
