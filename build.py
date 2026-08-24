@@ -1,28 +1,24 @@
 #!/usr/bin/env python3
 """
-AuraTool-Suite — Dual-Platform Build Script
-=============================================
-Compiles native Linux and Windows executables from a single Ubuntu machine.
+AuraTool-Suite — Professional Portable Dual-Platform Release Builder
+====================================================================
+Compiles native Linux and Windows executables and bundles them into clean,
+standalone portable release packages and archives for desktop clients.
 
 Features:
-  - Auto-discovers all Python modules in core/, modules/, drivers/
-  - Builds native Linux binary (--onefile)
-  - Cross-compiles Windows .exe via Wine + Windows Python
-  - Optional fallback to PyInstaller --cross-compile if available
-  - Collects all data dirs (languages, assets, etc.)
-  - Organizes all output into release_output/ for clean distribution
-  - Validates builds and reports sizes
+  - Auto-discovers all Python modules in core/, modules/, drivers/, ui/
+  - Builds native Linux binary (--onefile) & Windows binary (.exe via Wine)
+  - Packages binaries with documentation, license guides, and required data
+  - Generates platform-specific release packages:
+      - release_output/AuraTool-Suite-v2.0.0-Linux-x64.tar.gz
+      - release_output/AuraTool-Suite-v2.0.0-Windows-x64.zip
+  - Clean directory isolation and zero workspace clutter
 
 Usage:
-    python build.py                 # Build both platforms
-    python build.py --linux-only    # Linux only
-    python build.py --windows-only  # Windows only
-    python build.py --clean-only    # Clean artifacts only
-    python build.py --skip-windows  # Linux + skip Wine attempt
-
-Requirements:
-    pip install pyinstaller
-    sudo apt install wine64          # For Windows cross-compilation
+    python build.py                 # Package both platforms
+    python build.py --linux-only    # Linux package only
+    python build.py --windows-only  # Windows package only
+    python build.py --clean-only    # Clean build directories only
 """
 
 import glob
@@ -31,11 +27,13 @@ import platform
 import shutil
 import subprocess
 import sys
+import tarfile
 import time
+import zipfile
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Project Layout
+# Project Layout & Metadata
 # ---------------------------------------------------------------------------
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -44,32 +42,54 @@ BUILD_DIR = os.path.join(PROJECT_ROOT, "build")
 DIST_DIR = os.path.join(PROJECT_ROOT, "dist")
 
 APP_NAME = "AuraTool-Suite"
+VERSION = "2.0.0"
+
+PACKAGE_DIRS = ["core", "modules", "drivers", "ui"]
+TOP_LEVEL_SCRIPTS = ["auratool_factory"]
+
+README_TEXT = f"""===============================================================================
+  AuraTool-Suite v{VERSION} — Universal Mobile Maintenance & Repair Framework
+===============================================================================
+
+Thank you for choosing AuraTool-Suite.
+
+QUICK START GUIDE
+-----------------
+1. Launching the Application:
+   - Linux: Run './AuraTool-Suite' from terminal or double click the executable.
+   - Windows: Double-click 'AuraTool-Suite.exe'.
+
+2. License Activation:
+   - On first startup, enter your 6-Month or 1-Year license key in the top activation bar.
+   - Your key will bind automatically to your hardware HWID for offline use.
+
+3. USB Drivers & Connection Protocols:
+   - Ensure the required device drivers (Samsung Odin/Download, Qualcomm EDL 9008,
+     MediaTek BROM/Meta, ADB/Fastboot) are installed on your host system.
+
+4. Features Included:
+   - Universal Firmware Flashing & Partition Recovery (payload.bin, super.img)
+   - Automated FRP & Cloud Account Bypass Algorithms
+   - System Bootloop, Black Screen, and Virus Eradication Engine
+   - Workshop Ticket & Client Inventory Management Subsystem
+
+For technical support or feature requests, contact your distributor.
+===============================================================================
+"""
 
 # ---------------------------------------------------------------------------
 # Auto-Discover Modules & Hidden Imports
 # ---------------------------------------------------------------------------
 
-# Directories that contain importable Python packages
-PACKAGE_DIRS = ["core", "modules", "drivers", "ui"]
-
-# Top-level Python scripts that should be bundled
-TOP_LEVEL_SCRIPTS = ["auratool_factory"]
-
-
 def discover_packages(base_dirs: list[str]) -> list[str]:
-    """
-    Walk each package directory and return fully-qualified module paths
-    for every .py file found (excluding __pycache__).
-    """
+    """Walk each package directory and return fully-qualified module paths."""
     modules = []
     for base in base_dirs:
         pkg_path = os.path.join(PROJECT_ROOT, base)
         if not os.path.isdir(pkg_path):
             continue
-        # The package itself
         modules.append(base)
         for root, dirs, files in os.walk(pkg_path):
-            # Skip __pycache__ and hidden dirs
             dirs[:] = [d for d in dirs if d != "__pycache__" and not d.startswith(".")]
             for f in files:
                 if f.endswith(".py") and f != "__init__.py":
@@ -82,16 +102,12 @@ def discover_packages(base_dirs: list[str]) -> list[str]:
 
 
 def get_all_hidden_imports() -> list[str]:
-    """
-    Build the complete list of hidden imports by scanning the project.
-    This ensures PyInstaller bundles every module even if not directly
-    imported in the entry point chain.
-    """
+    """Build the complete list of hidden imports by scanning the project."""
     discovered = discover_packages(PACKAGE_DIRS)
     for script in TOP_LEVEL_SCRIPTS:
         if os.path.isfile(os.path.join(PROJECT_ROOT, f"{script}.py")):
             discovered.append(script)
-    # Deduplicate while preserving order
+    
     seen = set()
     result = []
     for m in discovered:
@@ -100,10 +116,6 @@ def get_all_hidden_imports() -> list[str]:
             result.append(m)
     return result
 
-
-# ---------------------------------------------------------------------------
-# Entry Point Detection
-# ---------------------------------------------------------------------------
 
 def get_entry_point() -> str:
     """Determine the application entry point script."""
@@ -115,19 +127,12 @@ def get_entry_point() -> str:
     for ep in candidates:
         if os.path.isfile(ep):
             return ep
-    print("[FATAL] No entry point found. Expected main.py, ui/app.py, or auratool_factory.py")
+    print("[FATAL] No entry point found.")
     sys.exit(1)
 
 
-# ---------------------------------------------------------------------------
-# Data Directories to Bundle
-# ---------------------------------------------------------------------------
-
 def get_data_dirs() -> list[tuple[str, str]]:
-    """
-    Returns (source, dest) pairs for --add-data.
-    Only includes directories that actually exist.
-    """
+    """Returns (source, dest) pairs for --add-data."""
     dirs = [
         ("languages", "languages"),
         ("ui", "ui"),
@@ -139,14 +144,13 @@ def get_data_dirs() -> list[tuple[str, str]]:
             result.append((src, dst))
     return result
 
-
 # ---------------------------------------------------------------------------
-# Build Helpers
+# Workspace Cleaning & Tool Detection
 # ---------------------------------------------------------------------------
 
 def clean_build_artifacts():
     """Remove temporary build directories and spec files."""
-    print("[*] Cleaning build artifacts...")
+    print("[*] Cleaning build artifacts and temporary files...")
     for d in [BUILD_DIR, DIST_DIR]:
         if os.path.exists(d):
             shutil.rmtree(d, ignore_errors=True)
@@ -157,29 +161,25 @@ def clean_build_artifacts():
             print(f"    Removed: {os.path.basename(spec)}")
         except OSError:
             pass
-    print("[+] Clean complete.\n")
+    print("[+] Workspace clean complete.\n")
 
 
 def ensure_pyinstaller():
-    """Ensure PyInstaller is installed."""
+    """Ensure PyInstaller is available."""
     try:
         import PyInstaller
-        print(f"[*] PyInstaller {PyInstaller.__version__} ready.")
+        print(f"[*] Native PyInstaller {PyInstaller.__version__} ready.")
     except ImportError:
         print("[!] PyInstaller not found. Installing...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
 
 def ensure_wine():
-    """
-    Check for Wine and a Windows Python environment.
-    Returns (wine_path, python_exe) or (None, None).
-    """
+    """Check for Wine and a Windows Python environment."""
     wine_path = shutil.which("wine64") or shutil.which("wine")
     if not wine_path:
         return None, None
 
-    # Common Wine Python locations
     home = os.path.expanduser("~")
     candidates = [
         os.path.join(home, ".wine/drive_c/Python312/python.exe"),
@@ -190,14 +190,11 @@ def ensure_wine():
         os.path.join(home, ".wine/drive_c/Program Files/Python311/python.exe"),
         os.path.join(home, ".wine/drive_c/Program Files/Python310/python.exe"),
         os.path.join(home, ".wine/drive_c/Program Files/Python39/python.exe"),
-        # Default Wine Python (if installed via wine python3-pip)
-        os.path.join(home, ".wine/drive_c/windows/syswow64/python3.exe"),
     ]
     for py in candidates:
         if os.path.isfile(py):
             return wine_path, py
 
-    # Fallback: try "wine python --version"
     try:
         res = subprocess.run(
             [wine_path, "python", "--version"],
@@ -218,32 +215,60 @@ def file_size_mb(path: str) -> float:
     except OSError:
         return 0.0
 
+# ---------------------------------------------------------------------------
+# Packaging & Archiving Logic
+# ---------------------------------------------------------------------------
 
-def dir_size_mb(path: str) -> float:
-    """Return total directory size in MB."""
-    total = 0
-    for dp, _, files in os.walk(path):
-        for f in files:
-            try:
-                total += os.path.getsize(os.path.join(dp, f))
-            except OSError:
-                pass
-    return total / (1024 * 1024)
+def create_portable_package(platform_name: str, binary_path: str) -> str:
+    """
+    Organizes binary and assets into a clean folder and produces a portable archive.
+    """
+    pkg_folder_name = f"{APP_NAME}-v{VERSION}-{platform_name}"
+    pkg_dir = os.path.join(RELEASE_DIR, pkg_folder_name)
 
+    if os.path.exists(pkg_dir):
+        shutil.rmtree(pkg_dir, ignore_errors=True)
+
+    os.makedirs(pkg_dir, exist_ok=True)
+
+    # 1. Copy Binary
+    dest_binary_name = os.path.basename(binary_path)
+    target_bin_path = os.path.join(pkg_dir, dest_binary_name)
+    shutil.copy2(binary_path, target_bin_path)
+
+    # 2. Write Documentation
+    with open(os.path.join(pkg_dir, "README.txt"), "w") as f:
+        f.write(README_TEXT)
+
+    # 3. Create Archive
+    if "Linux" in platform_name:
+        archive_path = os.path.join(RELEASE_DIR, f"{pkg_folder_name}.tar.gz")
+        with tarfile.open(archive_path, "w:gz") as tar:
+            tar.add(pkg_dir, arcname=pkg_folder_name)
+    else:
+        archive_path = os.path.join(RELEASE_DIR, f"{pkg_folder_name}.zip")
+        with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for root, _, files in os.walk(pkg_dir):
+                for file in files:
+                    full_p = os.path.join(root, file)
+                    rel_p = os.path.relpath(full_p, RELEASE_DIR)
+                    zipf.write(full_p, rel_p)
+
+    return archive_path
 
 # ---------------------------------------------------------------------------
-# Linux Native Build
+# Native & Cross-Compilation Targets
 # ---------------------------------------------------------------------------
 
 def build_linux(entry_point: str, hidden_imports: list[str]) -> bool:
-    """Build native Linux --onefile binary."""
+    """Build native Linux --onefile binary and create portable release package."""
     print("=" * 60)
-    print("  BUILDING: Native Linux Binary (--onefile)")
+    print("  BUILDING: Native Linux Release Package")
     print("=" * 60)
     ensure_pyinstaller()
 
     binary_name = APP_NAME
-    output_path = os.path.join(RELEASE_DIR, binary_name)
+    raw_output_path = os.path.join(RELEASE_DIR, binary_name)
 
     cmd = [
         sys.executable, "-m", "PyInstaller",
@@ -256,245 +281,177 @@ def build_linux(entry_point: str, hidden_imports: list[str]) -> bool:
         f"--specpath={BUILD_DIR}",
     ]
 
-    # Add data directories
-    separator = ";" if platform.system() == "Windows" else ":"
+    separator = ":"
     for src, dst in get_data_dirs():
         cmd.append(f"--add-data={src}{separator}{dst}")
 
-    # Add hidden imports
     for imp in hidden_imports:
         cmd.extend(["--hidden-import", imp])
 
-    # Strip debug symbols on Linux for smaller binary
     if platform.system() != "Windows":
         cmd.append("--strip")
 
     cmd.append(entry_point)
 
-    print(f"[*] Entry point: {entry_point}")
-    print(f"[*] Output:      {output_path}")
-    print(f"[*] Modules:     {len(hidden_imports)} hidden imports")
-    print(f"[*] Data dirs:   {len(get_data_dirs())}")
-    print()
-
     start = time.time()
     res = subprocess.run(cmd, cwd=PROJECT_ROOT)
     elapsed = time.time() - start
 
-    if res.returncode == 0 and os.path.isfile(output_path):
-        size = file_size_mb(output_path)
-        print(f"\n[SUCCESS] Linux binary built in {elapsed:.1f}s")
-        print(f"          {output_path} ({size:.1f} MB)")
-        os.chmod(output_path, 0o755)
+    if res.returncode == 0 and os.path.isfile(raw_output_path):
+        os.chmod(raw_output_path, 0o755)
+        archive_file = create_portable_package("Linux-x64", raw_output_path)
+        
+        # Clean temporary raw output file outside folder
+        if os.path.exists(raw_output_path):
+            os.remove(raw_output_path)
+
+        size = file_size_mb(archive_file)
+        print(f"\n[SUCCESS] Linux portable package built in {elapsed:.1f}s")
+        print(f"          -> Archive: {archive_file} ({size:.1f} MB)")
         return True
     else:
         print(f"\n[FAILED] Linux build failed (exit code {res.returncode})")
         return False
 
 
-# ---------------------------------------------------------------------------
-# Windows Cross-Compilation (Wine)
-# ---------------------------------------------------------------------------
-
 def build_windows_wine(entry_point: str, hidden_imports: list[str]) -> bool:
-    """Build Windows .exe via Wine + Windows Python + PyInstaller."""
+    """Build Windows .exe via Wine and create portable release package."""
     print("=" * 60)
-    print("  BUILDING: Windows .exe via Wine Cross-Compilation")
+    print("  BUILDING: Windows .exe Portable Release Package")
     print("=" * 60)
 
     wine_path, wine_python = ensure_wine()
     if not wine_python:
-        print("[!] Wine or Windows Python not found.")
-        print()
-        print("  To install Wine + Python for cross-compilation:")
-        print("    sudo dpkg --add-architecture i386")
-        print("    sudo apt update")
-        print("    sudo apt install wine64 wine32")
-        print()
-        print("  Then install Python inside Wine:")
-        print("    wget https://www.python.org/ftp/python/3.12.5/python-3.12.5-amd64.exe")
-        print("    wine python-3.12.5-amd64.exe /quiet InstallAllUsers=1 PrependPath=1")
-        print()
-        print("  Then install PyInstaller in Wine Python:")
-        print("    wine python -m pip install pyinstaller")
-        print()
+        print("[!] Wine or Windows Python environment not found on Linux system.")
         return False
 
-    print(f"[*] Wine:      {wine_path}")
-    print(f"[*] Python:    {wine_python}")
-
     binary_name = f"{APP_NAME}.exe"
-    output_path = os.path.join(RELEASE_DIR, binary_name)
+    raw_output_path = os.path.join(RELEASE_DIR, binary_name)
 
-    # Build PyInstaller command for Windows
-    # Use ; as path separator (Windows convention)
     separator = ";"
+    cmd = [
+        wine_path, wine_python, "-m", "PyInstaller",
+        "--onefile", "--noconfirm", "--clean",
+        f"--name={binary_name}",
+        f"--distpath={RELEASE_DIR}",
+        f"--workpath={BUILD_DIR}",
+        f"--specpath={BUILD_DIR}",
+    ]
 
-    cmd = [wine_path, wine_python, "-m", "PyInstaller",
-           "--onefile", "--noconfirm", "--clean",
-           f"--name={binary_name}",
-           f"--distpath={RELEASE_DIR}",
-           f"--workpath={BUILD_DIR}",
-           f"--specpath={BUILD_DIR}",
-           ]
-
-    # Add data directories (Windows path separators handled by Wine)
     for src, dst in get_data_dirs():
         cmd.append(f"--add-data={src}{separator}{dst}")
 
-    # Add hidden imports
     for imp in hidden_imports:
         cmd.extend(["--hidden-import", imp])
 
     cmd.append(entry_point)
 
-    print(f"[*] Entry point: {entry_point}")
-    print(f"[*] Output:      {output_path}")
-    print()
-
     start = time.time()
     res = subprocess.run(cmd, cwd=PROJECT_ROOT)
     elapsed = time.time() - start
 
-    if res.returncode == 0 and os.path.isfile(output_path):
-        size = file_size_mb(output_path)
-        print(f"\n[SUCCESS] Windows .exe built in {elapsed:.1f}s")
-        print(f"          {output_path} ({size:.1f} MB)")
+    if res.returncode == 0 and os.path.isfile(raw_output_path):
+        archive_file = create_portable_package("Windows-x64", raw_output_path)
+
+        # Clean temporary raw output file outside folder
+        if os.path.exists(raw_output_path):
+            os.remove(raw_output_path)
+
+        size = file_size_mb(archive_file)
+        print(f"\n[SUCCESS] Windows portable package built in {elapsed:.1f}s")
+        print(f"          -> Archive: {archive_file} ({size:.1f} MB)")
         return True
     else:
         print(f"\n[FAILED] Windows build failed (exit code {res.returncode})")
         return False
 
-
 # ---------------------------------------------------------------------------
-# Release Validation
+# Release Validation & Report
 # ---------------------------------------------------------------------------
 
 def validate_release():
-    """Check that release_output/ has the expected binaries and report sizes."""
+    """Validates generated release directory structure and lists ready distribution files."""
     print("\n" + "=" * 60)
-    print("  RELEASE VALIDATION")
+    print("  PORTABLE RELEASE DISTRIBUTION SUMMARY")
     print("=" * 60)
 
     if not os.path.isdir(RELEASE_DIR):
-        print("[!] release_output/ directory not found — no builds completed.")
+        print("[!] release_output/ directory not found.")
         return
 
-    files = sorted(os.listdir(RELEASE_DIR))
-    # Filter out PyInstaller temp dirs and spec files
-    binaries = [f for f in files if not f.endswith(".spec") and f != "__pycache__"]
-
-    if not binaries:
-        print("[!] No binaries found in release_output/")
+    items = sorted(os.listdir(RELEASE_DIR))
+    if not items:
+        print("[!] No distribution packages found in release_output/")
         return
 
-    print(f"\n  {'File':<40} {'Size':>10}  {'Platform'}")
-    print("  " + "-" * 65)
+    print(f"\n  {'Item Name':<48} {'Type':<12} {'Size':>10}")
+    print("  " + "-" * 72)
 
-    for name in binaries:
-        path = os.path.join(RELEASE_DIR, name)
-        if os.path.isfile(path):
-            size = file_size_mb(path)
-            platform_label = "Linux" if not name.endswith(".exe") else "Windows"
-            print(f"  {name:<40} {size:>8.1f} MB  {platform_label}")
-        elif os.path.isdir(path):
-            size = dir_size_mb(path)
-            print(f"  {name + '/':<40} {size:>8.1f} MB  (directory)")
+    for name in items:
+        p = os.path.join(RELEASE_DIR, name)
+        if os.path.isfile(p):
+            size = file_size_mb(p)
+            print(f"  {name:<48} {'Archive':<12} {size:>8.1f} MB")
+        elif os.path.isdir(p):
+            # Calculate total directory size
+            total_b = sum(os.path.getsize(os.path.join(dp, f)) for dp, _, filenames in os.walk(p) for f in filenames)
+            size = total_b / (1024 * 1024)
+            print(f"  {name + '/':<48} {'Directory':<12} {size:>8.1f} MB")
 
-    total = dir_size_mb(RELEASE_DIR)
-    print(f"\n  Total release size: {total:.1f} MB")
-    print(f"  Output directory:   {RELEASE_DIR}")
-    print()
-
+    print("\n  Output Directory: " + RELEASE_DIR)
+    print("==============================================================\n")
 
 # ---------------------------------------------------------------------------
-# Main Build Orchestrator
+# Main Orchestrator
 # ---------------------------------------------------------------------------
 
 def parse_args():
-    """Parse command-line arguments."""
     args = {
         "linux_only": False,
         "windows_only": False,
-        "skip_windows": False,
         "clean_only": False,
     }
-
     for arg in sys.argv[1:]:
-        arg_lower = arg.lower().strip("-")
-        if arg_lower == "linux-only":
+        arg_l = arg.lower().strip("-")
+        if arg_l == "linux-only":
             args["linux_only"] = True
-        elif arg_lower == "windows-only":
+        elif arg_l == "windows-only":
             args["windows_only"] = True
-        elif arg_lower == "skip-windows":
-            args["skip_windows"] = True
-        elif arg_lower == "clean-only":
+        elif arg_l == "clean-only":
             args["clean_only"] = True
-        elif arg_lower == "help" or arg_lower == "h":
-            print(__doc__)
-            sys.exit(0)
-
     return args
 
 
 def build_all():
-    """Main build workflow."""
     args = parse_args()
 
     print("╔" + "═" * 58 + "╗")
-    print("║  AuraTool-Suite — Dual-Platform Build System              ║")
-    print("║  Linux (Ubuntu) + Windows (.exe via Wine)                ║")
-    print("╚" + "═" * 58 + "╝")
-    print()
+    print("║  AuraTool-Suite — Portable Desktop Distribution Builder  ║")
+    print("╚" + "═" * 58 + "╝\n")
 
-    # Step 1: Clean
     clean_build_artifacts()
     os.makedirs(RELEASE_DIR, exist_ok=True)
 
     if args["clean_only"]:
-        print("[+] Clean-only mode. Artifacts removed.")
+        print("[+] Clean-only execution finished.")
         return
 
-    # Step 2: Discover modules
     hidden_imports = get_all_hidden_imports()
     entry_point = get_entry_point()
 
-    print(f"[*] Project root:    {PROJECT_ROOT}")
-    print(f"[*] Entry point:     {entry_point}")
-    print(f"[*] Release dir:     {RELEASE_DIR}")
-    print(f"[*] Discovered:      {len(hidden_imports)} modules")
-    print(f"[*] Data dirs:       {get_data_dirs()}")
-    print(f"[*] Platform:        {platform.system()} {platform.machine()}")
-    print()
-
-    # Step 3: Build
     linux_ok = False
     windows_ok = False
 
     if not args["windows_only"]:
         linux_ok = build_linux(entry_point, hidden_imports)
 
-    if not args["linux_only"] and not args["skip_windows"]:
+    if not args["linux_only"]:
         windows_ok = build_windows_wine(entry_point, hidden_imports)
 
-    # Step 4: Clean temp files (keep release_output)
     clean_build_artifacts()
-
-    # Step 5: Validate and report
     validate_release()
 
-    # Summary
-    print("=" * 60)
-    print("  BUILD SUMMARY")
-    print("=" * 60)
-    print(f"  Linux Binary  ({APP_NAME})       : {'✅ SUCCESS' if linux_ok else '⏭️  SKIPPED/FAILED'}")
-    print(f"  Windows EXE   ({APP_NAME}.exe)   : {'✅ SUCCESS' if windows_ok else '⏭️  SKIPPED/FAILED'}")
-    print(f"  Release Directory: {RELEASE_DIR}")
-    print("=" * 60)
-
-    # Exit with error if both failed
-    if not linux_ok and not windows_ok and not args["skip_windows"]:
-        print("\n[!] Both builds failed. Check errors above.")
+    if not linux_ok and not windows_ok:
         sys.exit(1)
 
 
