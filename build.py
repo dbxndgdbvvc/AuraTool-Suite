@@ -8,17 +8,17 @@ standalone portable release packages and archives for desktop clients.
 Features:
   - Auto-discovers all Python modules in core/, modules/, drivers/, ui/
   - Builds native Linux binary (--onefile) & Windows binary (.exe via Wine)
-  - Packages binaries with documentation, license guides, and required data
+  - Packages binaries with documentation, license guides, desktop installers, and required data
   - Generates platform-specific release packages:
       - release_output/AuraTool-Suite-v2.0.0-Linux-x64.tar.gz
       - release_output/AuraTool-Suite-v2.0.0-Windows-x64.zip
   - Clean directory isolation and zero workspace clutter
 
 Usage:
-    python build.py                 # Package both platforms
-    python build.py --linux-only    # Linux package only
-    python build.py --windows-only  # Windows package only
-    python build.py --clean-only    # Clean build directories only
+    python3 build.py                 # Package both platforms
+    python3 build.py --linux-only    # Linux package only
+    python3 build.py --windows-only  # Windows package only
+    python3 build.py --clean-only    # Clean build directories only
 """
 
 import glob
@@ -45,7 +45,7 @@ APP_NAME = "AuraTool-Suite"
 VERSION = "2.0.0"
 
 PACKAGE_DIRS = ["core", "modules", "drivers", "ui"]
-TOP_LEVEL_SCRIPTS = ["auratool_factory"]
+TOP_LEVEL_SCRIPTS = ["auratool_factory", "main"]
 
 README_TEXT = f"""===============================================================================
   AuraTool-Suite v{VERSION} — Universal Mobile Maintenance & Repair Framework
@@ -88,7 +88,6 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_NAME="auratool-suite"
 
-# Detect install location
 if [ -w /usr/local ]; then
     INSTALL_PREFIX="/usr/local"
 elif [ -w "$HOME/.local" ]; then
@@ -103,29 +102,39 @@ echo "AuraTool-Suite — Desktop Integration Installer"
 echo "================================================"
 echo "  Install prefix: $INSTALL_PREFIX"
 
-# 1. Install binary
-echo "\n[1/4] Installing binary..."
+echo ""
+echo "[1/4] Installing binary..."
 cp "$SCRIPT_DIR/AuraTool-Suite" "$INSTALL_PREFIX/bin/AuraTool-Suite"
 chmod +x "$INSTALL_PREFIX/bin/AuraTool-Suite"
-echo "  → $INSTALL_PREFIX/bin/AuraTool-Suite"    # 2. Install icons
-echo "\n[2/4] Installing icons..."
-for size_dir in "$SCRIPT_DIR/icons"/*/; do
-    size=$(basename "$size_dir")
-    icon_dir="$INSTALL_PREFIX/share/icons/hicolor/$size/apps"
-    mkdir -p "$icon_dir"
-    cp "$size_dir/${APP_NAME}.png" "$icon_dir/${APP_NAME}.png"
-    echo "  → $icon_dir/${APP_NAME}.png"
-done
+echo "  → $INSTALL_PREFIX/bin/AuraTool-Suite"
 
-# Also install the main PNG as scalable
-mkdir -p "$INSTALL_PREFIX/share/icons/hicolor/scalable/apps"
-cp "$SCRIPT_DIR/icon.png" "$INSTALL_PREFIX/share/icons/hicolor/scalable/apps/${APP_NAME}.png"
-echo "  → scalable/${APP_NAME}.png"    # 3. Install .desktop file
-echo "\n[3/4] Installing desktop entry..."
+echo ""
+echo "[2/4] Installing icons..."
+if [ -d "$SCRIPT_DIR/icons" ]; then
+    for size_dir in "$SCRIPT_DIR/icons"/*/; do
+        if [ -d "$size_dir" ]; then
+            size=$(basename "$size_dir")
+            icon_dir="$INSTALL_PREFIX/share/icons/hicolor/$size/apps"
+            mkdir -p "$icon_dir"
+            if [ -f "$size_dir/${APP_NAME}.png" ]; then
+                cp "$size_dir/${APP_NAME}.png" "$icon_dir/${APP_NAME}.png"
+                echo "  → $icon_dir/${APP_NAME}.png"
+            fi
+        fi
+    done
+fi
+
+if [ -f "$SCRIPT_DIR/icon.png" ]; then
+    mkdir -p "$INSTALL_PREFIX/share/icons/hicolor/scalable/apps"
+    cp "$SCRIPT_DIR/icon.png" "$INSTALL_PREFIX/share/icons/hicolor/scalable/apps/${APP_NAME}.png"
+    echo "  → scalable/${APP_NAME}.png"
+fi
+
+echo ""
+echo "[3/4] Installing desktop entry..."
 DESKTOP_DIR="$INSTALL_PREFIX/share/applications"
 mkdir -p "$DESKTOP_DIR"
 
-# Write .desktop with correct Exec path
 cat > "$DESKTOP_DIR/${APP_NAME}.desktop" << EOF
 [Desktop Entry]
 Type=Application
@@ -140,8 +149,10 @@ Keywords=mobile;repair;firmware;flash;android;apple;
 StartupNotify=true
 StartupWMClass=AuraTool-Suite
 EOF
-echo "  → $DESKTOP_DIR/${APP_NAME}.desktop"    # 4. Update icon cache
-echo "\n[4/4] Updating icon cache..."
+echo "  → $DESKTOP_DIR/${APP_NAME}.desktop"
+
+echo ""
+echo "[4/4] Updating icon cache..."
 if command -v gtk-update-icon-cache &>/dev/null; then
     gtk-update-icon-cache -f -t "$INSTALL_PREFIX/share/icons/hicolor" 2>/dev/null || true
     echo "  → Icon cache updated"
@@ -151,7 +162,8 @@ if command -v update-desktop-database &>/dev/null; then
     echo "  → Desktop database updated"
 fi
 
-echo "\n================================================"
+echo ""
+echo "================================================"
 echo "  ✅ Installation complete!"
 echo "  You can now find AuraTool-Suite in your application menu."
 echo "  Or run: $INSTALL_PREFIX/bin/AuraTool-Suite"
@@ -213,11 +225,7 @@ def get_entry_point() -> str:
 
 
 def get_data_dirs() -> list[tuple[str, str]]:
-    """Returns (absolute_source, dest) pairs for --add-data.
-    
-    Uses absolute source paths so PyInstaller can find them regardless
-    of where the spec file is located (e.g. build/ directory).
-    """
+    """Returns (absolute_source, dest) pairs for --add-data."""
     dirs = [
         ("languages", "languages"),
         ("ui", "ui"),
@@ -230,13 +238,13 @@ def get_data_dirs() -> list[tuple[str, str]]:
             result.append((abs_src, dst))
     return result
 
+
 def get_icon_args() -> list[str]:
     """Return --icon argument if assets/icon.ico exists."""
     icon = os.path.join(PROJECT_ROOT, "assets", "icon.ico")
     if os.path.isfile(icon):
         return [f"--icon={icon}"]
     return []
-
 
 # ---------------------------------------------------------------------------
 # Workspace Cleaning & Tool Detection
@@ -316,7 +324,6 @@ def file_size_mb(path: str) -> float:
 def create_portable_package(platform_name: str, binary_path: str) -> str:
     """
     Organizes binary and assets into a clean folder and produces a portable archive.
-    For Linux, includes: .desktop file, icon theme, and install script.
     """
     pkg_folder_name = f"{APP_NAME}-v{VERSION}-{platform_name}"
     pkg_dir = os.path.join(RELEASE_DIR, pkg_folder_name)
@@ -338,23 +345,19 @@ def create_portable_package(platform_name: str, binary_path: str) -> str:
     # 3. Linux-specific: desktop integration files
     is_linux = "Linux" in platform_name
     if is_linux:
-        # Copy .desktop file (keep relative Exec path for portability)
         desktop_src = os.path.join(PROJECT_ROOT, "assets", "auratool-suite.desktop")
         if os.path.isfile(desktop_src):
             shutil.copy2(desktop_src, os.path.join(pkg_dir, "auratool-suite.desktop"))
 
-        # Copy icon theme directory
         icons_src = os.path.join(PROJECT_ROOT, "assets", "icons")
         icons_dst = os.path.join(pkg_dir, "icons")
         if os.path.isdir(icons_src):
             shutil.copytree(icons_src, icons_dst)
 
-        # Copy main PNG icon for easy reference
         icon_png = os.path.join(PROJECT_ROOT, "assets", "icon.png")
         if os.path.isfile(icon_png):
             shutil.copy2(icon_png, os.path.join(pkg_dir, "icon.png"))
 
-        # Write install helper script
         install_script = os.path.join(pkg_dir, "install-desktop.sh")
         with open(install_script, "w") as f:
             f.write(INSTALL_DESKTOP_TEXT)
@@ -423,7 +426,6 @@ def build_linux(entry_point: str, hidden_imports: list[str]) -> bool:
         os.chmod(raw_output_path, 0o755)
         archive_file = create_portable_package("Linux-x64", raw_output_path)
         
-        # Clean temporary raw output file outside folder
         if os.path.exists(raw_output_path):
             os.remove(raw_output_path)
 
@@ -445,6 +447,7 @@ def build_windows_wine(entry_point: str, hidden_imports: list[str]) -> bool:
     wine_path, wine_python = ensure_wine()
     if not wine_python:
         print("[!] Wine or Windows Python environment not found on Linux system.")
+        print("    Skipping Windows cross-compilation.")
         return False
 
     binary_name = f"{APP_NAME}.exe"
@@ -477,7 +480,6 @@ def build_windows_wine(entry_point: str, hidden_imports: list[str]) -> bool:
     if res.returncode == 0 and os.path.isfile(raw_output_path):
         archive_file = create_portable_package("Windows-x64", raw_output_path)
 
-        # Clean temporary raw output file outside folder
         if os.path.exists(raw_output_path):
             os.remove(raw_output_path)
 
@@ -517,7 +519,6 @@ def validate_release():
             size = file_size_mb(p)
             print(f"  {name:<48} {'Archive':<12} {size:>8.1f} MB")
         elif os.path.isdir(p):
-            # Calculate total directory size
             total_b = sum(os.path.getsize(os.path.join(dp, f)) for dp, _, filenames in os.walk(p) for f in filenames)
             size = total_b / (1024 * 1024)
             print(f"  {name + '/':<48} {'Directory':<12} {size:>8.1f} MB")
