@@ -5,7 +5,7 @@ import platform
 import subprocess
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-RELEASE_DIR = os.path.join(PROJECT_ROOT, "release")
+RELEASE_DIR = os.path.join(PROJECT_ROOT, "release_output")
 BUILD_DIR = os.path.join(PROJECT_ROOT, "build")
 DIST_DIR = os.path.join(PROJECT_ROOT, "dist")
 
@@ -21,6 +21,7 @@ HIDDEN_IMPORTS = [
     "modules.biometrics_fix",
     "modules.chat_rooms",
     "modules.data_recovery",
+    "modules.download",
     "modules.ecommerce",
     "modules.factory_export",
     "modules.flashing_engine",
@@ -38,14 +39,14 @@ def clean_build_artifacts():
     for d in dirs_to_remove:
         if os.path.exists(d):
             shutil.rmtree(d, ignore_errors=True)
-            print(f"    Removed: {d}")
+            print(f"    Removed directory: {d}")
 
     for file in os.listdir(PROJECT_ROOT):
         if file.endswith(".spec"):
             spec_path = os.path.join(PROJECT_ROOT, file)
             try:
                 os.remove(spec_path)
-                print(f"    Removed: {spec_path}")
+                print(f"    Removed spec file: {spec_path}")
             except OSError:
                 pass
 
@@ -53,21 +54,21 @@ def ensure_pyinstaller():
     """Ensures PyInstaller is installed in the current Python environment."""
     try:
         import PyInstaller
-        print("[*] PyInstaller is installed and available.")
+        print("[*] Native PyInstaller is installed and ready.")
     except ImportError:
-        print("[!] PyInstaller not found. Installing...")
+        print("[!] PyInstaller not found in Python environment. Installing...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
 def find_wine_python():
-    """Checks if Wine and Windows Python are installed on Linux for cross-compiling .exe files."""
+    """Locates Wine and Windows Python executable on Linux/Ubuntu system."""
     wine_path = shutil.which("wine")
     if not wine_path:
         return None
 
-    # Check common Wine Python locations
     possible_paths = [
         os.path.expanduser("~/.wine/drive_c/Python310/python.exe"),
         os.path.expanduser("~/.wine/drive_c/Python311/python.exe"),
+        os.path.expanduser("~/.wine/drive_c/Python39/python.exe"),
         os.path.expanduser("~/.wine/drive_c/Program Files/Python310/python.exe"),
         os.path.expanduser("~/.wine/drive_c/Program Files/Python311/python.exe"),
     ]
@@ -76,7 +77,6 @@ def find_wine_python():
         if os.path.exists(py_path):
             return py_path
 
-    # Try running python inside wine directly
     try:
         res = subprocess.run(["wine", "python", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if res.returncode == 0:
@@ -86,55 +86,74 @@ def find_wine_python():
 
     return None
 
-def build_executable():
-    """Bundles the entire application into a single executable (.exe for Windows or ELF for Linux)."""
-    clean_build_artifacts()
-    os.makedirs(RELEASE_DIR, exist_ok=True)
-
-    current_os = platform.system().lower()
+def get_entry_point():
+    """Determines the application entry point script."""
     entry_point = os.path.join(PROJECT_ROOT, "ui", "app.py")
     if not os.path.exists(entry_point):
         entry_point = os.path.join(PROJECT_ROOT, "auratool_factory.py")
+    return entry_point
 
-    print(f"[*] Starting build process on platform: {platform.system()}")
-    print(f"[*] Entry point: {entry_point}")
-    print(f"[*] Output directory: {RELEASE_DIR}")
+def build_linux_native(entry_point):
+    """Builds single-file native Linux binary."""
+    print("\n==================================================")
+    print("[*] Building Native Linux Binary (--onefile)...")
+    print("==================================================")
+    ensure_pyinstaller()
 
-    if current_os == "linux":
-        wine_python = find_wine_python()
-        if wine_python:
-            print("[*] Wine environment detected. Building Windows executable (.exe) on Ubuntu/Linux...")
-            app_name = "AuraTool.exe"
-            pyinstaller_cmd = [
-                "wine", wine_python, "-m", "PyInstaller",
-                "--onefile",
-                "--name=AuraTool",
-                "--distpath=" + RELEASE_DIR,
-                "--workpath=" + BUILD_DIR,
-                "--clean",
-                "--noconfirm"
-            ]
-        else:
-            print("[!] Wine / Windows Python environment not found on Linux.")
-            print("[*] Building native Linux executable (AuraTool)...")
-            ensure_pyinstaller()
-            app_name = "AuraTool"
-            pyinstaller_cmd = [
-                sys.executable, "-m", "PyInstaller",
-                "--onefile",
-                "--name=AuraTool",
-                "--distpath=" + RELEASE_DIR,
-                "--workpath=" + BUILD_DIR,
-                "--clean",
-                "--noconfirm"
-            ]
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--onefile",
+        "--name=AuraTool",
+        "--distpath=" + RELEASE_DIR,
+        "--workpath=" + BUILD_DIR,
+        "--clean",
+        "--noconfirm"
+    ]
+    for imp in HIDDEN_IMPORTS:
+        cmd.extend(["--hidden-import", imp])
+    cmd.append(entry_point)
+
+    print(f"[*] Executing command: {' '.join(cmd)}")
+    res = subprocess.run(cmd)
+    if res.returncode == 0:
+        print(f"[SUCCESS] Linux Binary created: {os.path.join(RELEASE_DIR, 'AuraTool')}")
+        return True
     else:
+        print("[ERROR] Linux build failed.")
+        return False
+
+def build_windows_exe(entry_point):
+    """Builds single-file Windows executable (.exe) via Wine or native environment."""
+    print("\n==================================================")
+    print("[*] Building Windows Executable (.exe)...")
+    print("==================================================")
+
+    current_os = platform.system().lower()
+
+    if current_os == "windows":
         ensure_pyinstaller()
-        app_name = "AuraTool.exe"
-        pyinstaller_cmd = [
+        cmd = [
             sys.executable, "-m", "PyInstaller",
             "--onefile",
-            "--name=AuraTool",
+            "--name=AuraTool.exe",
+            "--distpath=" + RELEASE_DIR,
+            "--workpath=" + BUILD_DIR,
+            "--clean",
+            "--noconfirm"
+        ]
+    else:
+        wine_python = find_wine_python()
+        if not wine_python:
+            print("[!] Wine / Windows Python environment not detected on Linux.")
+            print("    To cross-compile Windows .exe on Ubuntu, install Wine & Windows Python:")
+            print("    sudo apt install wine64 && wine msiexec /i python- installer.msi")
+            return False
+
+        print(f"[*] Found Wine Python: {wine_python}")
+        cmd = [
+            "wine", wine_python, "-m", "PyInstaller",
+            "--onefile",
+            "--name=AuraTool.exe",
             "--distpath=" + RELEASE_DIR,
             "--workpath=" + BUILD_DIR,
             "--clean",
@@ -142,21 +161,39 @@ def build_executable():
         ]
 
     for imp in HIDDEN_IMPORTS:
-        pyinstaller_cmd.extend(["--hidden-import", imp])
+        cmd.extend(["--hidden-import", imp])
+    cmd.append(entry_point)
 
-    pyinstaller_cmd.append(entry_point)
-
-    print(f"[*] Executing build command: {' '.join(pyinstaller_cmd)}")
-    result = subprocess.run(pyinstaller_cmd)
-
-    if result.returncode == 0:
-        output_path = os.path.join(RELEASE_DIR, app_name)
-        print(f"\n[SUCCESS] Build complete! Target binary generated at:")
-        print(f"          -> {output_path}")
+    print(f"[*] Executing command: {' '.join(cmd)}")
+    res = subprocess.run(cmd)
+    if res.returncode == 0:
+        print(f"[SUCCESS] Windows Executable created: {os.path.join(RELEASE_DIR, 'AuraTool.exe')}")
+        return True
     else:
-        print("\n[ERROR] Build failed! Check PyInstaller output logs above.")
+        print("[ERROR] Windows build failed.")
+        return False
+
+def build_all():
+    """Main build workflow for dual-platform release generation."""
+    clean_build_artifacts()
+    os.makedirs(RELEASE_DIR, exist_ok=True)
+
+    entry_point = get_entry_point()
+    print(f"[*] Target Release Folder: {RELEASE_DIR}")
+    print(f"[*] Application Entry Point: {entry_point}")
+
+    linux_status = build_linux_native(entry_point)
+    win_status = build_windows_exe(entry_point)
 
     clean_build_artifacts()
 
+    print("\n==================================================")
+    print("BUILD SUMMARY & RELEASE STATUS")
+    print("==================================================")
+    print(f"Output Directory: {RELEASE_DIR}")
+    print(f"Linux Binary  (AuraTool)    : {'SUCCESS' if linux_status else 'SKIPPED/FAILED'}")
+    print(f"Windows Binary (AuraTool.exe): {'SUCCESS' if win_status else 'SKIPPED/FAILED'}")
+    print("==================================================")
+
 if __name__ == "__main__":
-    build_executable()
+    build_all()
