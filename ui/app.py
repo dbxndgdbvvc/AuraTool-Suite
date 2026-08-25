@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import logging
+import os
+import sys
 
 from core.licensing import LicenseManager
 from modules.localization import LocalizationManager
@@ -54,6 +56,9 @@ class AuraToolUI:
         self.root.title("AuraTool-Suite — Universal Desktop Platform 2030")
         self.root.geometry("1180x820")
 
+        # Set native window icon for professional desktop integration
+        self._set_window_icon()
+
         self.license_info = license_info
         self.driver_status = driver_status
         self.license_mgr = LicenseManager()
@@ -80,6 +85,30 @@ class AuraToolUI:
         handler.setFormatter(formatter)
         logging.getLogger().addHandler(handler)
         logging.getLogger().setLevel(logging.INFO)
+
+    def _set_window_icon(self):
+        """Apply the application icon to the window for native desktop feel."""
+        try:
+            # Determine base directory — works for both source and PyInstaller bundle
+            if getattr(sys, '_MEIPASS', None):
+                base = sys._MEIPASS
+            else:
+                base = os.path.dirname(os.path.abspath(__file__))
+                # Navigate up from ui/ to project root
+                base = os.path.dirname(base)
+
+            # Try ICO first (Windows), then PNG (Linux/cross-platform)
+            for icon_file in ['assets/icon.ico', 'assets/icon.png']:
+                icon_path = os.path.join(base, icon_file)
+                if os.path.isfile(icon_path):
+                    if icon_file.endswith('.ico'):
+                        self.root.iconbitmap(icon_path)
+                    else:
+                        img = tk.PhotoImage(file=icon_path)
+                        self.root.iconphoto(True, img)
+                    return
+        except Exception:
+            pass  # Graceful fallback — icon is cosmetic
 
     def _build_ui(self):
         # Top Header Bar
