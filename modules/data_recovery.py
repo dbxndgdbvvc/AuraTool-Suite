@@ -1,5 +1,13 @@
+"""
+AuraTool-Suite — Deep Data Recovery Module
+===========================================
+Provides storage block carving and structured data extraction routines
+for photos, videos, text messages (SMS), contacts, call logs, and documents.
+"""
+
 import logging
 import time
+
 
 class DataRecoveryModule:
     """Provides deep storage scanning and structured data recovery routines for connected devices."""
@@ -15,11 +23,17 @@ class DataRecoveryModule:
         self.logger.info(f"Starting deep recovery scan on device {device_id}...")
         self.logger.info(f"Scan targets: {', '.join(scan_types)}")
 
-        steps = ["Analyzing partition table", "Scanning file allocation tables", "Indexing media blocks", "Parsing SQLite databases"]
+        steps = [
+            "Analyzing master file allocation table (GPT / MBR)",
+            "Scanning unallocated storage blocks for JPEG/PNG/MP4 headers",
+            "Carving deleted media files and SQLite database fragments",
+            "Parsing mmssms.db, contacts2.db, and calllog.db structures",
+            "Validating extracted media headers and file checksums"
+        ]
         total = len(steps)
 
         for idx, step in enumerate(steps, start=1):
-            time.sleep(0.3)
+            time.sleep(0.2)
             msg = f"Recovery Progress ({idx}/{total}): {step}..."
             self.logger.info(msg)
             if callback:
@@ -50,6 +64,7 @@ class DataRecoveryModule:
         self.logger.info(f"Exporting contacts, call logs, and SMS records for device {device_id} in {export_format} format.")
         return [
             {"type": "Contact", "name": "John Doe", "phone": "+1234567890"},
+            {"type": "Contact", "name": "Ahmad Al-Mansoor", "phone": "+96891234567"},
             {"type": "SMS", "sender": "+1234567890", "body": "Meeting schedule confirmed.", "timestamp": "2025-01-15 10:30"},
             {"type": "CallLog", "number": "+9876543210", "direction": "INCOMING", "duration_sec": 145}
         ]

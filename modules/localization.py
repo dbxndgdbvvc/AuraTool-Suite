@@ -152,21 +152,3 @@ class LocalizationManager:
         lang_dict = self.LOG_MESSAGES.get(self.current_lang, self.LOG_MESSAGES.get("en", {}))
         raw_msg = lang_dict.get(key, key)
         return self.reshape_arabic_text(raw_msg)
-
-    def apply_locale_to_device(self, device_id: str, lang_code: str, enable_rtl: bool = False) -> bool:
-        """Simulates pushing language and RTL configuration to a device."""
-        self.logger.info(f"Applying locale {lang_code} to device {device_id} (RTL={'enabled' if enable_rtl else 'disabled'})")
-        if lang_code in self.SUPPORTED_LANGUAGES:
-            self.set_language(lang_code)
-            return True
-        return False
-
-    def configure_csc(self, device_id: str, csc_code: str) -> bool:
-        """Configure CSC (Country Specific Code) for regional features."""
-        self.logger.info(f"Configuring CSC={csc_code} for device {device_id}")
-        return True
-
-    def unhide_system_languages(self, device_id: str) -> bool:
-        """Unhides system languages on an attached mobile device."""
-        self.logger.info(f"Unhiding system languages on device {device_id}")
-        return True

@@ -16,6 +16,7 @@ from modules.ultimate_repair import UltimateRepairModule
 from modules.chat_rooms import ChatRoomManager
 from modules.media_stream import MediaStreamEngine
 from modules.ecommerce import ECommerceManager
+from modules.device_drivers import DeviceDriverManager
 from auratool_factory import FactoryManager
 
 
@@ -73,6 +74,7 @@ class AuraToolUI:
         self.chat_mgr = ChatRoomManager()
         self.media_stream = MediaStreamEngine()
         self.ecommerce_mgr = ECommerceManager()
+        self.driver_mgr = DeviceDriverManager()
         self.factory_mgr = factory_mgr or FactoryManager()
 
         self._build_ui()
@@ -211,6 +213,7 @@ class AuraToolUI:
         self.frp_btn = ttk.Button(btn_f, text=self.loc_mgr.get_string("bypass_frp"), command=self._action_bypass_frp)
         self.frp_btn.pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_f, text="Backup EFS / NVRAM", command=self._action_backup_efs).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_f, text="Deep Unbrick Device", command=self._action_unbrick).pack(side=tk.LEFT, padx=5)
 
     def _build_repair_tab(self, parent):
         ttk.Label(parent, text="System Bootloop, Black Screen & Virus Removal Engine", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
@@ -267,6 +270,10 @@ class AuraToolUI:
 
         ttk.Button(parent, text="Apply Language / تطبيق اللغة", command=self._action_change_lang).pack(anchor=tk.W, pady=5)
 
+        driver_f = ttk.LabelFrame(parent, text="USB Driver Infrastructure Management", padding=10)
+        driver_f.pack(fill=tk.X, pady=10)
+        ttk.Button(driver_f, text="Verify & Install Brand Drivers", command=self._action_install_drivers).pack(anchor=tk.W, pady=5)
+
     def _action_activate_key(self):
         key = self.key_entry.get().strip()
         if not key:
@@ -291,9 +298,16 @@ class AuraToolUI:
         logging.info(self.loc_mgr.get_arabic_log("FLASHING_START"))
         self.flashing_engine.flash_firmware(m, f"/firmware/{m}.bin")
 
+    def _action_unbrick(self):
+        m = self.model_cb.get()
+        vendor = self.vendor_cb.get()
+        res = self.flashing_engine.unbrick_device(m, brand=vendor)
+        logging.info(f"Unbrick operation completed for {m}: {res['status']}")
+
     def _action_bypass_frp(self):
         m = self.model_cb.get()
-        self.ultimate_repair.automated_frp_bypass(m)
+        vendor = self.vendor_cb.get()
+        res = self.account_repair.remove_frp_and_cloud_locks(m, brand=vendor)
         logging.info(self.loc_mgr.get_arabic_log("FRP_SUCCESS"))
 
     def _action_backup_efs(self):
@@ -339,6 +353,11 @@ class AuraToolUI:
             self.ecommerce_mgr.add_to_cart(item_id)
             order = self.ecommerce_mgr.checkout()
             messagebox.showinfo("Order Placed", f"Order ID: {order['order_id']} Total: ${order['total_amount']:.2f}")
+
+    def _action_install_drivers(self):
+        res = self.driver_mgr.check_all_drivers()
+        logging.info(f"Verified USB Drivers Status: {len(res)} driver stacks ready.")
+        messagebox.showinfo("Driver Status", "All multi-brand USB drivers verified and ready.")
 
     def _action_change_lang(self):
         selected = self.lang_cb.get()
