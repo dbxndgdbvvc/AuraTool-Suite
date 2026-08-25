@@ -41,7 +41,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 RELEASE_DIR = os.path.join(PROJECT_ROOT, "release_output")
 BUILD_DIR = os.path.join(PROJECT_ROOT, "build")
 DIST_DIR = os.path.join(PROJECT_ROOT, "dist")
-SPEC_FILE = os.path.join(PROJECT_ROOT, "auratool.spec")
+SPEC_FILE = os.path.abspath(os.path.join(PROJECT_ROOT, "auratool.spec"))
 
 APP_NAME = "AuraTool-Suite"
 VERSION = "2.0.0"
@@ -401,10 +401,13 @@ def build_linux(entry_point: str, hidden_imports: list[str]) -> bool:
     print("=" * 62)
 
     ensure_pyinstaller()
+    os.makedirs(RELEASE_DIR, exist_ok=True)
+    os.makedirs(BUILD_DIR, exist_ok=True)
+
     binary_name = APP_NAME
     raw_output = os.path.join(RELEASE_DIR, binary_name)
 
-    if os.path.exists(SPEC_FILE):
+    if os.path.isfile(SPEC_FILE):
         print(f"  Using spec file: {os.path.basename(SPEC_FILE)}")
         cmd = [
             sys.executable, "-m", "PyInstaller",
@@ -462,6 +465,9 @@ def build_windows(entry_point: str, hidden_imports: list[str]) -> bool:
     if not wine_python:
         print("\n  [!] Wine or Windows Python not found on this system.")
         return False
+
+    os.makedirs(RELEASE_DIR, exist_ok=True)
+    os.makedirs(BUILD_DIR, exist_ok=True)
 
     binary_name = f"{APP_NAME}.exe"
     raw_output = os.path.join(RELEASE_DIR, binary_name)
