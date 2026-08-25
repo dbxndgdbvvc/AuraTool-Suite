@@ -69,6 +69,12 @@ pip install pyinstaller
 
 ### Windows Cross-Compilation (Linux → Windows via Wine)
 
+**Quick setup (recommended):**
+```bash
+sudo bash setup_wine_build.sh
+```
+
+**Manual setup:**
 ```bash
 # 1. Install Wine
 sudo dpkg --add-architecture i386

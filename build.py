@@ -211,16 +211,21 @@ a = Analysis(
     runtime_hooks=[],
     excludes=[
         'tkinter.test',
-        'unittest',
-        'test',
-        'distutils',
-        'setuptools',
-        'pip',
-        'numpy',
-        'pandas',
-        'scipy',
-        'matplotlib',
-        'PIL.tests',
+        'unittest', 'test',
+        'distutils', 'setuptools', 'pip', 'wheel',
+        'numpy', 'numpy.core', 'numpy.random', 'numpy.linalg',
+        'numpy.fft', 'numpy.polynomial',
+        'pandas', 'scipy', 'matplotlib', 'matplotlib.pyplot',
+        'notebook', 'ipython', 'IPython',
+        'pytest', 'py.test', '_pytest',
+        'PIL.tests', 'PIL.TiffImagePlugin',
+        'pydoc', 'doctest',
+        'xmlrpc', 'pyexpat',
+        'lib2to3',
+        'pdb', 'profile', 'cProfile',
+        'email.mime', 'html.parser',
+        'pygments', 'colorama',
+        'ssl', 'hashlib',  # built into bootloader
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
@@ -324,6 +329,25 @@ def build_linux():
     if not binary.exists():
         log(f"Binary not found at {binary}", "ERR")
         return False
+
+    # Apply UPX compression to reduce binary size
+    upx_path = shutil.which("upx") or str(Path.home() / ".local" / "bin" / "upx")
+    if os.path.isfile(upx_path):
+        log("Applying UPX compression...", "STEP")
+        original_size = binary.stat().st_size / (1024 * 1024)
+        try:
+            run_cmd([upx_path, "--best", "--lzma", str(binary)])
+            compressed_size = binary.stat().st_size / (1024 * 1024)
+            saved = original_size - compressed_size
+            ratio = (saved / original_size) * 100 if original_size > 0 else 0
+            if saved > 0.1:
+                log(f"UPX compressed: {original_size:.1f} MB → {compressed_size:.1f} MB (saved {saved:.1f} MB, {ratio:.0f}%)", "OK")
+            else:
+                log(f"UPX applied but minimal gain ({ratio:.1f}%): PyInstaller onefile is already compressed", "INFO")
+        except subprocess.CalledProcessError:
+            log("UPX compression failed, keeping uncompressed binary", "WARN")
+    else:
+        log("UPX not found, skipping compression (install: sudo apt install upx)", "WARN")
 
     # Create release package
     log("Creating release package...", "STEP")
@@ -471,6 +495,21 @@ def _build_windows_native():
     cmd.append(str(PROJECT_ROOT / ENTRY_POINT))
     run_cmd(cmd)
 
+    # Apply UPX compression to Windows executables
+    upx_path = shutil.which("upx") or str(Path.home() / ".local" / "bin" / "upx")
+    if os.path.isfile(upx_path):
+        log("Applying UPX compression to Windows binaries...", "STEP")
+        win_exe = DIST_DIR / APP_NAME / f"{APP_NAME}.exe"
+        if win_exe.exists():
+            original_size = win_exe.stat().st_size / (1024 * 1024)
+            try:
+                run_cmd([upx_path, "--best", "--lzma", str(win_exe)])
+                compressed_size = win_exe.stat().st_size / (1024 * 1024)
+                ratio = (1 - compressed_size / original_size) * 100
+                log(f"UPX compressed: {original_size:.1f} MB → {compressed_size:.1f} MB ({ratio:.0f}% reduction)", "OK")
+            except subprocess.CalledProcessError:
+                log("UPX compression failed, keeping uncompressed binary", "WARN")
+
     return _package_windows()
 
 
@@ -532,6 +571,21 @@ def _build_windows_wine():
 
     cmd.append(str(PROJECT_ROOT / ENTRY_POINT))
     run_cmd(cmd)
+
+    # Apply UPX compression to Windows executables
+    upx_path = shutil.which("upx") or str(Path.home() / ".local" / "bin" / "upx")
+    if os.path.isfile(upx_path):
+        log("Applying UPX compression to Windows binaries...", "STEP")
+        win_exe = DIST_DIR / APP_NAME / f"{APP_NAME}.exe"
+        if win_exe.exists():
+            original_size = win_exe.stat().st_size / (1024 * 1024)
+            try:
+                run_cmd([upx_path, "--best", "--lzma", str(win_exe)])
+                compressed_size = win_exe.stat().st_size / (1024 * 1024)
+                ratio = (1 - compressed_size / original_size) * 100
+                log(f"UPX compressed: {original_size:.1f} MB → {compressed_size:.1f} MB ({ratio:.0f}% reduction)", "OK")
+            except subprocess.CalledProcessError:
+                log("UPX compression failed, keeping uncompressed binary", "WARN")
 
     return _package_windows()
 
