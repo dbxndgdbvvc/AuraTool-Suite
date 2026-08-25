@@ -7,7 +7,7 @@ from a single Ubuntu/Linux host using PyInstaller and Wine. All binaries
 are placed into a dedicated release_output/ directory — zero workspace clutter.
 
 Features:
-  - Uses custom AuraTool-Suite.spec for build configuration
+  - Uses custom auratool.spec for build configuration
   - Auto-discovers all Python modules in core/, modules/, drivers/, ui/
   - Builds native Linux binary (--onefile, --strip) optimized for Ubuntu
   - Builds Windows .exe (--onefile) via Wine + Windows Python cross-compilation
@@ -41,7 +41,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 RELEASE_DIR = os.path.join(PROJECT_ROOT, "release_output")
 BUILD_DIR = os.path.join(PROJECT_ROOT, "build")
 DIST_DIR = os.path.join(PROJECT_ROOT, "dist")
-SPEC_FILE = os.path.join(PROJECT_ROOT, "AuraTool-Suite.spec")
+SPEC_FILE = os.path.join(PROJECT_ROOT, "auratool.spec")
 
 APP_NAME = "AuraTool-Suite"
 VERSION = "2.0.0"
