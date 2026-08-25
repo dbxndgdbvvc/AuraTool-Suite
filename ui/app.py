@@ -56,7 +56,6 @@ class AuraToolUI:
         self.root.title("AuraTool-Suite — Universal Desktop Platform 2030")
         self.root.geometry("1180x820")
 
-        # Set native window icon for professional desktop integration
         self._set_window_icon()
 
         self.license_info = license_info
@@ -89,15 +88,12 @@ class AuraToolUI:
     def _set_window_icon(self):
         """Apply the application icon to the window for native desktop feel."""
         try:
-            # Determine base directory — works for both source and PyInstaller bundle
             if getattr(sys, '_MEIPASS', None):
                 base = sys._MEIPASS
             else:
                 base = os.path.dirname(os.path.abspath(__file__))
-                # Navigate up from ui/ to project root
                 base = os.path.dirname(base)
 
-            # Try ICO first (Windows), then PNG (Linux/cross-platform)
             for icon_file in ['assets/icon.ico', 'assets/icon.png']:
                 icon_path = os.path.join(base, icon_file)
                 if os.path.isfile(icon_path):
@@ -108,7 +104,7 @@ class AuraToolUI:
                         self.root.iconphoto(True, img)
                     return
         except Exception:
-            pass  # Graceful fallback — icon is cosmetic
+            pass
 
     def _build_ui(self):
         # Top Header Bar
@@ -124,13 +120,14 @@ class AuraToolUI:
         self.lic_lbl.pack(side=tk.RIGHT if not self.loc_mgr.is_rtl() else tk.LEFT)
 
         # Activation / License Bar
-        act_bar = ttk.LabelFrame(self.root, text="License Activation & HWID Binding / تفعيل الترخيص", padding=5)
-        act_bar.pack(fill=tk.X, padx=10, pady=2)
+        self.act_bar = ttk.LabelFrame(self.root, text=self.loc_mgr.get_string("license_bar_lbl"), padding=5)
+        self.act_bar.pack(fill=tk.X, padx=10, pady=2)
 
-        ttk.Label(act_bar, text="Enter License Key (6-Month AT-6M-... or 1-Year AT-1Y-...):").pack(side=tk.LEFT, padx=5)
-        self.key_entry = ttk.Entry(act_bar, width=32)
+        ttk.Label(self.act_bar, text="Key:").pack(side=tk.LEFT, padx=5)
+        self.key_entry = ttk.Entry(self.act_bar, width=32)
         self.key_entry.pack(side=tk.LEFT, padx=5)
-        ttk.Button(act_bar, text="Activate Key / تفعيل المفتاح", command=self._action_activate_key).pack(side=tk.LEFT, padx=5)
+        self.act_btn = ttk.Button(self.act_bar, text=self.loc_mgr.get_string("activate_btn"), command=self._action_activate_key)
+        self.act_btn.pack(side=tk.LEFT, padx=5)
 
         # Tabbed Navigation Notebook
         self.notebook = ttk.Notebook(self.root)
@@ -191,7 +188,8 @@ class AuraToolUI:
         self.ai_cmd_entry = ttk.Entry(f, width=50)
         self.ai_cmd_entry.pack(side=tk.LEFT, padx=5)
         self.ai_cmd_entry.insert(0, "Analyze log and bypass FRP lock")
-        ttk.Button(f, text=self.loc_mgr.get_string("run_ai"), command=self._action_run_ai).pack(side=tk.LEFT, padx=5)
+        self.ai_btn = ttk.Button(f, text=self.loc_mgr.get_string("run_ai"), command=self._action_run_ai)
+        self.ai_btn.pack(side=tk.LEFT, padx=5)
 
     def _build_vendor_tab(self, parent):
         top = ttk.Frame(parent)
@@ -208,8 +206,10 @@ class AuraToolUI:
 
         btn_f = ttk.LabelFrame(parent, text="Operations", padding=10)
         btn_f.pack(fill=tk.X, pady=10)
-        ttk.Button(btn_f, text=self.loc_mgr.get_string("flash"), command=self._action_flash).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_f, text=self.loc_mgr.get_string("bypass_frp"), command=self._action_bypass_frp).pack(side=tk.LEFT, padx=5)
+        self.flash_btn = ttk.Button(btn_f, text=self.loc_mgr.get_string("flash"), command=self._action_flash)
+        self.flash_btn.pack(side=tk.LEFT, padx=5)
+        self.frp_btn = ttk.Button(btn_f, text=self.loc_mgr.get_string("bypass_frp"), command=self._action_bypass_frp)
+        self.frp_btn.pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_f, text="Backup EFS / NVRAM", command=self._action_backup_efs).pack(side=tk.LEFT, padx=5)
 
     def _build_repair_tab(self, parent):
@@ -222,7 +222,8 @@ class AuraToolUI:
 
     def _build_recovery_tab(self, parent):
         ttk.Label(parent, text="Deep Scan Data Recovery (Photos, Videos, SMS, Contacts)", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
-        ttk.Button(parent, text=self.loc_mgr.get_string("start_scan"), command=self._action_deep_scan).pack(anchor=tk.W, pady=5)
+        self.scan_btn = ttk.Button(parent, text=self.loc_mgr.get_string("start_scan"), command=self._action_deep_scan)
+        self.scan_btn.pack(anchor=tk.W, pady=5)
 
     def _build_chat_tab(self, parent):
         ttk.Label(parent, text="Real-Time Technician Community & Support Rooms", font=("Helvetica", 11, "bold")).pack(anchor=tk.W, pady=5)
@@ -255,7 +256,8 @@ class AuraToolUI:
         for item in self.ecommerce_mgr.get_catalogue():
             self.store_tree.insert("", tk.END, values=(item["id"], item["name"], item["category"], f"${item['price']:.2f}", item["stock"]))
 
-        ttk.Button(parent, text=self.loc_mgr.get_string("checkout"), command=self._action_checkout).pack(anchor=tk.W, pady=5)
+        self.checkout_btn = ttk.Button(parent, text=self.loc_mgr.get_string("checkout"), command=self._action_checkout)
+        self.checkout_btn.pack(anchor=tk.W, pady=5)
 
     def _build_settings_tab(self, parent):
         ttk.Label(parent, text="Select Interface Language / اختر لغة الواجهة:", font=("Helvetica", 10)).pack(anchor=tk.W, pady=5)
@@ -291,7 +293,7 @@ class AuraToolUI:
 
     def _action_bypass_frp(self):
         m = self.model_cb.get()
-        self.account_repair.bypass_frp_and_cloud_locks(m)
+        self.ultimate_repair.automated_frp_bypass(m)
         logging.info(self.loc_mgr.get_arabic_log("FRP_SUCCESS"))
 
     def _action_backup_efs(self):
@@ -344,6 +346,21 @@ class AuraToolUI:
             if name == selected:
                 self.loc_mgr.set_language(code)
                 self.title_lbl.config(text=self.loc_mgr.get_string("title"))
+                self.act_bar.config(text=self.loc_mgr.get_string("license_bar_lbl"))
+                self.act_btn.config(text=self.loc_mgr.get_string("activate_btn"))
+                self.ai_btn.config(text=self.loc_mgr.get_string("run_ai"))
+                self.flash_btn.config(text=self.loc_mgr.get_string("flash"))
+                self.frp_btn.config(text=self.loc_mgr.get_string("bypass_frp"))
+                self.scan_btn.config(text=self.loc_mgr.get_string("start_scan"))
+                self.checkout_btn.config(text=self.loc_mgr.get_string("checkout"))
+
+                tab_keys = [
+                    "ai_tab", "vendor_tab", "repair_tab", "recovery_tab",
+                    "chat_tab", "stream_tab", "store_tab", "settings_tab"
+                ]
+                for idx, key in enumerate(tab_keys):
+                    self.notebook.tab(idx, text=self.loc_mgr.get_string(key))
+
                 logging.info(f"Language changed to {selected}.")
                 break
 
