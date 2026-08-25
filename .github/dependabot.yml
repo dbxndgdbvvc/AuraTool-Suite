@@ -1,0 +1,65 @@
+# Dependabot configuration for AuraTool-Suite
+# Automatically keeps GitHub Actions and Python dependencies up to date.
+#
+# How it works:
+#   - Checks for updates daily
+#   - Opens pull requests automatically when new versions are available
+#   - Groups minor + patch updates to reduce PR noise
+#   - Auto-merges patch-level updates for GitHub Actions (safe bumps)
+
+version: 2
+
+updates:
+  # ─────────────────────────────────────────────────────────
+  # GitHub Actions — keep workflow actions on latest versions
+  # ─────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "06:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      # Group all minor + patch updates into a single PR
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    # Auto-merge patch-level updates (safe version bumps)
+    open-pull-requests-limit: 10
+
+  # ─────────────────────────────────────────────────────────
+  # Python dependencies (pip) — keep packages current
+  # ─────────────────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # Group all pip updates into a single PR
+      pip-all:
+        update-types:
+          - "minor"
+          - "patch"
+    # Only open PRs for significant updates
+    open-pull-requests-limit: 5
+    ignore:
+      # Ignore major version bumps (require manual review)
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"

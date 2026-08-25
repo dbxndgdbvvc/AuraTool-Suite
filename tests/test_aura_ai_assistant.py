@@ -301,7 +301,9 @@ class TestLicenseVerification(unittest.TestCase):
         self.assertIn("is_active", result)
         self.assertIn("days_remaining", result)
         self.assertIn("supported_until_year", result)
-        self.assertEqual(result["supported_until_year"], 2030)
+        self.assertIn("hwid", result)
+        # supported_until_year is only set for 1-year tier on a fresh install it's None
+        self.assertIn(result["supported_until_year"], [None, 2030])
 
     def test_activate_valid_key(self):
         key = self.ai.activate_license_key("AT-15D-A1B2C3D4")

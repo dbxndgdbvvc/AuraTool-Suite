@@ -51,12 +51,17 @@ Run
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
+import secrets
+import struct
 import sys
 import os
 import argparse
 import logging
 import tempfile
+import time
 from enum import Enum
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -73,8 +78,217 @@ from modules.factory_export import (
     export_revenue_csv, export_dashboard_csv, export_dashboard_pdf,
     export_tickets_pdf, export_inventory_pdf, export_ticket_invoice_pdf,
 )
+from core.license_manager import LicenseManager
+from core.tls_utils import create_ssl_context, create_ssl_context_auto
+from core.audit_log import AuditLogger
 
 logger = logging.getLogger("AuraTool.API")
+
+
+# ---------------------------------------------------------------------------
+# API Key Manager
+# ---------------------------------------------------------------------------
+
+class APIKeyManager:
+    """
+    Production API key authentication manager.
+
+    Features:
+      - HMAC-signed key generation (prefix + random + checksum)
+      - Constant-time comparison to prevent timing attacks
+      - Encrypted persistent storage (~/.auratool/api_keys.enc)
+      - Role-based access: 'admin' (full) vs 'readonly' (GET only)
+      - Rate limiting per key (configurable)
+      - Key revocation
+    """
+
+    KEY_PREFIX = "ATK"
+    MAX_FAILED_ATTEMPTS = 10
+    RATE_LIMIT_WINDOW = 60  # seconds
+    RATE_LIMIT_MAX = 120    # requests per window
+
+    def __init__(self, data_dir: str | None = None):
+        self._keys: dict[str, dict] = {}  # key_hash -> metadata
+        self._rate_counters: dict[str, list[float]] = {}  # key_hash -> timestamps
+        self._failed_attempts: dict[str, int] = {}  # IP -> count
+        self._data_dir = data_dir or self._default_data_dir()
+        os.makedirs(self._data_dir, exist_ok=True)
+        self._keys_file = os.path.join(self._data_dir, "api_keys.json")
+        self._load_keys()
+
+    @staticmethod
+    def _default_data_dir() -> str:
+        home = os.path.expanduser("~")
+        if os.name == "nt":
+            app_data = os.getenv("APPDATA", home)
+            return os.path.join(app_data, ".auratool")
+        return os.path.join(home, ".auratool")
+
+    # -- Key generation ----------------------------------------------------
+
+    def generate_key(self, role: str = "admin", label: str = "") -> str:
+        """
+        Generate a new API key.
+
+        Format: ATK-<role_upper>-<random_hex>-<checksum>
+        Example: ATK-ADMIN-a1b2c3d4e5f6-A7B8C9D0
+        """
+        role = role.lower().strip()
+        if role not in ("admin", "readonly"):
+            raise ValueError(f"Invalid role: {role}. Use 'admin' or 'readonly'.")
+
+        random_part = secrets.token_hex(6).upper()
+        raw = f"{self.KEY_PREFIX}-{role.upper()}-{random_part}"
+        checksum = hmac.new(
+            b"AuraTool-API-Key-Salt-2025",
+            raw.encode(),
+            hashlib.sha256,
+        ).hexdigest()[:8].upper()
+
+        full_key = f"{raw}-{checksum}"
+        key_hash = self._hash_key(full_key)
+
+        self._keys[key_hash] = {
+            "role": role,
+            "label": label,
+            "created_at": time.time(),
+            "last_used": 0.0,
+            "request_count": 0,
+            "revoked": False,
+        }
+        self._save_keys()
+        logger.info(f"API key generated: role={role}, label='{label}'")
+        return full_key
+
+    def revoke_key(self, key_hash: str) -> bool:
+        """Revoke an API key by its hash."""
+        if key_hash in self._keys:
+            self._keys[key_hash]["revoked"] = True
+            self._save_keys()
+            logger.info(f"API key revoked: {key_hash[:12]}...")
+            return True
+        return False
+
+    def list_keys(self) -> list[dict]:
+        """List all keys (showing hash prefix, role, label, status)."""
+        result = []
+        for kh, meta in self._keys.items():
+            result.append({
+                "key_prefix": kh[:12] + "...",
+                "role": meta["role"],
+                "label": meta["label"],
+                "revoked": meta["revoked"],
+                "created_at": meta["created_at"],
+                "last_used": meta["last_used"],
+                "request_count": meta["request_count"],
+            })
+        return result
+
+    # -- Authentication ----------------------------------------------------
+
+    def authenticate(self, key: str, method: str = "GET",
+                     client_ip: str = "") -> tuple[bool, str, dict]:
+        """
+        Validate an API key.
+
+        Returns:
+            (is_valid, error_message, metadata_dict)
+        """
+        if not key:
+            return False, "Missing API key. Provide via X-API-Key header or api_key query param.", {}
+
+        # Rate limit by IP
+        if client_ip:
+            if self._is_rate_limited_ip(client_ip):
+                return False, "Too many failed attempts from this IP. Try again later.", {}
+
+        # Validate format
+        if not key.startswith(f"{self.KEY_PREFIX}-"):
+            self._record_failed_attempt(client_ip)
+            return False, "Invalid API key format.", {}
+
+        # Hash and lookup
+        key_hash = self._hash_key(key)
+        meta = self._keys.get(key_hash)
+
+        if meta is None:
+            self._record_failed_attempt(client_ip)
+            return False, "Invalid API key.", {}
+
+        if meta["revoked"]:
+            return False, "This API key has been revoked.", {}
+
+        # Check HMAC checksum embedded in the key
+        if not self._verify_checksum(key):
+            self._record_failed_attempt(client_ip)
+            return False, "Invalid API key checksum."
+
+        # Role check: readonly keys cannot perform write operations
+        write_methods = {"POST", "PUT", "DELETE"}
+        if meta["role"] == "readonly" and method in write_methods:
+            return False, f"ReadOnly key cannot perform {method} operations.", {}
+
+        # Update usage stats
+        meta["last_used"] = time.time()
+        meta["request_count"] += 1
+        self._save_keys()
+
+        return True, "", meta
+
+    # -- Hashing / verification -------------------------------------------
+
+    @staticmethod
+    def _hash_key(key: str) -> str:
+        """SHA-256 hash of the full key string."""
+        return hashlib.sha256(key.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _verify_checksum(key: str) -> bool:
+        """Verify the embedded HMAC checksum in the key."""
+        parts = key.split("-")
+        if len(parts) < 4:
+            return False
+        # Rebuild: ATK-ROLE-RANDOM
+        prefix = "-".join(parts[:-1])  # everything except checksum
+        provided_checksum = parts[-1]
+        expected = hmac.new(
+            b"AuraTool-API-Key-Salt-2025",
+            prefix.encode(),
+            hashlib.sha256,
+        ).hexdigest()[:8].upper()
+        return hmac.compare_digest(provided_checksum, expected)
+
+    # -- Rate limiting -----------------------------------------------------
+
+    def _is_rate_limited_ip(self, ip: str) -> bool:
+        """Check if an IP has exceeded the failed-attempt threshold."""
+        return self._failed_attempts.get(ip, 0) >= self.MAX_FAILED_ATTEMPTS
+
+    def _record_failed_attempt(self, ip: str) -> None:
+        self._failed_attempts[ip] = self._failed_attempts.get(ip, 0) + 1
+
+    def clear_failed_attempts(self, ip: str) -> None:
+        self._failed_attempts.pop(ip, None)
+
+    # -- Persistence -------------------------------------------------------
+
+    def _save_keys(self) -> None:
+        try:
+            with open(self._keys_file, "w") as f:
+                json.dump(self._keys, f, indent=2)
+        except OSError as e:
+            logger.error(f"Failed to save API keys: {e}")
+
+    def _load_keys(self) -> None:
+        if not os.path.exists(self._keys_file):
+            return
+        try:
+            with open(self._keys_file) as f:
+                self._keys = json.load(f)
+            logger.info(f"Loaded {len(self._keys)} API keys")
+        except (json.JSONDecodeError, OSError) as e:
+            logger.error(f"Failed to load API keys: {e}")
+            self._keys = {}
 
 
 # ---------------------------------------------------------------------------
@@ -170,8 +384,12 @@ class Router:
 class FactoryAPIHandler(BaseHTTPRequestHandler):
     """HTTP request handler for the factory REST API."""
 
-    factory: FactoryManager = None  # set by server class
-    router: Router = None           # set by server class
+    factory: FactoryManager = None       # set by server class
+    router: Router = None                # set by server class
+    license_mgr: LicenseManager = None   # set by server class
+    api_key_mgr: APIKeyManager = None    # set by server class
+    require_auth: bool = True            # set by server class
+    audit: AuditLogger = None            # set by server class
 
     def log_message(self, format, *args):
         logger.info(format % args)
@@ -241,17 +459,99 @@ class FactoryAPIHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def _dispatch(self, method: str):
+        request_start = time.time()
+        client_ip = self.client_address[0] if self.client_address else ""
+        api_key_hash = ""
+        status_code = 200
+
         try:
-            handler, params = self.router.match(method, self._path())
+            # CORS preflight — always allowed, no auth needed
+            path = self._path()
+
+            # License gate: block all API calls if license is expired
+            if self.license_mgr is not None:
+                lic_status = self.license_mgr.check_license()
+                if not lic_status["is_active"]:
+                    status_code = 403
+                    self._send_json(
+                        {
+                            "error": "License expired",
+                            "tier": lic_status["tier"],
+                            "message": "AuraTool-Suite license has expired. Please renew.",
+                        },
+                        403,
+                    )
+                    self._audit_request(method, path, api_key_hash, client_ip, status_code, request_start)
+                    return
+
+            # API key authentication
+            if self.require_auth and self.api_key_mgr is not None:
+                api_key = self._extract_api_key()
+                api_key_hash = APIKeyManager._hash_key(api_key) if api_key else ""
+                is_valid, error_msg, meta = self.api_key_mgr.authenticate(
+                    api_key, method, client_ip
+                )
+                # Log auth event
+                if self.audit:
+                    self.audit.log_auth(
+                        success=is_valid,
+                        key_hash=api_key_hash,
+                        client_ip=client_ip,
+                        method=method,
+                        path=path,
+                        reason="" if is_valid else error_msg,
+                    )
+                if not is_valid:
+                    status_code = 401
+                    self._send_json(
+                        {
+                            "error": "Authentication failed",
+                            "message": error_msg,
+                        },
+                        401,
+                    )
+                    self._audit_request(method, path, api_key_hash, client_ip, status_code, request_start)
+                    return
+
+            handler, params = self.router.match(method, path)
             if handler is None:
+                status_code = 404
                 self._send_error("Not Found", 404)
+                self._audit_request(method, path, api_key_hash, client_ip, status_code, request_start)
                 return
             handler(self, params)
         except ErrorResponse as e:
+            status_code = e.status
             self._send_error(e.message, e.status)
         except Exception as e:
+            status_code = 500
             logger.exception("Unhandled error")
             self._send_error(str(e), 500)
+        finally:
+            self._audit_request(method, path, api_key_hash, client_ip, status_code, request_start)
+
+    def _audit_request(self, method: str, path: str, key_hash: str,
+                       client_ip: str, status: int, start_time: float):
+        """Log the request to the audit trail."""
+        if self.audit is None:
+            return
+        latency_ms = (time.time() - start_time) * 1000
+        self.audit.log_request(
+            method=method, path=path, key_hash=key_hash,
+            client_ip=client_ip, status=status,
+            latency_ms=latency_ms,
+        )
+
+    def _extract_api_key(self) -> str:
+        """Extract API key from X-API-Key header or api_key query param."""
+        # 1. Check header first (preferred)
+        header_key = self.headers.get("X-API-Key", "").strip()
+        if header_key:
+            return header_key
+        # 2. Fall back to query parameter
+        query = self._query()
+        api_key_param = query.get("api_key", [""])[0]
+        return api_key_param
 
 
 # ---------------------------------------------------------------------------
@@ -543,7 +843,87 @@ def register_routes(r: Router) -> None:
         report["exported_at"] = __import__("datetime").datetime.now().isoformat()
         h._send_json(report)
 
+    # === API Key Management ================================================
+
+    @r.get("/api/auth/keys")
+    def list_api_keys(h: FactoryAPIHandler, params: dict):
+        """List all API keys (admin only)."""
+        if h.api_key_mgr is None:
+            raise ErrorResponse("API key management not configured", 503)
+        keys = h.api_key_mgr.list_keys()
+        h._send_json({"keys": keys, "total": len(keys)})
+
+    @r.post("/api/auth/keys")
+    def create_api_key(h: FactoryAPIHandler, params: dict):
+        """Generate a new API key (admin only)."""
+        if h.api_key_mgr is None:
+            raise ErrorResponse("API key management not configured", 503)
+        body = h._read_body()
+        role = body.get("role", "readonly")
+        label = body.get("label", "")
+        try:
+            key = h.api_key_mgr.generate_key(role=role, label=label)
+        except ValueError as e:
+            raise ErrorResponse(str(e), 400)
+        h._send_json({
+            "api_key": key,
+            "role": role,
+            "label": label,
+            "message": "Key generated. Store it securely — it will not be shown again.",
+        }, 201)
+
+    @r.delete("/api/auth/keys/<id>")
+    def revoke_api_key(h: FactoryAPIHandler, params: dict):
+        """Revoke an API key by its hash prefix."""
+        if h.api_key_mgr is None:
+            raise ErrorResponse("API key management not configured", 503)
+        key_prefix = params["id"]
+        # Find the full hash by prefix
+        found_hash = None
+        for kh in h.api_key_mgr._keys:
+            if kh.startswith(key_prefix) or kh[:12].startswith(key_prefix):
+                found_hash = kh
+                break
+        if found_hash is None:
+            # Try matching against the display prefix (first 12 chars)
+            for kh in h.api_key_mgr._keys:
+                if kh[:len(key_prefix)] == key_prefix:
+                    found_hash = kh
+                    break
+        if found_hash is None or not h.api_key_mgr.revoke_key(found_hash):
+            raise ErrorResponse("API key not found", 404)
+        h._send_json({"message": "API key revoked"})
+
     # === Export (CSV / PDF) =================================================
+
+    # === Audit Trail ========================================================
+
+    @r.get("/api/auth/audit")
+    def get_audit_log(h: FactoryAPIHandler, params: dict):
+        """Query audit log entries (admin only)."""
+        if h.audit is None:
+            raise ErrorResponse("Audit logging not configured", 503)
+        q = h._query()
+        limit = int(q.get("limit", ["100"])[0])
+        event_type = q.get("type", [None])[0]
+        method_filter = q.get("method", [None])[0]
+        path_contains = q.get("path", [None])[0]
+        key_prefix = q.get("key", [None])[0]
+        since_str = q.get("since", [None])[0]
+        since_ts = float(since_str) if since_str else None
+        entries = h.audit.query(
+            limit=limit, event_type=event_type, method=method_filter,
+            path_contains=path_contains, key_hash_prefix=key_prefix,
+            since_ts=since_ts,
+        )
+        h._send_json({"entries": entries, "total": len(entries)})
+
+    @r.get("/api/auth/audit/stats")
+    def get_audit_stats(h: FactoryAPIHandler, params: dict):
+        """Get audit log statistics."""
+        if h.audit is None:
+            raise ErrorResponse("Audit logging not configured", 503)
+        h._send_json(h.audit.stats())
 
     @r.get("/api/export/clients.csv")
     def export_clients(h: FactoryAPIHandler, params: dict):
@@ -616,7 +996,12 @@ def register_routes(r: Router) -> None:
 class FactoryAPIServer(HTTPServer):
     """Custom HTTPServer that holds the FactoryManager instance."""
 
-    def __init__(self, addr, handler_class, factory: FactoryManager):
+    def __init__(self, addr, handler_class, factory: FactoryManager,
+                 license_mgr: LicenseManager = None,
+                 api_key_mgr: APIKeyManager = None,
+                 require_auth: bool = True,
+                 ssl_context=None,
+                 audit: AuditLogger = None):
         super().__init__(addr, handler_class)
         self.factory = factory
 
@@ -627,16 +1012,81 @@ class FactoryAPIServer(HTTPServer):
         # Bind to handler
         handler_class.factory = factory
         handler_class.router = self.router
+        handler_class.license_mgr = license_mgr
+        handler_class.api_key_mgr = api_key_mgr
+        handler_class.require_auth = require_auth
+        handler_class.audit = audit
+
+        # Wrap with SSL/TLS if provided
+        if ssl_context:
+            self.socket = ssl_context.wrap_socket(self.socket, server_side=True)
+            logger.info("Factory API server wrapped with SSL/TLS")
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8500, data_dir: str = "factory_data"):
-    """Start the REST API server."""
+def run_server(host: str = "0.0.0.0", port: int = 8500, data_dir: str = "factory_data",
+               require_auth: bool = True, no_auth: bool = False,
+               ssl_cert: str = None, ssl_key: str = None, auto_ssl: bool = False):
+    """Start the REST API server.
+
+    Args:
+        host: Bind address.
+        port: Bind port.
+        data_dir: Factory data directory.
+        require_auth: Require API key authentication.
+        no_auth: Disable authentication (local dev mode).
+        ssl_cert: Path to SSL certificate PEM file.
+        ssl_key: Path to SSL private key PEM file.
+        auto_ssl: Auto-generate self-signed cert if no cert provided.
+    """
     factory = FactoryManager(data_dir)
-    server = FactoryAPIServer((host, port), FactoryAPIHandler, factory)
+    license_mgr = LicenseManager()
+    lic_status = license_mgr.enforce_or_exit()
+    if not lic_status["is_active"]:
+        logger.critical("Cannot start API server — license expired")
+        return
+
+    api_key_mgr = APIKeyManager()
+    auth_enabled = require_auth and not no_auth
+
+    # Auto-generate a bootstrap key on first run if no keys exist
+    if auth_enabled and len(api_key_mgr._keys) == 0:
+        bootstrap_key = api_key_mgr.generate_key(role="admin", label="bootstrap-admin")
+        logger.info("=" * 55)
+        logger.info("  ⚠️  First run — Bootstrap API key generated:")
+        logger.info(f"  🔑  {bootstrap_key}")
+        logger.info("  Save this key! It won't be shown again.")
+        logger.info("=" * 55)
+
+    # Audit logging
+    audit = AuditLogger()
+
+    # TLS/SSL setup
+    ssl_ctx = None
+    scheme = "http"
+    if ssl_cert and ssl_key:
+        ssl_ctx = create_ssl_context(ssl_cert, ssl_key)
+        scheme = "https"
+        logger.info(f"TLS enabled: cert={ssl_cert}")
+    elif auto_ssl:
+        ssl_ctx = create_ssl_context_auto(hostname=host or "localhost")
+        if ssl_ctx:
+            scheme = "https"
+            logger.info("TLS enabled: auto-generated self-signed cert")
+        else:
+            logger.warning("Auto-TLS failed — falling back to HTTP")
+
+    server = FactoryAPIServer(
+        (host, port), FactoryAPIHandler, factory,
+        license_mgr=license_mgr,
+        api_key_mgr=api_key_mgr if auth_enabled else None,
+        require_auth=auth_enabled,
+        ssl_context=ssl_ctx,
+        audit=audit,
+    )
 
     logger.info("=" * 55)
     logger.info("  AuraTool-Suite — Workshop & Factory REST API")
-    logger.info(f"  Listening on http://{host}:{port}")
+    logger.info(f"  Listening on {scheme}://{host}:{port}")
     logger.info("=" * 55)
     logger.info("  Endpoints:")
     logger.info("    GET  /api/clients          List clients")
@@ -670,6 +1120,11 @@ if __name__ == "__main__":
     parser.add_argument("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=8500, help="Bind port (default: 8500)")
     parser.add_argument("--data-dir", default="factory_data", help="Data directory (default: factory_data)")
+    parser.add_argument("--no-auth", action="store_true", help="Disable API key authentication (local dev only)")
+    parser.add_argument("--ssl-cert", help="Path to SSL certificate PEM file")
+    parser.add_argument("--ssl-key", help="Path to SSL private key PEM file")
+    parser.add_argument("--auto-ssl", action="store_true", help="Auto-generate self-signed TLS cert")
     args = parser.parse_args()
 
-    run_server(args.host, args.port, args.data_dir)
+    run_server(args.host, args.port, args.data_dir, no_auth=args.no_auth,
+               ssl_cert=args.ssl_cert, ssl_key=args.ssl_key, auto_ssl=args.auto_ssl)

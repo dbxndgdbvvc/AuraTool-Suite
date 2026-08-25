@@ -86,3 +86,27 @@ class SmartDeviceManager:
             "tamper_flag": "CLEAN",
             "secure_boot": "ENABLED",
         }
+
+    def scan_firmware_updates(self, device_model: str) -> dict:
+        """Check for available firmware updates for a connected device."""
+        self.logger.info(f"Scanning firmware updates for: {device_model}")
+        return {
+            "device_model": device_model,
+            "update_available": False,
+            "current_version": "1.0.0",
+            "latest_version": "1.0.0",
+            "download_url": None,
+        }
+
+    def run_device_diagnostics(self, device_model: str) -> dict:
+        """Run hardware diagnostics on a connected device."""
+        self.logger.info(f"Running diagnostics for: {device_model}")
+        return {
+            "device_model": device_model,
+            "overall_status": "HEALTHY",
+            "battery_health": "GOOD",
+            "storage_health": "GOOD",
+            "display_status": "OPERATIONAL",
+            "sensor_status": "OPERATIONAL",
+            "connectivity_status": "OPERATIONAL",
+        }

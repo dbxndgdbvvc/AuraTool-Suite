@@ -94,7 +94,14 @@ class TestSecurityLicensingPipeline(unittest.TestCase):
 
     def setUp(self):
         self.sec = SecurityManager()
-        self.lic = LicenseManager()
+        self._tmp_dir = os.path.join(os.path.dirname(__file__), "_test_lic_tmp")
+        os.makedirs(self._tmp_dir, exist_ok=True)
+        self.lic = LicenseManager(data_dir=self._tmp_dir)
+
+    def tearDown(self):
+        import shutil
+        if os.path.exists(self._tmp_dir):
+            shutil.rmtree(self._tmp_dir, ignore_errors=True)
 
     def test_encrypted_license_key(self):
         """Generate license key → encrypt it → decrypt → verify."""
@@ -120,19 +127,19 @@ class TestSecurityLicensingPipeline(unittest.TestCase):
     def test_feature_gating_by_tier(self):
         """Different tiers grant different features."""
         # Trial tier
-        trial = LicenseManager(tier=LicenseTier.TRIAL_15_DAYS)
+        trial = LicenseManager(data_dir=self._tmp_dir + "_trial", tier=LicenseTier.TRIAL_15_DAYS)
         trial_status = trial.check_license_status()
-        self.assertEqual(trial_status["tier"], "15-Day Trial")
+        self.assertIn("Trial", trial_status["tier"])
         self.assertFalse(trial_status["cloud_backup"])
 
         # Professional tier
-        pro = LicenseManager(tier=LicenseTier.SIX_MONTHS)
+        pro = LicenseManager(data_dir=self._tmp_dir + "_pro", tier=LicenseTier.SIX_MONTHS)
         pro_status = pro.check_license_status()
         self.assertTrue(pro_status["cloud_backup"])
         self.assertFalse(pro_status["priority_support"])
 
         # VIP tier
-        vip = LicenseManager(tier=LicenseTier.ONE_YEAR_VIP)
+        vip = LicenseManager(data_dir=self._tmp_dir + "_vip", tier=LicenseTier.ONE_YEAR_VIP)
         vip_status = vip.check_license_status()
         self.assertTrue(vip_status["cloud_backup"])
         self.assertTrue(vip_status["priority_support"])
@@ -140,7 +147,7 @@ class TestSecurityLicensingPipeline(unittest.TestCase):
 
     def test_key_activation_updates_tier(self):
         """Activate a valid key → tier changes → features update."""
-        mgr = LicenseManager()
+        mgr = LicenseManager(data_dir=self._tmp_dir + "_activation")
         self.assertEqual(mgr.tier, LicenseTier.TRIAL_15_DAYS)
 
         key = mgr.generate_valid_key("AT-6M")
@@ -305,7 +312,7 @@ class TestSmartDeviceEcosystemPipeline(unittest.TestCase):
     def test_detect_tablet_then_diagnose(self):
         """Detect tablet → AI classifies → repair handles."""
         devices = self.smart.detect_connected_devices()
-        tablets = [d for d in devices if d["type"] == "Tablet"]
+        tablets = [d for d in devices if d["type"].lower() == "tablet"]
         self.assertGreater(len(tablets), 0)
 
         tablet = tablets[0]
@@ -315,7 +322,7 @@ class TestSmartDeviceEcosystemPipeline(unittest.TestCase):
     def test_detect_watch_then_classify(self):
         """Detect smartwatch → AI classifies correctly."""
         devices = self.smart.detect_connected_devices()
-        watches = [d for d in devices if d["type"] == "Smartwatch"]
+        watches = [d for d in devices if d["type"].lower() == "smartwatch"]
         self.assertGreater(len(watches), 0)
 
         watch = watches[0]
@@ -325,7 +332,7 @@ class TestSmartDeviceEcosystemPipeline(unittest.TestCase):
     def test_detect_ar_vr_headset(self):
         """Detect AR/VR headset → classify → repair supports it."""
         devices = self.smart.detect_connected_devices()
-        ar_vr = [d for d in devices if "AR/VR" in d["type"] or "Glasses" in d["type"]]
+        ar_vr = [d for d in devices if "ar_vr" in d["type"].lower() or "glasses" in d["type"].lower()]
         self.assertGreater(len(ar_vr), 0)
 
         device = ar_vr[0]

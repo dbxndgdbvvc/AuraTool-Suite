@@ -40,7 +40,10 @@ def _safe_text(text: str) -> str:
 
 
 class AuraPDF(FPDF):
-    """Custom PDF with header/footer branding."""
+    """Custom PDF with header/footer branding.
+
+    Compatible with fpdf 1.7.2 — uses positional args only (no new_x/new_y).
+    """
 
     def __init__(self, title: str = "AuraTool-Suite Report"):
         super().__init__()
@@ -57,6 +60,9 @@ class AuraPDF(FPDF):
             kwargs['txt'] = _safe_text(kwargs['txt'])
         elif 'text' in kwargs and isinstance(kwargs['text'], str):
             kwargs['text'] = _safe_text(kwargs['text'])
+        # Strip fpdf2-only kwargs for fpdf 1.7.2 compatibility
+        kwargs.pop('new_x', None)
+        kwargs.pop('new_y', None)
         return super().cell(*args, **kwargs)
 
     def multi_cell(self, *args, **kwargs):
@@ -66,14 +72,24 @@ class AuraPDF(FPDF):
             args = tuple(args)
         elif 'txt' in kwargs and isinstance(kwargs['txt'], str):
             kwargs['txt'] = _safe_text(kwargs['txt'])
+        # Strip fpdf2-only kwargs for fpdf 1.7.2 compatibility
+        kwargs.pop('new_x', None)
+        kwargs.pop('new_y', None)
+        kwargs.pop('dry_run', None)
+        kwargs.pop('output', None)
+        kwargs.pop('max_line_height', None)
         return super().multi_cell(*args, **kwargs)
+
+    def cell_ln(self, w, h, txt, border=0, align="", fill=False):
+        """Helper: cell with automatic line break after (ln=1)."""
+        self.cell(w, h, txt, border, ln=1, align=align, fill=fill)
 
     def header(self):
         self.set_font("Helvetica", "B", 12)
-        self.cell(0, 8, "AuraTool-Suite", new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 8, "AuraTool-Suite", ln=1)
         self.set_font("Helvetica", "", 9)
         self.set_text_color(120, 120, 120)
-        self.cell(0, 5, _safe_text(self.report_title), new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 5, _safe_text(self.report_title), ln=1)
         self.set_text_color(0, 0, 0)
         self.line(10, self.get_y() + 2, 200, self.get_y() + 2)
         self.ln(6)
@@ -89,7 +105,7 @@ class AuraPDF(FPDF):
         self.set_font("Helvetica", "B", 11)
         self.set_fill_color(45, 55, 72)
         self.set_text_color(255, 255, 255)
-        self.cell(0, 8, f"  {_safe_text(title)}", fill=True, new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 8, f"  {_safe_text(title)}", fill=True, ln=1)
         self.set_text_color(0, 0, 0)
         self.ln(3)
 
@@ -102,12 +118,13 @@ class AuraPDF(FPDF):
 
     def table_row(self, values: list[str], widths: list[int]):
         self.set_font("Helvetica", "", 8)
-        max_h = 7
         safe_vals = [_safe_text(str(v)) for v in values]
-        # Calculate row height based on content
+        # Calculate row height based on text width (approximate line count)
+        max_h = 7
         for val, w in zip(safe_vals, widths):
-            lines = self.multi_cell(w, 5, val, dry_run=True, output="LINES")
-            h = len(lines) * 5
+            text_w = self.get_string_width(val)
+            lines_needed = max(1, int(text_w / w) + 1) if w > 0 else 1
+            h = lines_needed * 5
             if h > max_h:
                 max_h = h
         # Check page break
@@ -117,7 +134,7 @@ class AuraPDF(FPDF):
         x_start = self.get_x()
         for val, w in zip(safe_vals, widths):
             self.set_xy(x_start, y_start)
-            self.multi_cell(w, 5, val, border=1, align="L", max_line_height=5)
+            self.multi_cell(w, 5, val, border=1, align="L")
             x_start += w
         self.set_y(y_start + max_h)
 
@@ -261,7 +278,7 @@ def export_dashboard_pdf(fm: FactoryManager, filepath: str) -> str:
         f"Inventory Value:    ${dash['inventory_value']:,.2f}",
     ]
     for item in summary_items:
-        pdf.cell(0, 6, item, new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 6, item, ln=1)
     pdf.ln(4)
 
     # Status breakdown
@@ -282,9 +299,9 @@ def export_dashboard_pdf(fm: FactoryManager, filepath: str) -> str:
     # Revenue
     pdf.section_title("Revenue Report")
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 6, f"Repairs Completed: {rev['total_repairs']}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 6, f"Total Revenue:     ${rev['total_revenue']:,.2f}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 6, f"Average Cost:      ${rev['average_cost']:,.2f}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, f"Repairs Completed: {rev['total_repairs']}", ln=1)
+    pdf.cell(0, 6, f"Total Revenue:     ${rev['total_revenue']:,.2f}", ln=1)
+    pdf.cell(0, 6, f"Average Cost:      ${rev['average_cost']:,.2f}", ln=1)
     pdf.ln(4)
 
     if rev["by_brand"]:
@@ -330,7 +347,7 @@ def export_tickets_pdf(fm: FactoryManager, filepath: str,
     pdf.add_page()
 
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 6, f"Total tickets: {len(tickets)}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, f"Total tickets: {len(tickets)}", ln=1)
     pdf.ln(3)
 
     cols = ["ID", "Brand", "Model", "Issue", "Status", "Prio", "Days"]
@@ -353,8 +370,8 @@ def export_inventory_pdf(fm: FactoryManager, filepath: str) -> str:
     pdf.add_page()
 
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 6, f"Total parts: {len(fm.inventory.parts)}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 6, f"Total value: ${fm.inventory.total_value():,.2f}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, f"Total parts: {len(fm.inventory.parts)}", ln=1)
+    pdf.cell(0, 6, f"Total value: ${fm.inventory.total_value():,.2f}", ln=1)
     pdf.ln(3)
 
     cols = ["Name", "Type", "Qty", "Min", "Cost", "Value"]
@@ -394,44 +411,44 @@ def export_ticket_invoice_pdf(fm: FactoryManager, ticket_id: str,
 
     # Invoice header
     pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "INVOICE", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 10, "INVOICE", align="C", ln=1)
     pdf.ln(2)
 
     pdf.set_font("Helvetica", "", 10)
     pdf.cell(40, 6, "Invoice No:")
-    pdf.cell(0, 6, ticket.ticket_id, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.ticket_id, ln=1)
     pdf.cell(40, 6, "Date:")
-    pdf.cell(0, 6, datetime.now().strftime("%Y-%m-%d"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, datetime.now().strftime("%Y-%m-%d"), ln=1)
     pdf.cell(40, 6, "Technician:")
-    pdf.cell(0, 6, ticket.technician or "N/A", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.technician or "N/A", ln=1)
     pdf.ln(3)
 
     # Client info
     pdf.section_title("Client Information")
     pdf.cell(40, 6, "Name:")
-    pdf.cell(0, 6, client_name, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, client_name, ln=1)
     if client:
         if client.phone:
             pdf.cell(40, 6, "Phone:")
-            pdf.cell(0, 6, client.phone, new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(0, 6, client.phone, ln=1)
         if client.email:
             pdf.cell(40, 6, "Email:")
-            pdf.cell(0, 6, client.email, new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(0, 6, client.email, ln=1)
     pdf.ln(3)
 
     # Device info
     pdf.section_title("Device Information")
     pdf.cell(40, 6, "Category:")
-    pdf.cell(0, 6, ticket.device_category.value, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.device_category.value, ln=1)
     pdf.cell(40, 6, "Brand:")
-    pdf.cell(0, 6, ticket.device_brand, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.device_brand, ln=1)
     pdf.cell(40, 6, "Model:")
-    pdf.cell(0, 6, ticket.device_model, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.device_model, ln=1)
     if ticket.device_serial:
         pdf.cell(40, 6, "Serial:")
-        pdf.cell(0, 6, ticket.device_serial, new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 6, ticket.device_serial, ln=1)
     pdf.cell(40, 6, "Issue:")
-    pdf.cell(0, 6, ticket.issue_description, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.issue_description, ln=1)
     pdf.ln(3)
 
     # Parts used
@@ -448,20 +465,20 @@ def export_ticket_invoice_pdf(fm: FactoryManager, ticket_id: str,
     pdf.set_font("Helvetica", "", 10)
     if parts_detail:
         pdf.cell(100, 6, "Parts Cost:")
-        pdf.cell(0, 6, f"${parts_cost:.2f}", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 6, f"${parts_cost:.2f}", ln=1)
     if ticket.estimated_cost > 0:
         pdf.cell(100, 6, "Estimated Cost:")
-        pdf.cell(0, 6, f"${ticket.estimated_cost:.2f}", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 6, f"${ticket.estimated_cost:.2f}", ln=1)
     pdf.set_font("Helvetica", "B", 11)
     pdf.cell(100, 8, "TOTAL:")
-    pdf.cell(0, 8, f"${ticket.final_cost:.2f}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 8, f"${ticket.final_cost:.2f}", ln=1)
 
     # Status
     pdf.ln(5)
     pdf.set_font("Helvetica", "", 10)
     pdf.cell(40, 6, "Status:")
     pdf.set_font("Helvetica", "B", 10)
-    pdf.cell(0, 6, ticket.status.value.upper(), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, ticket.status.value.upper(), ln=1)
 
     pdf.output(filepath)
     return filepath

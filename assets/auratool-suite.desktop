@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=AuraTool-Suite
+GenericName=Mobile Device Repair Tool
+Comment=Universal mobile device maintenance and repair framework
+Exec=./AuraTool-Suite
+Icon=auratool-suite
+Terminal=false
+Categories=Utility;System;Development;
+Keywords=mobile;repair;firmware;flash;android;apple;
+StartupNotify=true
+StartupWMClass=AuraTool-Suite

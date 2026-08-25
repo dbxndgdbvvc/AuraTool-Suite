@@ -236,36 +236,36 @@ class AuraAIAssistant:
 
     def verify_extended_license_2030(self) -> dict:
         """
-        Verify licensing status including the extended VIP tier valid
-        through 2030.
+        Verify licensing status using the HWID-based license manager.
         """
-        from core.licensing import LicenseManager, LicenseTier
+        from core.license_manager import LicenseManager
 
         mgr = LicenseManager()
-        status = mgr.check_license_status()
+        status = mgr.check_license()
 
         result = {
-            "tier": status["tier"],
+            "tier": status["tier_label"],
             "is_active": status["is_active"],
             "days_remaining": status["days_remaining"],
             "activation_date": status["activation_date"],
             "expiration_date": status["expiration_date"],
-            "supported_until_year": 2030,
+            "hwid": status["hwid"],
+            "supported_until_year": 2030 if status["tier"] == "rental_1y" else None,
             "ecosystem_supported": True,
         }
         self.logger.info(f"License verified: {result['tier']} — active: {result['is_active']}")
         return result
 
     def activate_license_key(self, key: str) -> dict:
-        """Activate a license key via the licensing subsystem."""
-        from core.licensing import LicenseManager
+        """Activate a license key via the HWID-based license manager."""
+        from core.license_manager import LicenseManager
 
         mgr = LicenseManager()
-        success = mgr.activate_key(key)
+        result = mgr.activate(key)
         return {
-            "activated": success,
-            "message": "License activated successfully." if success else "Invalid license key.",
-            "status": mgr.check_license_status() if success else None,
+            "activated": result["success"],
+            "message": result["message"],
+            "status": result["status"] if result["success"] else None,
         }
 
     def get_supported_devices(self) -> dict:

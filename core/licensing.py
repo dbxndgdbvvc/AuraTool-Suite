@@ -107,18 +107,23 @@ class LicenseManager:
     SECRET_SALT = "AuraToolSuite2030SecretKey"
     VERSION = "2.0.0"
 
-    def __init__(self, data_dir: str | None = None):
+    def __init__(self, data_dir: str | None = None, tier: LicenseTier | None = None):
         self.hwid = get_hardware_id()
         self.data_dir = data_dir or self._default_storage_dir()
         os.makedirs(self.data_dir, exist_ok=True)
         self.state_file = os.path.join(self.data_dir, "lic_state.json")
 
         self.activation_date = datetime.date.today()
-        self.tier = LicenseTier.TRIAL_15_DAYS
         self.license_key = ""
         self.clock_tampered = False
 
-        self._load_state()
+        # If a specific tier was requested, use it directly (for testing)
+        if tier is not None:
+            self.tier = tier
+            self._save_state()
+        else:
+            self.tier = LicenseTier.TRIAL_15_DAYS
+            self._load_state()
 
     @staticmethod
     def _default_storage_dir() -> str:
@@ -207,7 +212,7 @@ class LicenseManager:
         is_active = (today <= expiration_date) if self.tier != LicenseTier.EXPIRED else False
         days_remaining = max(0, (expiration_date - today).days) if is_active else 0
 
-        return {
+        result = {
             "tier": self.tier.value,
             "tier_label": self.tier.value,
             "is_active": is_active,
@@ -222,7 +227,9 @@ class LicenseManager:
             "cloud_backup": config["cloud_backup"],
             "priority_support": config["priority_support"],
             "version": self.VERSION,
+            "supported_until_year": 2030 if self.tier == LicenseTier.ONE_YEAR_VIP else None,
         }
+        return result
 
     def generate_valid_key(self, prefix: str) -> str:
         """Generate a valid signed license key for a given prefix and current HWID."""
@@ -237,6 +244,10 @@ class LicenseManager:
     def generate_1year_key(self) -> str:
         """Generate a 1-year VIP license key."""
         return self.generate_valid_key("AT-1Y")
+
+    def generate_vip_key(self) -> str:
+        """Generate a VIP (1-year) license key."""
+        return self.generate_1year_key()
 
     def activate_key(self, key: str) -> bool:
         """Validate a license key against HWID signature check and store paid subscription."""
