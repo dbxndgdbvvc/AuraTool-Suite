@@ -1,12 +1,44 @@
-.aider*
-__pycache__/
+# AuraTool-Suite — .gitignore
 
-# Build artifacts
-AuraTool-Suite.spec
-build/
-dist/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.spec
 .pytest_cache/
 venv/
+.venv/
+env/
 pyarmor.bug.log
+
+# Build artifacts — centralized in release_output/
+release_output/
+
+# IDE / Editor
+.aider*
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Runtime data (should not be committed)
+factory_data/
+license_data/
+downloads/
+licenses/
+
+# Logs
+*.log
+audit.jsonl
+audit.jsonl.archived*
+
+# Temporary
+tmp/
+temp/

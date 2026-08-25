@@ -1,153 +1,219 @@
+#!/usr/bin/env python3
 """
-AuraTool-Suite — Windows Build Script
-=======================================
-Run this on Windows with Python + PyInstaller installed.
-Produces a standalone .exe for Windows x64.
+AuraTool-Suite — Standalone Windows Build Script
+==================================================
+Builds a portable Windows x64 package with PyInstaller.
 
-Usage:
+Usage (on Windows):
     python build_windows.py
 
-Requirements (Windows):
-    pip install pyinstaller pyarmor
+Output goes to release_output/AuraTool-Suite-v{VERSION}-Windows-x64/
 """
 
-import glob
 import os
 import platform
 import shutil
 import subprocess
 import sys
+import textwrap
+from pathlib import Path
 
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
 
+PROJECT_ROOT = Path(__file__).resolve().parent
 APP_NAME = "AuraTool-Suite"
+APP_VERSION = "2.0.0"
 ENTRY_POINT = "main.py"
 
-PACKAGES = ["core", "modules", "drivers", "ui", "languages"]
+MODULE_DIRS = ["core", "modules", "drivers", "ui"]
+DATA_DIRS = ["languages", "assets"]
 
-DATA_DIRS = [
-    ("core", "core"),
-    ("modules", "modules"),
-    ("drivers", "drivers"),
-    ("ui", "ui"),
-]
+BUILD_DIR = PROJECT_ROOT / "build"
+DIST_DIR = PROJECT_ROOT / "dist"
+RELEASE_DIR = PROJECT_ROOT / "release_output"
 
 
-def clean_build_artifacts():
-    print("[*] Cleaning previous build artifacts...")
-    for dirname in ["build", "dist", "__pycache__"]:
-        if os.path.isdir(dirname):
-            shutil.rmtree(dirname)
-            print(f"    Removed: {dirname}/")
-    for spec_file in glob.glob("*.spec"):
-        os.remove(spec_file)
-        print(f"    Removed: {spec_file}")
-    print("[+] Clean complete.\n")
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def log(msg, level="INFO"):
+    prefix = {"INFO": "ℹ️ ", "OK": "✅", "WARN": "⚠️ ", "ERR": "❌", "STEP": "🔹"}
+    print(f"  {prefix.get(level, '  ')} {msg}")
 
 
-def obfuscate_with_pyarmor():
-    print("[*] Checking for PyArmor...")
-    pyarmor_bin = "pyarmor"
-    try:
-        subprocess.check_call([pyarmor_bin, "--version"],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("[*] PyArmor found. Obfuscating source code...")
+def run_cmd(cmd, cwd=None):
+    print(f"    $ {' '.join(cmd)}")
+    result = subprocess.run(cmd, cwd=cwd or PROJECT_ROOT, check=True)
+    return result
 
-        os.makedirs("dist/obfuscated", exist_ok=True)
-        cmd = [
-            pyarmor_bin, "gen",
-            "-O", "dist/obfuscated",
-            "-r", "--mix-str",
-            ENTRY_POINT,
-        ] + PACKAGES
 
-        subprocess.check_call(cmd)
-        print("[+] Obfuscation complete.")
+def discover_modules():
+    hidden = []
+    for mod_dir in MODULE_DIRS:
+        dir_path = PROJECT_ROOT / mod_dir
+        if not dir_path.is_dir():
+            continue
+        for py_file in sorted(dir_path.glob("*.py")):
+            if py_file.name.startswith("_") and py_file.name != "__init__.py":
+                continue
+            hidden.append(f"{mod_dir}.{py_file.stem}")
+    for py_file in sorted(PROJECT_ROOT.glob("*.py")):
+        if py_file.name in (ENTRY_POINT, "build.py", "build_windows.py",
+                            "generate_icon.py", "setup.py"):
+            continue
+        if py_file.name.startswith("_"):
+            continue
+        hidden.append(py_file.stem)
+    return hidden
+
+
+def discover_data_dirs():
+    data = []
+    for d in DATA_DIRS:
+        src = PROJECT_ROOT / d
+        if src.is_dir() and any(src.iterdir()):
+            data.append((str(src), d))
+    return data
+
+
+def ensure_icon():
+    ico = PROJECT_ROOT / "assets" / "icon.ico"
+    gen_script = PROJECT_ROOT / "generate_icon.py"
+    if ico.exists():
+        log("Icon assets already present")
         return True
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"[!] PyArmor not available or license exhausted: {e}")
-        print("[!] Proceeding with standard build (no obfuscation).\n")
+    if not gen_script.exists():
+        log("generate_icon.py not found, skipping icon generation", "WARN")
+        return False
+    log("Generating application icons...", "STEP")
+    try:
+        run_cmd([sys.executable, str(gen_script)])
+        return True
+    except subprocess.CalledProcessError:
+        log("Icon generation failed, continuing without custom icon", "WARN")
         return False
 
 
-def build_executable():
-    print("=" * 60)
-    print(f"  AuraTool-Suite Windows Build — {platform.machine()}")
-    print("=" * 60)
+# ---------------------------------------------------------------------------
+# Windows Build
+# ---------------------------------------------------------------------------
 
-    clean_build_artifacts()
+def build_windows():
+    log("═" * 55)
+    log(f"  Building {APP_NAME} for Windows x64")
+    log("═" * 55)
+    print()
 
-    use_obfuscation = obfuscate_with_pyarmor()
-    separator = ";"  # Windows path separator
-    entry = "dist/obfuscated/main.py" if use_obfuscation else ENTRY_POINT
+    # 1. Generate icon
+    ensure_icon()
 
-    # Build --add-data arguments
-    add_data_args = []
-    for src, dst in DATA_DIRS:
-        add_data_args.append(f"--add-data={src}{separator}{dst}")
+    # 2. Clean previous builds
+    log("Cleaning previous build artifacts...", "STEP")
+    for d in [BUILD_DIR, DIST_DIR]:
+        if d.exists():
+            shutil.rmtree(d)
+    for spec in PROJECT_ROOT.glob("*.spec"):
+        spec.unlink()
+    log("Clean complete")
 
-    # Icon
-    icon_args = []
-    if os.path.isfile("assets/icon.ico"):
-        icon_args = ["--icon=assets/icon.ico"]
-
-    pyinstaller_args = [
-        "pyinstaller",
+    # 3. Build with PyInstaller
+    log("Running PyInstaller (Windows onedir mode)...", "STEP")
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--clean",
         "--noconfirm",
         "--onedir",
-        "--windowed",
-        f"--name={APP_NAME}",
-    ] + icon_args + add_data_args + [
-        "--hidden-import=core",
-        "--hidden-import=core.api",
-        "--hidden-import=core.security",
-        "--hidden-import=core.licensing",
-        "--hidden-import=modules",
-        "--hidden-import=modules.flashing_engine",
-        "--hidden-import=modules.biometrics_fix",
-        "--hidden-import=modules.localization",
-        "--hidden-import=modules.smart_devices",
-        "--hidden-import=modules.data_recovery",
-        "--hidden-import=modules.account_repair",
-        "--hidden-import=modules.aura_ai_assistant",
-        "--hidden-import=modules.ultimate_repair",
-        "--hidden-import=modules.android",
-        "--hidden-import=modules.apple",
-        "--hidden-import=modules.download",
-        "--hidden-import=drivers",
-        "--hidden-import=drivers.driver_manager",
-        "--hidden-import=ui",
-        "--hidden-import=ui.app",
-        entry,
+        "--noconsole",
+        "--name", APP_NAME,
+        "--distpath", str(DIST_DIR),
+        "--workpath", str(BUILD_DIR),
+        "--specpath", str(PROJECT_ROOT),
     ]
 
-    print(f"\n[*] Executing PyInstaller for Windows:")
-    print("    " + " ".join(pyinstaller_args) + "\n")
+    # Icon
+    ico_icon = PROJECT_ROOT / "assets" / "icon.ico"
+    if ico_icon.exists():
+        cmd.extend(["--icon", str(ico_icon)])
 
-    try:
-        subprocess.check_call(pyinstaller_args)
-        print(f"\n[+] Build SUCCESS!")
-        print(f"    Output: dist\\{APP_NAME}\\")
-        print(f"    Executable: dist\\{APP_NAME}\\{APP_NAME}.exe")
+    # Data
+    separator = ";"  # Windows uses semicolon
+    for src, dest in discover_data_dirs():
+        cmd.extend(["--add-data", f"{src}{separator}{dest}"])
 
-        # Size report
-        dist_path = os.path.join("dist", APP_NAME)
-        if os.path.isdir(dist_path):
-            total_size = sum(
-                os.path.getsize(os.path.join(dp, f))
-                for dp, _, files in os.walk(dist_path)
-                for f in files
-            )
-            print(f"    Total size: {total_size / (1024*1024):.1f} MB")
+    # Hidden imports
+    for mod in discover_modules():
+        cmd.extend(["--hidden-import", mod])
 
-    except subprocess.CalledProcessError as e:
-        print(f"\n[-] Build FAILED with error code: {e.returncode}")
+    cmd.append(str(PROJECT_ROOT / ENTRY_POINT))
+    run_cmd(cmd)
+
+    # 4. Package
+    log("Creating release package...", "STEP")
+    win_dist = DIST_DIR / APP_NAME
+    if not win_dist.exists():
+        log(f"Build output not found at {win_dist}", "ERR")
         sys.exit(1)
+
+    release_name = f"{APP_NAME}-v{APP_VERSION}-Windows-x64"
+    release_path = RELEASE_DIR / release_name
+    RELEASE_DIR.mkdir(exist_ok=True)
+
+    if release_path.exists():
+        shutil.rmtree(release_path)
+
+    shutil.copytree(win_dist, release_path)
+
+    # Copy supporting files
+    for fname in ["README.txt"]:
+        src = PROJECT_ROOT / fname
+        if src.exists():
+            shutil.copy2(src, release_path / fname)
+
+    # Create .desktop-like shortcut info
+    readme_shortcut = release_path / "README.txt"
+    if not readme_shortcut.exists():
+        readme_shortcut.write_text(textwrap.dedent(f"""\
+        AuraTool-Suite v{APP_VERSION} — Windows Portable Edition
+        ======================================================
+
+        To run: Double-click AuraTool-Suite.exe
+        To install: Copy the entire folder to your preferred location.
+
+        Requirements:
+          - Windows 10/11 x64
+          - USB device drivers for target devices
+
+        License: See license agreement included with the application.
+        """))
+
+    # 5. Create ZIP archive
+    log("Creating ZIP archive...", "STEP")
+    archive_base = str(RELEASE_DIR / release_name)
+    shutil.make_archive(archive_base, "zip", RELEASE_DIR, release_name)
+    archive_path = Path(archive_base + ".zip")
+
+    # Summary
+    exe_path = release_path / f"{APP_NAME}.exe"
+    print()
+    log("Build complete!", "OK")
+    if exe_path.exists():
+        exe_size = exe_path.stat().st_size / (1024 * 1024)
+        log(f"  Executable: {exe_path} ({exe_size:.1f} MB)")
+    log(f"  Archive:    {archive_path}")
+    log(f"  Release:    {release_path}/")
+    print()
 
 
 if __name__ == "__main__":
     if platform.system() != "Windows":
-        print("[!] This script is designed for Windows.")
-        print("[!] For Linux builds, use: python build.py")
-        print("[!] For cross-compilation, use the GitHub Actions workflow.")
-        sys.exit(1)
-    build_executable()
+        print("⚠️  This script is designed for native Windows builds.")
+        print("   For Linux builds, use: python build.py --linux-only")
+        print("   For cross-compilation, use: python build.py")
+        print()
+        resp = input("Continue anyway? [y/N] ").strip().lower()
+        if resp != "y":
+            sys.exit(0)
+    build_windows()

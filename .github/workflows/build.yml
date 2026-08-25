@@ -1,8 +1,16 @@
-# AuraTool-Suite — Cross-Platform Build Workflow
-# Builds standalone executables for Windows x64 and Linux x64
-# Triggered on push to master, tags, or manual dispatch
+# AuraTool-Suite — Dual-Platform CI/CD Build Workflow
+#
+# Builds standalone executables for Linux x64 and Windows x64.
+# Uploads portable release packages as artifacts.
+# Creates a GitHub Release with both binaries on version tags.
+#
+# Triggers:
+#   - Push to master (build + test)
+#   - Version tags v* (build + test + release)
+#   - Pull requests to master (build + test)
+#   - Manual dispatch with optional version input
 
-name: Build AuraTool-Suite
+name: Build & Release AuraTool-Suite
 
 on:
   push:
@@ -11,89 +19,217 @@ on:
   pull_request:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version label (e.g. 2.1.0). Leave empty to auto-detect from tag.'
+        required: false
+        default: ''
+
+# Cancel in-progress runs for the same branch/tag
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+  APP_NAME: AuraTool-Suite
 
 jobs:
-  build-linux:
+  # ─────────────────────────────────────────────────────────────
+  # Lint & Unit Tests
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: 🧪 Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
+          pip install pytest pillow fpdf
 
-      - name: Build Linux executable
+      - name: Run unit tests
         run: |
-          python build.py
+          python -m pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────────────────────────────
+  # Linux x64 Build
+  # ─────────────────────────────────────────────────────────────
+  build-linux:
+    name: 🐧 Linux x64
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pillow fpdf
+
+      - name: Generate application icon
+        run: python generate_icon.py
+
+      - name: Build Linux portable package
+        run: python build.py --linux-only
+
+      - name: Verify release output
+        run: |
+          echo "=== Release Output ==="
+          ls -lh release_output/ || echo "No release_output/ found"
+          echo ""
+          echo "=== Archive contents ==="
+          for f in release_output/*.tar.gz; do
+            if [ -f "$f" ]; then
+              echo "--- $f ---"
+              tar tzf "$f" | head -20
+            fi
+          done
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AuraTool-Suite-Linux-x64
-          path: dist/AuraTool-Suite/
+          name: ${{ env.APP_NAME }}-Linux-x64
+          path: |
+            release_output/*.tar.gz
+            release_output/AuraTool-Suite*/
           retention-days: 30
+          if-no-files-found: error
 
+  # ─────────────────────────────────────────────────────────────
+  # Windows x64 Build (native Windows runner)
+  # ─────────────────────────────────────────────────────────────
   build-windows:
+    name: 🪟 Windows x64
     runs-on: windows-latest
+    needs: [test]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
 
-      - name: Install dependencies
+      - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
+          pip install pyinstaller pillow fpdf
 
-      - name: Build Windows executable
+      - name: Generate application icon
+        run: python generate_icon.py
+
+      - name: Build Windows portable package
+        run: python build_windows.py
+
+      - name: Verify release output
+        shell: pwsh
         run: |
-          python build_windows.py
+          Write-Host "=== Release Output ==="
+          Get-ChildItem -Path release_output -Recurse | Format-Table Name, Length
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AuraTool-Suite-Windows-x64
-          path: dist/AuraTool-Suite/
+          name: ${{ env.APP_NAME }}-Windows-x64
+          path: |
+            release_output/*.zip
+            release_output/AuraTool-Suite*/
           retention-days: 30
+          if-no-files-found: error
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Run unit tests
-        run: |
-          pip install pytest
-          python -m pytest tests/ -v --tb=short
-
+  # ─────────────────────────────────────────────────────────────
+  # Create GitHub Release (only on version tags)
+  # ─────────────────────────────────────────────────────────────
   release:
-    needs: [build-linux, build-windows, test]
+    name: 🚀 Release
+    needs: [test, build-linux, build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog generation
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-      - name: Create Release
+      - name: List downloaded artifacts
+        run: |
+          echo "=== Downloaded Artifacts ==="
+          find artifacts/ -type f | sort
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            TAG="${GITHUB_REF#refs/tags/v}"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate release notes
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+
+          # Collect changelog from commits since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            CHANGES=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges)
+          else
+            CHANGES=$(git log --pretty=format:"- %s" --no-merges -20)
+          fi
+
+          # Write release notes using printf for safe variable expansion
+          printf '## AuraTool-Suite v%s\n\n' "$TAG" > release_notes.md
+          printf '### Downloads\n\n' >> release_notes.md
+          printf '| Platform | File | Description |\n' >> release_notes.md
+          printf '|----------|------|-------------|\n' >> release_notes.md
+          printf '| 🐧 Linux x64 | `AuraTool-Suite-v%s-Linux-x64.tar.gz` | Single-file ELF binary + portable archive |\n' "$TAG" >> release_notes.md
+          printf '| 🪟 Windows x64 | `AuraTool-Suite-v%s-Windows-x64.zip` | Single-file .exe + portable archive |\n' "$TAG" >> release_notes.md
+          printf '\n### Changes\n\n' >> release_notes.md
+          echo "$CHANGES" >> release_notes.md
+          printf '\n### Installation\n\n' >> release_notes.md
+          printf '**Linux:**\n```bash\ntar xzf AuraTool-Suite-v%s-Linux-x64.tar.gz\ncd AuraTool-Suite-v*-Linux-x64\n./AuraTool-Suite\n```\n\n' "$TAG" >> release_notes.md
+          printf '**Windows:** Extract the `.zip` archive and double-click `AuraTool-Suite.exe`\n\n' >> release_notes.md
+          printf '### Requirements\n\n' >> release_notes.md
+          printf '- USB device drivers for target devices (Samsung, Qualcomm EDL, MediaTek BROM)\n' >> release_notes.md
+          printf '- Valid AuraTool-Suite license key for activation\n\n' >> release_notes.md
+          printf '---\n\n' >> release_notes.md
+          printf '*Built automatically by GitHub Actions CI/CD*\n' >> release_notes.md
+
+          echo "=== Release Notes ==="
+          cat release_notes.md
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            AuraTool-Suite-Linux-x64/*
-            AuraTool-Suite-Windows-x64/*
+          name: "AuraTool-Suite v${{ steps.version.outputs.tag }}"
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
           generate_release_notes: true
+          files: |
+            artifacts/${{ env.APP_NAME }}-Linux-x64/**
+            artifacts/${{ env.APP_NAME }}-Windows-x64/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
