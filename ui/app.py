@@ -39,6 +39,9 @@ class TextHandler(logging.Handler):
         self.text_widget.after(0, append)
 
 
+logger = logging.getLogger("AuraTool.UI")
+
+
 class AuraToolUI:
     """Standalone Native Desktop Application GUI."""
 
@@ -105,8 +108,8 @@ class AuraToolUI:
                         img = tk.PhotoImage(file=icon_path)
                         self.root.iconphoto(True, img)
                     return
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Could not set window icon: %s", e)
 
     def _build_ui(self):
         # Top Header Bar

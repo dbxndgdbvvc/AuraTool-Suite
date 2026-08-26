@@ -148,7 +148,7 @@ class HWIDCollector:
                 with open("/sys/class/dmi/id/product_uuid", "r") as f:
                     return f.read().strip()
             except (OSError, IOError):
-                pass
+                logger.debug("Could not read /sys/class/dmi/id/product_uuid")
 
         elif sysname == "Windows":
             # Windows MachineGuid from registry
@@ -161,8 +161,8 @@ class HWIDCollector:
                 value, _ = winreg.QueryValueEx(key, "MachineGuid")
                 winreg.CloseKey(key)
                 return str(value)
-            except (ImportError, OSError):
-                pass
+            except (ImportError, OSError) as e:
+                logger.debug("Could not read Windows MachineGuid: %s", e)
 
         # Fallback
         return platform.node()
@@ -179,7 +179,7 @@ class HWIDCollector:
                         if line.strip().startswith("model name"):
                             return line.split(":", 1)[1].strip()
             except (OSError, IOError):
-                pass
+                logger.debug("Could not read /proc/cpuinfo")
 
         elif sysname == "Windows":
             try:
@@ -191,8 +191,8 @@ class HWIDCollector:
                 value, _ = winreg.QueryValueEx(key, "ProcessorNameString")
                 winreg.CloseKey(key)
                 return str(value)
-            except (ImportError, OSError):
-                pass
+            except (ImportError, OSError) as e:
+                logger.debug("Could not read Windows CPU info: %s", e)
 
         return platform.processor() or "unknown_cpu"
 

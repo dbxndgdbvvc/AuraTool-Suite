@@ -29,9 +29,15 @@ class LocalizationManager:
         "ja": "日本語 (Japanese)",
         "tr": "Türkçe (Turkish)",
         "hi": "हिन्दी (Hindi)",
+        "pt": "Português (Portuguese)",
+        "ko": "한국어 (Korean)",
+        "id": "Bahasa Indonesia (Indonesian)",
+        "fa": "فارسی (Persian)",
+        "ur": "اردو (Urdu)",
+        "th": "ไทย (Thai)",
     }
 
-    RTL_LANGUAGES = ["ar"]
+    RTL_LANGUAGES = ["ar", "fa", "ur"]
 
     LOG_MESSAGES = {
         "en": {
@@ -51,6 +57,42 @@ class LocalizationManager:
             "FRP_SUCCESS": "Bypass FRP completado exitosamente",
             "VIRUS_REMOVED": "Escaneo y eliminación de virus completados",
             "RECOVERY_START": "Inicio del escaneo profundo de recuperación",
+        },
+        "pt": {
+            "FLASHING_START": "Flashagem de firmware iniciada",
+            "FRP_SUCCESS": "Bypass FRP concluído com sucesso",
+            "VIRUS_REMOVED": "Verificação e remoção de vírus concluídas",
+            "RECOVERY_START": "Varredura profunda de recuperação de dados iniciada",
+        },
+        "ko": {
+            "FLASHING_START": "펌웨어 플래싱 시작됨",
+            "FRP_SUCCESS": "FRP 우회 성공적으로 완료됨",
+            "VIRUS_REMOVED": "바이러스 검사 및 제거 완료",
+            "RECOVERY_START": "심층 데이터 복구 스캔 시작됨",
+        },
+        "id": {
+            "FLASHING_START": "Flashing firmware dimulai",
+            "FRP_SUCCESS": "Bypass FRP berhasil diselesaikan",
+            "VIRUS_REMOVED": "Pemindaian dan penghapusan virus selesai",
+            "RECOVERY_START": "Pemindaian pemulihan data mendalam dimulai",
+        },
+        "fa": {
+            "FLASHING_START": "شروع فلش کردن فریمور",
+            "FRP_SUCCESS": "دور زدن FRP با موفقیت انجام شد",
+            "VIRUS_REMOVED": "اسکن و حذف ویروس کامل شد",
+            "RECOVERY_START": "اسکن بازیابی عمیق داده آغاز شد",
+        },
+        "ur": {
+            "FLASHING_START": "فیرم ویئر فلیشنگ شروع ہوئی",
+            "FRP_SUCCESS": "FRP بائی پاس کامیابی سے مکمل ہوا",
+            "VIRUS_REMOVED": "وائرس اسکین اور حذف مکمل",
+            "RECOVERY_START": "گہری ڈیٹا ریکوری اسکین شروع ہوئی",
+        },
+        "th": {
+            "FLASHING_START": "เริ่มการแฟลชเฟิร์มแวร์",
+            "FRP_SUCCESS": "การข้าม FRP เสร็จสมบูรณ์",
+            "VIRUS_REMOVED": "การสแกนและลบไวรัสเสร็จสมบูรณ์",
+            "RECOVERY_START": "เริ่มการสแกนกู้คืนข้อมูลเชิงลึก",
         },
     }
 
@@ -112,6 +154,120 @@ class LocalizationManager:
             "activate_btn": "Activar Clave",
             "license_bar_lbl": "Activación de Licencia y Enlace HWID",
         },
+        "pt": {
+            "title": "AuraTool-Suite — Plataforma Universal de Desktop 2030",
+            "license_lbl": "Status da Licença:",
+            "ai_tab": "Diagnóstico Aura-AI",
+            "vendor_tab": "Operações do Fabricante",
+            "repair_tab": "Reparação Definitiva",
+            "recovery_tab": "Recuperação de Dados",
+            "chat_tab": "Salas de Chat ao Vivo",
+            "stream_tab": "Rede de Transmissão de Mídia",
+            "store_tab": "Loja de E-Commerce",
+            "settings_tab": "Configurações e Idioma",
+            "run_ai": "Executar Comando AI",
+            "flash": "Iniciar Flash de Firmware",
+            "bypass_frp": "Bypass FRP e Bloqueio na Nuvem",
+            "start_scan": "Iniciar Verificação Profunda",
+            "checkout": "Finalizar Compra",
+            "activate_btn": "Ativar Chave",
+            "license_bar_lbl": "Ativação de Licença e Vinculação HWID",
+        },
+        "ko": {
+            "title": "AuraTool-Suite — 범용 데스크톱 플랫폼 2030",
+            "license_lbl": "라이선스 상태:",
+            "ai_tab": "Aura-AI 진단",
+            "vendor_tab": "벤더 운영",
+            "repair_tab": "최종 수리",
+            "recovery_tab": "데이터 복구",
+            "chat_tab": "실시간 채팅방",
+            "stream_tab": "미디어 스트림 네트워크",
+            "store_tab": "이커머스 스토어",
+            "settings_tab": "설정 및 언어",
+            "run_ai": "AI 명령 실행",
+            "flash": "펌웨어 이미지 플래싱",
+            "bypass_frp": "FRP 및 클라우드 잠금 우회",
+            "start_scan": "심층 스캔 시작",
+            "checkout": "결제 완료",
+            "activate_btn": "키 활성화",
+            "license_bar_lbl": "라이선스 활성화 및 HWID 바인딩",
+        },
+        "id": {
+            "title": "AuraTool-Suite — Platform Desktop Universal 2030",
+            "license_lbl": "Status Lisensi:",
+            "ai_tab": "Diagnostik Aura-AI",
+            "vendor_tab": "Operasi Vendor",
+            "repair_tab": "Perbaikan Utama",
+            "recovery_tab": "Pemulihan Data",
+            "chat_tab": "Ruangan Chat Langsung",
+            "stream_tab": "Jaringan Streaming Media",
+            "store_tab": "Toko E-Commerce",
+            "settings_tab": "Pengaturan & Bahasa",
+            "run_ai": "Jalankan Perintah AI",
+            "flash": "Flash Gambar Firmware",
+            "bypass_frp": "Bypass FRP & Kunci Cloud",
+            "start_scan": "Mulai Pindai Mendalam",
+            "checkout": "Selesaikan Pembayaran",
+            "activate_btn": "Aktifkan Kunci",
+            "license_bar_lbl": "Aktivasi Lisensi & Pengikatan HWID",
+        },
+        "fa": {
+            "title": "AuraTool-Suite — پلتفرم دسکتاپ جهانی 2030",
+            "license_lbl": "وضعیت مجوز:",
+            "ai_tab": "تشخیص Aura-AI",
+            "vendor_tab": "عملیات فروشنده",
+            "repair_tab": "تعمیر نهایی",
+            "recovery_tab": "بازیابی داده",
+            "chat_tab": "اتاق‌های چت زنده",
+            "stream_tab": "شبکه پخش رسانه",
+            "store_tab": "فروشگاه آنلاین",
+            "settings_tab": "تنظیمات و زبان",
+            "run_ai": "اجرای دستور AI",
+            "flash": "فلش تصویر فریمور",
+            "bypass_frp": "دور زدن FRP و قفل ابری",
+            "start_scan": "شروع اسکن عمیق",
+            "checkout": "تکمیل خرید",
+            "activate_btn": "فعال‌سازی کلید",
+            "license_bar_lbl": "فعال‌سازی مجوز و اتصال HWID",
+        },
+        "ur": {
+            "title": "AuraTool-Suite — یونیورسل ڈیسکٹاپ پلیٹ فارم 2030",
+            "license_lbl": "لائسنس کی حالت:",
+            "ai_tab": "Aura-AI تشخیص",
+            "vendor_tab": "وینڈر آپریشنز",
+            "repair_tab": "آخری مرمت",
+            "recovery_tab": "ڈیٹا ریکوری",
+            "chat_tab": "لائیو چیٹ رومز",
+            "stream_tab": "میڈیا سٹریم نیٹ ورک",
+            "store_tab": "ای کامرس اسٹور",
+            "settings_tab": "ترتیبات اور زبان",
+            "run_ai": "AI کمانڈ چلائیں",
+            "flash": "فیرم ویئر امیج فلیش",
+            "bypass_frp": "FRP اور کلاؤڈ لاک بائی پاس",
+            "start_scan": "گہری اسکین شروع کریں",
+            "checkout": "چیک آؤٹ مکمل کریں",
+            "activate_btn": "کلید فعال کریں",
+            "license_bar_lbl": "لائسنس فعال سازی اور HWID بائنڈنگ",
+        },
+        "th": {
+            "title": "AuraTool-Suite — แพลตฟอร์มเดสก์ท็อปสากล 2030",
+            "license_lbl": "สถานะใบอนุญาต:",
+            "ai_tab": "การวินิจฉัย Aura-AI",
+            "vendor_tab": "การดำเนินงานของผู้ผลิต",
+            "repair_tab": "การซ่อมแซมขั้นสุดท้าย",
+            "recovery_tab": "การกู้คืนข้อมูล",
+            "chat_tab": "ห้องแชทสด",
+            "stream_tab": "เครือข่ายสตรีมมิ่งสื่อ",
+            "store_tab": "ร้านค้าอีคอมเมิร์ซ",
+            "settings_tab": "การตั้งค่าและภาษา",
+            "run_ai": "เรียกใช้คำสั่ง AI",
+            "flash": "แฟลชรูปภาพเฟิร์มแวร์",
+            "bypass_frp": "ข้าม FRP และล็อกคลาวด์",
+            "start_scan": "เริ่มการสแกนเชิงลึก",
+            "checkout": "ชำระเงินให้เสร็จสิ้น",
+            "activate_btn": "เปิดใช้งานคีย์",
+            "license_bar_lbl": "การเปิดใช้งานใบอนุญาตและการเชื่อมโยง HWID",
+        },
     }
 
     def __init__(self, default_lang: str = "en"):
@@ -130,7 +286,7 @@ class LocalizationManager:
 
     def reshape_arabic_text(self, text: str) -> str:
         """Reshapes and applies bidirectional rendering to Arabic text for proper desktop GUI rendering."""
-        if not text or self.current_lang != "ar":
+        if not text or self.current_lang not in ("ar", "fa", "ur"):
             return text
 
         if HAS_ARABIC_RESHAPER:
@@ -138,7 +294,7 @@ class LocalizationManager:
                 reshaped = arabic_reshaper.reshape(text)
                 return get_display(reshaped)
             except Exception as e:
-                self.logger.warning(f"Arabic text reshaping failed: {e}")
+                self.logger.warning(f"Arabic/Persian/Urdu text reshaping failed: {e}")
 
         return text
 

@@ -13,11 +13,14 @@ Flexible licensing system providing:
 import datetime
 import hashlib
 import json
+import logging
 import os
 import platform
 import subprocess
 import time
 from enum import Enum
+
+logger = logging.getLogger("AuraTool.Licensing")
 
 
 class LicenseTier(Enum):
@@ -187,8 +190,8 @@ class LicenseManager:
         try:
             with open(self.state_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-        except OSError:
-            pass
+        except OSError as e:
+            logger.warning("Failed to save license state: %s", e)
 
     def check_license_status(self) -> dict:
         """Check current license status and return detailed info."""

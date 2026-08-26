@@ -290,8 +290,8 @@ class AuditLogger:
                             entries.append(json.loads(line))
                         except json.JSONDecodeError:
                             continue  # skip corrupt lines
-        except OSError:
-            pass
+        except OSError as e:
+            logger.warning("Failed to read audit log %s: %s", path, e)
         return entries
 
     def _rotate_if_needed(self) -> None:
@@ -304,5 +304,7 @@ class AuditLogger:
                 archive_path = os.path.join(self._data_dir, archive_name)
                 os.rename(self._log_path, archive_path)
                 logger.info(f"Audit log rotated: {archive_path}")
-        except OSError:
-            pass
+        except OSError as e:
+            logger.warning("Failed to rotate audit log: %s", e)
+
+

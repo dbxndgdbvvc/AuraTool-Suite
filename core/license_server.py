@@ -524,8 +524,8 @@ class AdminKeyManager:
             os.makedirs(os.path.dirname(self._file), exist_ok=True)
             with open(self._file, "w") as f:
                 json.dump(self._keys, f, indent=2)
-        except OSError:
-            pass
+        except OSError as e:
+            logger.warning("Failed to save license keys: %s", e)
 
     def _load(self) -> None:
         if os.path.exists(self._file):
