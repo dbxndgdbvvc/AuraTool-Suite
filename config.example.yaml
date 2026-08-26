@@ -1,0 +1,54 @@
+# AuraTool-Suite Configuration
+# Copy this file to config.yaml and customize as needed.
+
+# Server settings
+server:
+  host: "0.0.0.0"
+  port: 8500
+  tls_port: 8600
+  auto_ssl: false
+  cors_origins: ["*"]
+
+# License settings
+license:
+  server_url: "https://license.auratool.com:8600"
+  timeout: 10
+  data_dir: "~/.auratool"
+
+# Download settings
+download:
+  directory: "./downloads"
+  max_retries: 3
+  chunk_size: 65536
+  connect_timeout: 30
+
+# API settings
+api:
+  rate_limit: 100
+  max_body_size: 10485760  # 10MB
+  require_auth: true
+  key_rotation_days: 90
+
+# Logging settings
+logging:
+  level: "INFO"
+  file: null  # null = stdout only
+  max_size_mb: 10
+  backup_count: 5
+
+# Localization settings
+localization:
+  default_lang: "en"
+  rtl_languages: ["ar", "fa", "ur"]
+
+# Factory settings
+factory:
+  data_dir: "./factory_data"
+  auto_backup: true
+  backup_interval_hours: 24
+
+# Device settings
+devices:
+  adb_path: "adb"
+  fastboot_path: "fastboot"
+  scan_interval: 5

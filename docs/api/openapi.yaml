@@ -1,0 +1,812 @@
+openapi: 3.0.3
+info:
+  title: AuraTool-Suite Factory REST API
+  description: |
+    Zero-dependency HTTP API for the AuraTool-Suite workshop and factory management system.
+    
+    ## Authentication
+    All endpoints require an API key in the `X-API-Key` header.
+    
+    ## Rate Limiting
+    - 100 requests per minute per API key
+    - 429 Too Many Requests returned when exceeded
+    
+    ## Running the Server
+    ```bash
+    python -m core.factory_api              # starts on port 8500
+    python -m core.factory_api --port 9000  # custom port
+    python -m core.factory_api --no-auth    # disable authentication
+    python -m core.factory_api --auto-ssl   # enable TLS
+    ```
+  version: 2.1.0
+  contact:
+    name: AuraTool-Suite Support
+    url: https://github.com/AuraTool-Suite/AuraTool-Suite
+
+servers:
+  - url: http://localhost:8500
+    description: Local development server
+  - url: https://api.auratool-suite.com:8600
+    description: Production server (TLS)
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Clients
+    description: Client management operations
+  - name: Tickets
+    description: Repair ticket operations
+  - name: Diagnostics
+    description: Device diagnostic workflows
+  - name: Inventory
+    description: Parts inventory management
+  - name: Dashboard
+    description: Dashboard and reporting
+  - name: Export
+    description: Data export (CSV/PDF)
+
+paths:
+  # ==================== Clients ====================
+  /api/clients:
+    get:
+      tags: [Clients]
+      summary: List all clients
+      operationId: listClients
+      responses:
+        '200':
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+    post:
+      tags: [Clients]
+      summary: Create a new client
+      operationId: createClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  description: Client's full name
+                phone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                address:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Client created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client_id:
+                    type: string
+                  name:
+                    type: string
+                  message:
+                    type: string
+
+  /api/clients/{id}:
+    get:
+      tags: [Clients]
+      summary: Get a client by ID
+      operationId: getClient
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+      responses:
+        '200':
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Clients]
+      summary: Delete a client
+      operationId: deleteClient
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+      responses:
+        '200':
+          description: Client deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/clients/search:
+    get:
+      tags: [Clients]
+      summary: Search clients by name, phone, or email
+      operationId: searchClients
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query string
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+
+  /api/clients/top:
+    get:
+      tags: [Clients]
+      summary: Get top clients by repair count
+      operationId: topClients
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of results
+      responses:
+        '200':
+          description: Top clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientSummary'
+
+  # ==================== Tickets ====================
+  /api/tickets:
+    get:
+      tags: [Tickets]
+      summary: List all tickets
+      operationId: listTickets
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, IN_PROGRESS, WAITING_PARTS, COMPLETED, DELIVERED, CANCELLED]
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [SMARTPHONE, TABLET, LAPTOP, DESKTOP, SMARTWATCH, SMART_GLASSES, AR_VR_HEADSET, OTHER]
+      responses:
+        '200':
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+    post:
+      tags: [Tickets]
+      summary: Create a new repair ticket
+      operationId: createTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, device_category, device_brand, device_model, issue_description]
+              properties:
+                client_id:
+                  type: string
+                device_category:
+                  type: string
+                  enum: [SMARTPHONE, TABLET, LAPTOP, DESKTOP, SMARTWATCH, SMART_GLASSES, AR_VR_HEADSET, OTHER]
+                device_brand:
+                  type: string
+                device_model:
+                  type: string
+                issue_description:
+                  type: string
+                device_serial:
+                  type: string
+                priority:
+                  type: integer
+                  enum: [1, 2, 3]
+                  default: 2
+                  description: 1=Urgent, 2=Normal, 3=Low
+                technician:
+                  type: string
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket_id:
+                    type: string
+                  message:
+                    type: string
+
+  /api/tickets/{id}:
+    get:
+      tags: [Tickets]
+      summary: Get a ticket by ID
+      operationId: getTicket
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/status:
+    put:
+      tags: [Tickets]
+      summary: Update ticket status
+      operationId: updateTicketStatus
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, IN_PROGRESS, WAITING_PARTS, COMPLETED, DELIVERED, CANCELLED]
+      responses:
+        '200':
+          description: Status updated
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/cancel:
+    post:
+      tags: [Tickets]
+      summary: Cancel a ticket
+      operationId: cancelTicket
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Ticket cancelled
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/deliver:
+    post:
+      tags: [Tickets]
+      summary: Mark ticket as delivered
+      operationId: deliverTicket
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Ticket delivered
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/note:
+    post:
+      tags: [Tickets]
+      summary: Add a note to a ticket
+      operationId: addTicketNote
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Note added
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/part:
+    post:
+      tags: [Tickets]
+      summary: Assign a part to a ticket
+      operationId: assignPart
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [part_id]
+              properties:
+                part_id:
+                  type: string
+      responses:
+        '200':
+          description: Part assigned
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== Diagnostics ====================
+  /api/tickets/{id}/diagnostic:
+    get:
+      tags: [Diagnostics]
+      summary: Get diagnostic workflow for a ticket
+      operationId: getDiagnostic
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Diagnostic workflow
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: object
+                  steps:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DiagnosticStep'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/diagnostic/start:
+    post:
+      tags: [Diagnostics]
+      summary: Start diagnostic workflow
+      operationId: startDiagnostic
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Diagnostic started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  steps:
+                    type: integer
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tickets/{id}/diagnostic/next:
+    post:
+      tags: [Diagnostics]
+      summary: Advance diagnostic workflow to next step
+      operationId: advanceDiagnostic
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [passed]
+              properties:
+                passed:
+                  type: boolean
+                notes:
+                  type: string
+                findings:
+                  type: string
+      responses:
+        '200':
+          description: Step result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticStep'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ==================== Inventory ====================
+  /api/parts:
+    get:
+      tags: [Inventory]
+      summary: List all parts
+      operationId: listParts
+      parameters:
+        - name: device
+          in: query
+          schema:
+            type: string
+          description: Filter by compatible device model
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [SCREEN, BATTERY, CHARGING_PORT, CAMERA, SPEAKER, MICROPHONE, BUTTON, FRAME, CABLE, OTHER]
+      responses:
+        '200':
+          description: List of parts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Part'
+    post:
+      tags: [Inventory]
+      summary: Add a new part to inventory
+      operationId: addPart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [part_type, name]
+              properties:
+                part_type:
+                  type: string
+                  enum: [SCREEN, BATTERY, CHARGING_PORT, CAMERA, SPEAKER, MICROPHONE, BUTTON, FRAME, CABLE, OTHER]
+                name:
+                  type: string
+                compatible_devices:
+                  type: array
+                  items:
+                    type: string
+                quantity:
+                  type: integer
+                  default: 0
+                min_stock:
+                  type: integer
+                  default: 5
+                unit_price:
+                  type: number
+                  format: float
+      responses:
+        '201':
+          description: Part added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  part_id:
+                    type: string
+                  message:
+                    type: string
+
+  /api/parts/{id}:
+    get:
+      tags: [Inventory]
+      summary: Get a part by ID
+      operationId: getPart
+      parameters:
+        - $ref: '#/components/parameters/PartId'
+      responses:
+        '200':
+          description: Part details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Inventory]
+      summary: Delete a part
+      operationId: deletePart
+      parameters:
+        - $ref: '#/components/parameters/PartId'
+      responses:
+        '200':
+          description: Part deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/parts/low-stock:
+    get:
+      tags: [Inventory]
+      summary: Get parts with low stock
+      operationId: lowStockParts
+      responses:
+        '200':
+          description: Low stock parts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Part'
+
+  /api/parts/summary:
+    get:
+      tags: [Inventory]
+      summary: Get stock summary by part type
+      operationId: stockSummary
+      responses:
+        '200':
+          description: Stock summary
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+
+  /api/parts/seed:
+    post:
+      tags: [Inventory]
+      summary: Seed common parts catalog
+      operationId: seedParts
+      responses:
+        '200':
+          description: Parts seeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  count:
+                    type: integer
+
+  # ==================== Dashboard ====================
+  /api/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get full dashboard data
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+
+  /api/revenue:
+    get:
+      tags: [Dashboard]
+      summary: Get revenue report
+      operationId: getRevenue
+      responses:
+        '200':
+          description: Revenue report
+
+  # ==================== Export ====================
+  /api/report:
+    get:
+      tags: [Export]
+      summary: Export full report (CSV/PDF)
+      operationId: exportReport
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv, pdf]
+            default: csv
+      responses:
+        '200':
+          description: Report file
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (auto-generated on first run)
+
+  parameters:
+    ClientId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Client ID
+    TicketId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Ticket ID
+    PartId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Part ID
+
+  schemas:
+    Client:
+      type: object
+      properties:
+        client_id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        total_repairs:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    ClientDetail:
+      allOf:
+        - $ref: '#/components/schemas/Client'
+        - type: object
+          properties:
+            notes:
+              type: string
+            ticket_ids:
+              type: array
+              items:
+                type: string
+
+    ClientSummary:
+      type: object
+      properties:
+        client_id:
+          type: string
+        name:
+          type: string
+        total_repairs:
+          type: integer
+
+    Ticket:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+        client_id:
+          type: string
+        device_category:
+          type: string
+          enum: [SMARTPHONE, TABLET, LAPTOP, DESKTOP, SMARTWATCH, SMART_GLASSES, AR_VR_HEADSET, OTHER]
+        device_brand:
+          type: string
+        device_model:
+          type: string
+        device_serial:
+          type: string
+        issue_description:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS, WAITING_PARTS, COMPLETED, DELIVERED, CANCELLED]
+        priority:
+          type: integer
+        technician:
+          type: string
+        part_ids:
+          type: array
+          items:
+            type: string
+        notes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Part:
+      type: object
+      properties:
+        part_id:
+          type: string
+        part_type:
+          type: string
+          enum: [SCREEN, BATTERY, CHARGING_PORT, CAMERA, SPEAKER, MICROPHONE, BUTTON, FRAME, CABLE, OTHER]
+        name:
+          type: string
+        compatible_devices:
+          type: array
+          items:
+            type: string
+        quantity:
+          type: integer
+        min_stock:
+          type: integer
+        unit_price:
+          type: number
+          format: float
+
+    DiagnosticStep:
+      type: object
+      properties:
+        step:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+        findings:
+          type: string
+
+    Dashboard:
+      type: object
+      properties:
+        total_clients:
+          type: integer
+        total_tickets:
+          type: integer
+        open_tickets:
+          type: integer
+        total_parts:
+          type: integer
+        low_stock_count:
+          type: integer
+        revenue:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: integer
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

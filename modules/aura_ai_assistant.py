@@ -295,7 +295,7 @@ class AuraAIAssistant:
         dispatch = {
             "flash_firmware":    self._act_flash,
             "bypass_frp":        self._act_bypass_frp,
-            "analyze_logs":      self._act_analyze_logs_placeholder,
+            "analyze_logs":      self._act_analyze_logs,
             "storage_health":    self._act_storage_health,
             "backup_data":       self._act_backup,
             "restore_data":      self._act_restore,
@@ -304,7 +304,7 @@ class AuraAIAssistant:
             "reboot_device":     self._act_reboot,
             "ultimate_repair":   self._act_repair,
             "check_license":     self._act_check_license,
-            "activate_license":  self._act_activate_placeholder,
+            "activate_license":  self._act_activate,
             "scan_devices":      self._act_scan,
             "localize_device":   self._act_localize,
         }
@@ -331,8 +331,32 @@ class AuraAIAssistant:
             "confidence": 0.92,
         }
 
-    def _act_analyze_logs_placeholder(self, cmd: str) -> dict:
-        self.logger.info("AI action: analyze_logs (placeholder — supply log file).")
+    def _act_analyze_logs(self, cmd: str) -> dict:
+        """Analyze logs from the command context or request log input."""
+        self.logger.info("AI action: analyze_logs triggered.")
+        # Check if log text is embedded in the command
+        log_patterns = [
+            r"analyze\s+(?:this\s+)?log[s]?:?\s*(.+)",
+            r"scan\s+(?:this\s+)?log[s]?:?\s*(.+)",
+            r"check\s+(?:this\s+)?log[s]?:?\s*(.+)",
+        ]
+        for pattern in log_patterns:
+            match = re.search(pattern, cmd, re.IGNORECASE)
+            if match:
+                log_text = match.group(1).strip()
+                analysis = self.analyze_system_logs(log_text)
+                return {
+                    "status": "ANALYSIS_COMPLETE",
+                    "action": "analyze_logs",
+                    "message": (
+                        f"Log analysis complete. Health score: {analysis['health_score']}%. "
+                        f"Issues found: {analysis['issue_count']}. "
+                        f"{analysis['recommended_action']}"
+                    ),
+                    "analysis": analysis,
+                    "confidence": 0.95,
+                }
+        # No log text provided in command
         return {
             "status": "NEEDS_LOG",
             "action": "analyze_logs",
@@ -415,11 +439,35 @@ class AuraAIAssistant:
             "confidence": 1.0,
         }
 
-    def _act_activate_placeholder(self, cmd: str) -> dict:
+    def _act_activate(self, cmd: str) -> dict:
+        """Activate a license key from the command context or request key input."""
+        self.logger.info("AI action: activate_license triggered.")
+        # Check if a license key is embedded in the command
+        key_pattern = r"(AT\w{2,4}-[A-Z0-9]{4,12})"
+        match = re.search(key_pattern, cmd, re.IGNORECASE)
+        if match:
+            key = match.group(1).upper()
+            result = self.activate_license_key(key)
+            if result["activated"]:
+                return {
+                    "status": "ACTIVATED",
+                    "action": "activate_license",
+                    "message": f"License activated successfully: {result['message']}",
+                    "license_info": result["status"],
+                    "confidence": 1.0,
+                }
+            else:
+                return {
+                    "status": "ACTIVATION_FAILED",
+                    "action": "activate_license",
+                    "message": f"Activation failed: {result['message']}",
+                    "confidence": 1.0,
+                }
+        # No key provided in command
         return {
             "status": "NEEDS_KEY",
             "action": "activate_license",
-            "message": "Please enter a valid license key to activate.",
+            "message": "Please enter a valid license key to activate (e.g., AT6M-A1B2C3D4E5F6).",
             "confidence": 1.0,
         }
 
