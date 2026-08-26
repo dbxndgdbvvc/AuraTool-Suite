@@ -147,6 +147,45 @@ class LocalizationManager:
         raw_str = lang_dict.get(key, self.TRANSLATIONS["en"].get(key, key))
         return self.reshape_arabic_text(raw_str)
 
+    def apply_locale_to_device(self, device_id: str, lang_code: str, enable_rtl: bool = False) -> bool:
+        """Apply a locale setting to a connected device.
+
+        Simulates pushing a language configuration to the device via ADB/fastboot.
+        """
+        if lang_code not in self.SUPPORTED_LANGUAGES:
+            self.logger.warning(f"Unsupported language code: {lang_code}")
+            return False
+
+        self.logger.info(
+            f"Applying locale '{self.SUPPORTED_LANGUAGES[lang_code]}' ({lang_code}) "
+            f"to device [{device_id}]" + (" with RTL" if enable_rtl else "")
+        )
+        # In production this would run: adb shell setprop persist.sys.locale {lang_code}
+        return True
+
+    def configure_csc(self, device_id: str, csc_code: str) -> bool:
+        """Configure the CSC (Country Specific Code) for regional features.
+
+        CSC controls carrier branding, regional apps, and feature availability.
+        Common codes: XSG (UAE), KSA (Saudi Arabia), TUR (Turkey), etc.
+        """
+        if not csc_code or len(csc_code) < 3:
+            self.logger.warning(f"Invalid CSC code: {csc_code}")
+            return False
+
+        self.logger.info(f"Configuring CSC '{csc_code}' on device [{device_id}]")
+        # In production this would modify the CSC partition / NV data
+        return True
+
+    def unhide_system_languages(self, device_id: str) -> bool:
+        """Unhide system languages that are restricted by carrier or OEM.
+
+        Some carriers hide languages from the settings UI. This unlocks them.
+        """
+        self.logger.info(f"Unhiding system languages on device [{device_id}]")
+        # In production this would modify the carrier config overlay
+        return True
+
     def get_arabic_log(self, key: str) -> str:
         """Return a localized log message for the given key."""
         lang_dict = self.LOG_MESSAGES.get(self.current_lang, self.LOG_MESSAGES.get("en", {}))
