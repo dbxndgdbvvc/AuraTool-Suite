@@ -39,6 +39,9 @@ licenses/
 audit.jsonl
 audit.jsonl.archived*
 
+# Test fixture temp dirs (regenerated on every test run)
+tests/_test_lic_tmp_*/
+
 # Temporary
 tmp/
 temp/
