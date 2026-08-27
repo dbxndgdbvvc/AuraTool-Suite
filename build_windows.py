@@ -24,7 +24,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 APP_NAME = "AuraTool-Suite"
-APP_VERSION = "2.0.0"
+APP_VERSION = "3.0.0"
 ENTRY_POINT = "main.py"
 
 MODULE_DIRS = ["core", "modules", "drivers", "ui"]

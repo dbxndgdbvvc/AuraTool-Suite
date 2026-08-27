@@ -36,7 +36,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 APP_NAME = "AuraTool-Suite"
-APP_VERSION = "2.0.0"
+APP_VERSION = "3.0.0"
 ENTRY_POINT = "main.py"
 
 # Directories to scan for hidden imports (Python modules to bundle)
@@ -79,7 +79,7 @@ def banner():
     print(c("╔══════════════════════════════════════════════════════════════╗", C.CYAN))
     print(c("║                                                              ║", C.CYAN))
     print(c("║   🔧 AuraTool-Suite — Standalone Onefile Builder              ║", C.CYAN))
-    print(c("║   📦 Version 2.0.0 | Single Executable (--onefile)            ║", C.CYAN))
+    print(c("║   📦 Version 3.0.0 | Single Executable (--onefile)            ║", C.CYAN))
     print(c("║   🐧 Linux x64  |  🪟 Windows x64                             ║", C.CYAN))
     print(c("║                                                              ║", C.CYAN))
     print(c("╚══════════════════════════════════════════════════════════════╝", C.CYAN))

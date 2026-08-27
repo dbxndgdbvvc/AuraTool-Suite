@@ -33,6 +33,7 @@ from modules.chat_rooms import ChatRoomManager
 from modules.media_stream import MediaStreamEngine
 from modules.ecommerce import ECommerceManager
 from modules.device_drivers import DeviceDriverManager
+from core.security import SecurityManager
 from auratool_factory import FactoryManager
 
 # ─── Brand Icons Import ─────────────────────────────────────────────────────
@@ -142,10 +143,15 @@ SIDEBAR_ITEMS = [
     ("🤖", "ai_tab", "AI Diagnostic"),
     ("📱", "vendor_tab", "Vendor Ops"),
     ("🏭", "brands_tab", "Brand Explorer"),
+    ("⌚", "devices_tab", "Device Support"),
     ("⚡", "flash_tab", "Flash & ROM"),
+    ("🧹", "format_tab", "Format & Update"),
+    ("🔓", "frp_tab", "FRP & Accounts"),
     ("🔧", "repair_tab", "Repair"),
     ("💾", "recovery_tab", "Data Recovery"),
+    ("🌐", "lang_tab", "Languages"),
     ("🔌", "usb_tab", "USB/ADB/FB"),
+    ("🛡️", "security_tab", "Security"),
     ("💬", "chat_tab", "Live Chat"),
     ("🎬", "stream_tab", "Media Stream"),
     ("🛒", "store_tab", "E-Commerce"),
@@ -463,42 +469,67 @@ class AuraToolUI:
         self.notebook.add(brands_tab, text=self.loc_mgr.get_string("brands_tab"))
         self._build_brands_tab(brands_tab)
 
-        # Tab 4: Flashing & ROM Management
+        # Tab 4: Device Support (All categories)
+        devices_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
+        self.notebook.add(devices_tab, text=self.loc_mgr.get_string("devices_tab"))
+        self._build_devices_tab(devices_tab)
+
+        # Tab 5: Flashing & ROM Management
         flash_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(flash_tab, text=self.loc_mgr.get_string("flash_tab"))
         self._build_flash_tab(flash_tab)
 
-        # Tab 4: Ultimate System Repair
+        # Tab 6: Format & System Update
+        format_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
+        self.notebook.add(format_tab, text=self.loc_mgr.get_string("format_tab"))
+        self._build_format_tab(format_tab)
+
+        # Tab 7: FRP Bypass & Account Repair
+        frp_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
+        self.notebook.add(frp_tab, text=self.loc_mgr.get_string("frp_tab"))
+        self._build_frp_tab(frp_tab)
+
+        # Tab 8: Ultimate System Repair
         repair_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(repair_tab, text=self.loc_mgr.get_string("repair_tab"))
         self._build_repair_tab(repair_tab)
 
-        # Tab 5: Data Recovery
+        # Tab 9: Data Recovery
         recovery_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(recovery_tab, text=self.loc_mgr.get_string("recovery_tab"))
         self._build_recovery_tab(recovery_tab)
 
-        # Tab 6: USB / ADB / Fastboot Manager
+        # Tab 10: Languages & Localization
+        lang_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
+        self.notebook.add(lang_tab, text=self.loc_mgr.get_string("lang_tab"))
+        self._build_lang_tab(lang_tab)
+
+        # Tab 11: USB / ADB / Fastboot Manager
         usb_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(usb_tab, text=self.loc_mgr.get_string("usb_tab"))
         self._build_usb_tab(usb_tab)
 
-        # Tab 7: Live Chat
+        # Tab 12: Security & Protection
+        security_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
+        self.notebook.add(security_tab, text=self.loc_mgr.get_string("security_tab"))
+        self._build_security_tab(security_tab)
+
+        # Tab 13: Live Chat
         chat_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(chat_tab, text=self.loc_mgr.get_string("chat_tab"))
         self._build_chat_tab(chat_tab)
 
-        # Tab 8: Media Stream
+        # Tab 14: Media Stream
         stream_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(stream_tab, text=self.loc_mgr.get_string("stream_tab"))
         self._build_stream_tab(stream_tab)
 
-        # Tab 9: E-Commerce
+        # Tab 15: E-Commerce
         store_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(store_tab, text=self.loc_mgr.get_string("store_tab"))
         self._build_store_tab(store_tab)
 
-        # Tab 10: Settings
+        # Tab 16: Settings
         settings_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
         self.notebook.add(settings_tab, text=self.loc_mgr.get_string("settings_tab"))
         self._build_settings_tab(settings_tab)
@@ -912,6 +943,190 @@ class AuraToolUI:
                  font=('Segoe UI', 10, 'bold'), bd=0, padx=20, pady=8,
                  command=self._action_checkout, cursor="hand2").pack(anchor=tk.W, padx=10, pady=10)
 
+    def _build_devices_tab(self, parent):
+        """Build Device Support tab showing all supported device categories."""
+        tk.Label(parent, text="⌚ " + self.loc_mgr.get_string("devices_tab"),
+                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+
+        # Device categories overview
+        cats_frame = tk.Frame(parent, bg=Theme.TAB_BG)
+        cats_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        categories = [
+            ("📱", "Smartphones", "Android & iOS phones from all manufacturers", Theme.BTN_PRIMARY),
+            ("📋", "Tablets", "Android tablets & iPad devices", Theme.ACCENT2),
+            ("🍎", "iPads", "Apple iPad (all models 2010–2024)", Theme.BG_LIGHT),
+            ("⌚", "Smartwatches", "WearOS, watchOS, proprietary smartwatches", Theme.BTN_SUCCESS),
+            ("🥽", "Smart Glasses", "Meta, Apple Vision Pro, XREAL, RayNeo", Theme.TEXT_RED),
+            ("🕶️", "AR/VR Headsets", "Meta Quest, PSVR2, HTC Vive, Pico", "#6a1b9a"),
+        ]
+
+        for icon, name, desc, color in categories:
+            card = tk.Frame(cats_frame, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
+            card.pack(fill=tk.X, padx=5, pady=3)
+            icon_lbl = tk.Label(card, text=icon, font=('Segoe UI', 20), bg=color, fg=Theme.TEXT_WHITE, padx=10, pady=5)
+            icon_lbl.pack(side=tk.LEFT, padx=(5, 10))
+            info_frame = tk.Frame(card, bg=Theme.BG_MEDIUM)
+            info_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=5)
+            tk.Label(info_frame, text=name, font=('Segoe UI', 11, 'bold'), fg=Theme.TEXT_WHITE, bg=Theme.BG_MEDIUM).pack(anchor=tk.W)
+            tk.Label(info_frame, text=desc, font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(anchor=tk.W)
+
+        # Year range info
+        tk.Label(parent, text="📅 Supported Years: 2002 – 2030 | 🔧 Chipsets: Qualcomm, MediaTek, Exynos, Kirin, Apple Silicon, Unisoc",
+                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10, pady=5)
+
+    def _build_format_tab(self, parent):
+        """Build Format & System Update tab."""
+        tk.Label(parent, text="🧹 Format & System Update",
+                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+
+        # Format options
+        fmt_frame = tk.LabelFrame(parent, text="Format Operations",
+                                  bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
+        fmt_frame.pack(fill=tk.X, padx=10, pady=5)
+
+        fmt_buttons = [
+            ("🧹 Full Factory Reset", "Complete device wipe including all data", Theme.TEXT_RED, self._action_format),
+            ("📂 Format Data Only", "Wipe user data while keeping system", Theme.BTN_PRIMARY, self._action_format),
+            ("🗑️ Wipe Cache Partition", "Clear cache without affecting data", Theme.ACCENT2, self._action_wipe_cache),
+            ("🔄 System Update", "Install available system updates", Theme.BTN_SUCCESS, self._action_system_update),
+            ("💾 EFS/NVRAM Backup", "Backup radio calibration before format", Theme.BG_LIGHT, self._action_backup_efs),
+            ("↩️ EFS/NVRAM Restore", "Restore radio calibration after format", "#00838f", self._action_restore_efs),
+        ]
+        for text, desc, color, cmd in fmt_buttons:
+            row = tk.Frame(fmt_frame, bg=Theme.BG_DARK)
+            row.pack(fill=tk.X, padx=10, pady=2)
+            tk.Button(row, text=text, bg=color, fg=Theme.TEXT_WHITE,
+                     font=('Segoe UI', 9, 'bold'), bd=0, padx=10, pady=4,
+                     command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=2)
+            tk.Label(row, text=desc, font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=5)
+
+    def _build_frp_tab(self, parent):
+        """Build FRP Bypass & Account Repair tab."""
+        tk.Label(parent, text="🔓 FRP Bypass & Account Repair",
+                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+
+        # Brand selection
+        sel_frame = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
+        sel_frame.pack(fill=tk.X, padx=10, pady=5)
+
+        row1 = tk.Frame(sel_frame, bg=Theme.BG_MEDIUM)
+        row1.pack(fill=tk.X, padx=10, pady=8)
+
+        tk.Label(row1, text="🏭 Brand:", font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=5)
+        self.frp_brand_cb = ttk.Combobox(row1, values=["Samsung", "Google Pixel", "Xiaomi", "Huawei", "OPPO", "Realme", "Vivo", "OnePlus", "Motorola", "Nokia", "Sony", "Apple"], state="readonly", width=20)
+        self.frp_brand_cb.pack(side=tk.LEFT, padx=10)
+        self.frp_brand_cb.current(0)
+
+        tk.Label(row1, text="🔒 Lock Type:", font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=5)
+        self.frp_lock_cb = ttk.Combobox(row1, values=["FRP (Google)", "Samsung Account", "Xiaomi Mi Account", "Huawei ID", "OPPO Account", "Vivo Account", "Pattern/PIN/Password", "Screen Lock", "Email Account"], state="readonly", width=22)
+        self.frp_lock_cb.pack(side=tk.LEFT, padx=10)
+        self.frp_lock_cb.current(0)
+
+        # FRP operations
+        ops_frame = tk.Frame(parent, bg=Theme.TAB_BG)
+        ops_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        frp_buttons = [
+            ("🔓 Bypass FRP Lock", "Remove Google/manufacturer FRP protection", Theme.BTN_PRIMARY, self._action_bypass_frp),
+            ("📧 Bypass Email Account", "Clear email account sync after format", Theme.ACCENT2, self._action_bypass_email),
+            ("🔑 Remove Screen Lock", "Remove Pattern/PIN/Password lock", Theme.BTN_SUCCESS, self._action_remove_screen_lock),
+            ("📊 Account Diagnostics", "Check account and security status", Theme.BG_LIGHT, self._action_account_diagnostics),
+            ("🔧 Restore EFS/NVRAM", "Restore radio calibration partitions", "#00838f", self._action_restore_efs),
+            ("📡 Network Repair", "Repair network calibration", "#e65100", self._action_network_repair),
+        ]
+        for text, desc, color, cmd in frp_buttons:
+            row = tk.Frame(ops_frame, bg=Theme.TAB_BG)
+            row.pack(fill=tk.X, padx=5, pady=2)
+            tk.Button(row, text=text, bg=color, fg=Theme.TEXT_WHITE,
+                     font=('Segoe UI', 9, 'bold'), bd=0, padx=10, pady=4,
+                     command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=2)
+            tk.Label(row, text=desc, font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(side=tk.LEFT, padx=5)
+
+        # Info
+        info_frame = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
+        info_frame.pack(fill=tk.X, padx=10, pady=10)
+        tk.Label(info_frame, text="ℹ️ Supported: Google FRP, Samsung Knox, Xiaomi Mi Cloud, Huawei ID, OPPO/Vivo accounts, Apple Activation Lock (guidance only), Pattern/PIN/Password removal",
+                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM, wraplength=900).pack(padx=10, pady=5)
+
+    def _build_lang_tab(self, parent):
+        """Build Languages & Localization tab."""
+        tk.Label(parent, text="🌐 Languages & Localization",
+                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+
+        # Language selection
+        lang_frame = tk.LabelFrame(parent, text="Select Interface Language",
+                                   bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
+        lang_frame.pack(fill=tk.X, padx=10, pady=5)
+
+        self.lang_cb2 = ttk.Combobox(lang_frame,
+            values=list(LocalizationManager.SUPPORTED_LANGUAGES.values()), state="readonly", width=35)
+        self.lang_cb2.pack(side=tk.LEFT, padx=10, pady=8)
+        self.lang_cb2.current(0)
+
+        tk.Button(lang_frame, text="Apply Language",
+                 bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
+                 font=('Segoe UI', 9, 'bold'), bd=0, padx=12,
+                 command=self._action_change_lang, cursor="hand2").pack(side=tk.LEFT, padx=5)
+
+        # RTL support info
+        rtl_frame = tk.LabelFrame(parent, text="RTL (Right-to-Left) Support",
+                                  bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
+        rtl_frame.pack(fill=tk.X, padx=10, pady=5)
+
+        rtl_langs = "Arabic (العربية), Persian (فارسی), Urdu (اردو), Hebrew (עברית) — Full RTL layout with Arabic character reshaping"
+        tk.Label(rtl_frame, text=rtl_langs, font=('Segoe UI', 9), fg=Theme.TEXT_GREEN, bg=Theme.BG_DARK, wraplength=900).pack(padx=10, pady=5)
+
+        # Language coverage
+        tk.Label(parent, text=f"📋 {len(LocalizationManager.SUPPORTED_LANGUAGES)} languages supported with full UI translations and log messages",
+                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10, pady=5)
+
+    def _build_security_tab(self, parent):
+        """Build Security & Protection tab."""
+        tk.Label(parent, text="🛡️ Security & Anti-Reverse Engineering",
+                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+
+        # Protection status
+        sec_mgr = SecurityManager()
+        protection = sec_mgr.get_protection_status()
+
+        status_frame = tk.LabelFrame(parent, text="Protection Status",
+                                     bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
+        status_frame.pack(fill=tk.X, padx=10, pady=5)
+
+        items = [
+            ("🛡️ Anti-Reverse Engineering", "ACTIVE" if protection["protection_active"] else "INACTIVE", Theme.TEXT_GREEN if protection["protection_active"] else Theme.TEXT_RED),
+            ("🔍 Debugger Detection", "CLEAN" if not protection["debugger_detected"] else "DETECTED", Theme.TEXT_GREEN if not protection["debugger_detected"] else Theme.TEXT_RED),
+            ("💻 VM Detection", "CLEAN" if not protection["vm_detected"] else "VM DETECTED", Theme.TEXT_GREEN if not protection["vm_detected"] else Theme.TEXT_YELLOW),
+            ("🔐 Code Integrity", "VERIFIED" if protection["code_integrity"] else "FAILED", Theme.TEXT_GREEN if protection["code_integrity"] else Theme.TEXT_RED),
+            ("🔒 License Protection", "AES + HMAC Encrypted", Theme.TEXT_GREEN),
+            ("🗝️ Key Obfuscation", "XOR Stream Cipher Active", Theme.TEXT_GREEN),
+        ]
+        for label, value, color in items:
+            row = tk.Frame(status_frame, bg=Theme.BG_DARK)
+            row.pack(fill=tk.X, padx=10, pady=2)
+            tk.Label(row, text=label, font=('Segoe UI', 9, 'bold'), fg=Theme.TEXT_WHITE, bg=Theme.BG_DARK, width=28, anchor='w').pack(side=tk.LEFT)
+            tk.Label(row, text=value, font=('Consolas', 9), fg=color, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=5)
+
+        # Security features
+        feat_frame = tk.LabelFrame(parent, text="Security Features",
+                                   bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
+        feat_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        features = [
+            "✅ HWID-bound license encryption",
+            "✅ System clock tamper detection",
+            "✅ Encrypted license file (AES + HMAC)",
+            "✅ Anti-debugger protection",
+            "✅ Virtual machine detection",
+            "✅ Code integrity verification",
+            "✅ Secure data wipe (3-pass overwrite)",
+            "✅ Storage health guardian (UFS/eMMC)",
+            "✅ Auto-shutdown on license expiry",
+        ]
+        for feat in features:
+            tk.Label(feat_frame, text=feat, font=('Segoe UI', 9), fg=Theme.TEXT_GREEN, bg=Theme.BG_DARK).pack(anchor=tk.W, padx=10, pady=1)
+
     def _build_settings_tab(self, parent):
         tk.Label(parent, text=self.loc_mgr.get_string("settings_header"),
                 font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
@@ -938,6 +1153,12 @@ class AuraToolUI:
                  bg=Theme.BTN_SECONDARY, fg=Theme.TEXT_WHITE,
                  font=('Segoe UI', 9, 'bold'), bd=0, padx=12,
                  command=self._action_install_drivers, cursor="hand2").pack(anchor=tk.W, padx=10, pady=8)
+
+        # Version info
+        tk.Label(parent, text="AuraTool-Suite v3.0.0 | Universal Desktop Platform 2030",
+                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10, pady=10)
+        tk.Label(parent, text="© 2024-2030 AuraTool-Suite. All rights reserved.",
+                font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10)
 
     # ─── Actions ────────────────────────────────────────────────────────
 
@@ -1085,6 +1306,56 @@ class AuraToolUI:
     def _action_install_drivers(self):
         res = self.driver_mgr.check_all_drivers()
         logging.info(f"Drivers verified: {len(res)} stacks ready.")
+
+    def _action_wipe_cache(self):
+        m = self.model_cb.get()
+        logging.info("Wiping cache partition...")
+        self.flashing_engine.adb("shell", "rm", "-rf", "/cache/*")
+        messagebox.showinfo("Done", "Cache partition wiped successfully.")
+
+    def _action_system_update(self):
+        m = self.model_cb.get()
+        logging.info(f"Checking system updates for {m}...")
+        res = self.smart_dev_mgr.scan_firmware_updates(m)
+        messagebox.showinfo("Update Check", f"Current: {res['current_version']}\nLatest: {res['latest_version']}\nUpdate Available: {res['update_available']}")
+
+    def _action_restore_efs(self):
+        m = self.model_cb.get()
+        logging.info(f"Restoring EFS/NVRAM for {m}...")
+        self.account_repair.restore_efs_nvram(m, f"/backups/{m}/efs")
+        messagebox.showinfo("Done", "EFS/NVRAM restored successfully.")
+
+    def _action_bypass_email(self):
+        m = self.model_cb.get()
+        v = self.frp_brand_cb.get() if hasattr(self, 'frp_brand_cb') else self.vendor_cb.get()
+        res = self.account_repair.bypass_email_account(m, brand=v)
+        logging.info(f"Email account bypass completed for {m}")
+        messagebox.showinfo("Email Bypass", f"Status: {res['status']}\n{res['message']}")
+
+    def _action_remove_screen_lock(self):
+        m = self.model_cb.get()
+        lock_type = self.frp_lock_cb.get() if hasattr(self, 'frp_lock_cb') else "PATTERN"
+        res = self.account_repair.remove_screen_lock(m, lock_type=lock_type.split("(")[0].strip())
+        logging.info(f"Screen lock removed for {m}")
+        messagebox.showinfo("Screen Lock", f"Status: {res['status']}\n{res['message']}")
+
+    def _action_account_diagnostics(self):
+        m = self.model_cb.get()
+        res = self.account_repair.run_account_diagnostics(m)
+        logging.info(f"Account diagnostics for {m}: FRP={res.get('frp_status', 'N/A')}")
+        messagebox.showinfo("Account Diagnostics",
+            f"Brand: {res.get('brand', 'Unknown')}\n"
+            f"Model: {res.get('model', 'Unknown')}\n"
+            f"FRP Status: {res.get('frp_status', 'N/A')}\n"
+            f"Bootloader: {res.get('bootloader_status', 'N/A')}\n"
+            f"Integrity: {res.get('integrity_check', 'N/A')}")
+
+    def _action_network_repair(self):
+        m = self.model_cb.get()
+        v = self.frp_brand_cb.get() if hasattr(self, 'frp_brand_cb') else self.vendor_cb.get()
+        res = self.account_repair.repair_network_calibration(m, brand=v)
+        logging.info(f"Network repair for {m}: {res['status']}")
+        messagebox.showinfo("Network Repair", f"Baseband: {res['baseband_status']}\nIMEI: {'Valid' if res['imei_valid'] else 'Invalid'}")
 
     def _action_change_lang(self):
         selected = self.lang_cb.get()

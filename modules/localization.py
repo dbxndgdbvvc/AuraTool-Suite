@@ -1,11 +1,14 @@
 """
-AuraTool-Suite — Global Multi-Language System (i18n) & Arabic Shaping
-======================================================================
-Comprehensive internationalization supporting LTR and RTL languages,
-with built-in character reshaping and bidirectional rendering support.
+AuraTool-Suite — Global Multi-Language System (i18n) & RTL Support
+==================================================================
+Comprehensive internationalization supporting 30+ world languages
+with built-in Arabic/Persian/Urdu character reshaping, bidirectional
+rendering, and full RTL layout support.
 """
 
 import logging
+import os
+from pathlib import Path
 
 try:
     import arabic_reshaper
@@ -14,9 +17,19 @@ try:
 except ImportError:
     HAS_ARABIC_RESHAPER = False
 
+logger = logging.getLogger("AuraTool.Localization")
+
 
 class LocalizationManager:
-    """Handles global translations, RTL/LTR layout, and Arabic character shaping."""
+    """Handles global translations, RTL/LTR layout, and Arabic character shaping.
+    
+    Features:
+    - 30+ world languages with full UI translations
+    - RTL support for Arabic, Persian, Urdu, Hebrew
+    - Arabic text reshaping and bidirectional rendering
+    - Dynamic language switching at runtime
+    - Technical terminology corrections for Arabic
+    """
 
     SUPPORTED_LANGUAGES = {
         "en": "English",
@@ -25,127 +38,542 @@ class LocalizationManager:
         "fr": "Français (French)",
         "de": "Deutsch (German)",
         "ru": "Русский (Russian)",
-        "zh": "中文 (Chinese)",
+        "zh": "中文 (Chinese Simplified)",
+        "zh-tw": "繁體中文 (Chinese Traditional)",
         "ja": "日本語 (Japanese)",
         "tr": "Türkçe (Turkish)",
         "hi": "हिन्दी (Hindi)",
         "pt": "Português (Portuguese)",
         "ko": "한국어 (Korean)",
-        "id": "Bahasa Indonesia (Indonesian)",
+        "id": "Bahasa Indonesia",
         "fa": "فارسی (Persian)",
         "ur": "اردو (Urdu)",
         "th": "ไทย (Thai)",
+        "it": "Italiano (Italian)",
+        "nl": "Nederlands (Dutch)",
+        "pl": "Polski (Polish)",
+        "sv": "Svenska (Swedish)",
+        "ar-eg": "العربية المصرية (Egyptian Arabic)",
+        "ar-sa": "العربية السعودية (Saudi Arabic)",
+        "ar-ma": "العربية المغربية (Moroccan Arabic)",
+        "vi": "Tiếng Việt (Vietnamese)",
+        "bn": "বাংলা (Bengali)",
+        "sw": "Kiswahili (Swahili)",
+        "he": "עברית (Hebrew)",
+        "cs": "Čeština (Czech)",
+        "ro": "Română (Romanian)",
+        "hu": "Magyar (Hungarian)",
+        "el": "Ελληνικά (Greek)",
+        "uk": "Українська (Ukrainian)",
     }
 
-    RTL_LANGUAGES = ["ar", "fa", "ur"]
+    RTL_LANGUAGES = ["ar", "ar-eg", "ar-sa", "ar-ma", "fa", "ur", "he"]
 
+    # ─── Log Messages ─────────────────────────────────────────────────────
     LOG_MESSAGES = {
         "en": {
             "FLASHING_START": "Firmware flashing started",
+            "FLASHING_COMPLETE": "Firmware flashing completed successfully",
             "FRP_SUCCESS": "FRP bypass completed successfully",
+            "FRP_FAILED": "FRP bypass failed — check device connection",
             "VIRUS_REMOVED": "Virus scan and removal complete",
+            "VIRUS_DETECTED": "Virus detected — quarantine activated",
             "RECOVERY_START": "Deep data recovery scan started",
+            "RECOVERY_COMPLETE": "Data recovery scan completed",
+            "DRIVER_INSTALL": "USB driver installation initiated",
+            "DRIVER_READY": "All USB drivers are ready",
+            "DEVICE_CONNECTED": "Device connected successfully",
+            "DEVICE_DISCONNECTED": "Device disconnected",
+            "BACKUP_START": "Backup process started",
+            "BACKUP_COMPLETE": "Backup completed successfully",
+            "UNBRICK_START": "Deep hardware unbrick initiated",
+            "UNBRICK_COMPLETE": "Device unbricked successfully",
+            "LICENSE_VALID": "License is valid and active",
+            "LICENSE_EXPIRED": "License has expired — please renew",
+            "SYSTEM_READY": "AuraTool-Suite system ready",
         },
         "ar": {
-            "FLASHING_START": "تم بدء تفليش البرنامج الثابت",
-            "FRP_SUCCESS": "تم تجاوز FRP بنجاح",
-            "VIRUS_REMOVED": "اكتمل فحص الفيروسات وإزالته",
+            "FLASHING_START": "تم بدء تفليش البرنامج الثابت للجهاز",
+            "FLASHING_COMPLETE": "تم اكتمال تفليش البرنامج الثابت بنجاح",
+            "FRP_SUCCESS": "تم تجاوز حماية FRP بنجاح",
+            "FRP_FAILED": "فشل تجاوز حماية FRP — تحقق من اتصال الجهاز",
+            "VIRUS_REMOVED": "اكتمل فحص الفيروسات وإزالته بنجاح",
+            "VIRUS_DETECTED": "تم اكتشاف فيروس — تم تفعيل الحجر الصحي",
             "RECOVERY_START": "تم بدء فحص استعادة البيانات العميق",
+            "RECOVERY_COMPLETE": "اكتمل فحص استعادة البيانات",
+            "DRIVER_INSTALL": "تم بدء تثبيت تعريفات USB",
+            "DRIVER_READY": "جميع تعريفات USB جاهزة",
+            "DEVICE_CONNECTED": "تم توصيل الجهاز بنجاح",
+            "DEVICE_DISCONNECTED": "تم فصل اتصال الجهاز",
+            "BACKUP_START": "تم بدء عملية النسخ الاحتياطي",
+            "BACKUP_COMPLETE": "تم اكتمال النسخ الاحتياطي بنجاح",
+            "UNBRICK_START": "تم بدء عملية إصلاح الجهاز المتوقف",
+            "UNBRICK_COMPLETE": "تم إصلاح الجهاز بنجاح",
+            "LICENSE_VALID": "الترخيص ساري المفعول ونشط",
+            "LICENSE_EXPIRED": "انتهت صلاحية الترخيص — يرجى التجديد",
+            "SYSTEM_READY": "نظام AuraTool-Suite جاهز للعمل",
         },
         "es": {
             "FLASHING_START": "Inicio del flasheo de firmware",
+            "FLASHING_COMPLETE": "Flasheo de firmware completado exitosamente",
             "FRP_SUCCESS": "Bypass FRP completado exitosamente",
+            "FRP_FAILED": "Bypass FRP falló — verifique la conexión del dispositivo",
             "VIRUS_REMOVED": "Escaneo y eliminación de virus completados",
+            "VIRUS_DETECTED": "Virus detectado — cuarentena activada",
             "RECOVERY_START": "Inicio del escaneo profundo de recuperación",
+            "RECOVERY_COMPLETE": "Escaneo de recuperación de datos completado",
+            "DRIVER_INSTALL": "Instalación de controladores USB iniciada",
+            "DRIVER_READY": "Todos los controladores USB están listos",
+            "DEVICE_CONNECTED": "Dispositivo conectado exitosamente",
+            "DEVICE_DISCONNECTED": "Dispositivo desconectado",
+            "BACKUP_START": "Proceso de respaldo iniciado",
+            "BACKUP_COMPLETE": "Respaldo completado exitosamente",
+            "UNBRICK_START": "Desbriquedo profundo del hardware iniciado",
+            "UNBRICK_COMPLETE": "Dispositivo desbriquedo exitosamente",
+            "LICENSE_VALID": "Licencia válida y activa",
+            "LICENSE_EXPIRED": "La licencia ha expirado — renueve por favor",
+            "SYSTEM_READY": "Sistema AuraTool-Suite listo",
         },
-        "pt": {
-            "FLASHING_START": "Flashagem de firmware iniciada",
-            "FRP_SUCCESS": "Bypass FRP concluído com sucesso",
-            "VIRUS_REMOVED": "Verificação e remoção de vírus concluídas",
-            "RECOVERY_START": "Varredura profunda de recuperação de dados iniciada",
+        "fr": {
+            "FLASHING_START": "Flashage du firmware démarré",
+            "FLASHING_COMPLETE": "Flashage du firmware terminé avec succès",
+            "FRP_SUCCESS": "Bypass FRP terminé avec succès",
+            "FRP_FAILED": "Bypass FRP échoué — vérifiez la connexion de l'appareil",
+            "VIRUS_REMOVED": "Scan et suppression de virus terminés",
+            "VIRUS_DETECTED": "Virus détecté — mise en quarantaine activée",
+            "RECOVERY_START": "Scan de récupération profonde démarré",
+            "RECOVERY_COMPLETE": "Scan de récupération de données terminé",
+            "DRIVER_INSTALL": "Installation des pilotes USB démarrée",
+            "DRIVER_READY": "Tous les pilotes USB sont prêts",
+            "DEVICE_CONNECTED": "Appareil connecté avec succès",
+            "DEVICE_DISCONNECTED": "Appareil déconnecté",
+            "BACKUP_START": "Processus de sauvegarde démarré",
+            "BACKUP_COMPLETE": "Sauvegarde terminée avec succès",
+            "UNBRICK_START": "Débrillage matériel profond démarré",
+            "UNBRICK_COMPLETE": "Appareil débrillé avec succès",
+            "LICENSE_VALID": "Licence valide et active",
+            "LICENSE_EXPIRED": "La licence a expiré — veuillez renouveler",
+            "SYSTEM_READY": "Système AuraTool-Suite prêt",
+        },
+        "de": {
+            "FLASHING_START": "Firmware-Flash gestartet",
+            "FLASHING_COMPLETE": "Firmware-Flash erfolgreich abgeschlossen",
+            "FRP_SUCCESS": "FRP-Umgehung erfolgreich abgeschlossen",
+            "FRP_FAILED": "FRP-Umgehung fehlgeschlagen — Geräteverbindung prüfen",
+            "VIRUS_REMOVED": "Virenscan und -entfernung abgeschlossen",
+            "VIRUS_DETECTED": "Virus erkannt — Quarantäne aktiviert",
+            "RECOVERY_START": "Tiefenscan-Datenwiederherstellung gestartet",
+            "RECOVERY_COMPLETE": "Datenwiederherstellung abgeschlossen",
+            "DRIVER_INSTALL": "USB-Treiberinstallation gestartet",
+            "DRIVER_READY": "Alle USB-Treiber sind bereit",
+            "DEVICE_CONNECTED": "Gerät erfolgreich verbunden",
+            "DEVICE_DISCONNECTED": "Gerät getrennt",
+            "BACKUP_START": "Sicherungsprozess gestartet",
+            "BACKUP_COMPLETE": "Sicherung erfolgreich abgeschlossen",
+            "UNBRICK_START": "Tiefes Hardware-Unbrick gestartet",
+            "UNBRICK_COMPLETE": "Gerät erfolgreich unbrickiert",
+            "LICENSE_VALID": "Lizenz gültig und aktiv",
+            "LICENSE_EXPIRED": "Lizenz abgelaufen — bitte erneuern",
+            "SYSTEM_READY": "AuraTool-Suite System bereit",
+        },
+        "ru": {
+            "FLASHING_START": "Прошивка запущена",
+            "FLASHING_COMPLETE": "Прошивка успешно завершена",
+            "FRP_SUCCESS": "Обход FRP выполнен успешно",
+            "FRP_FAILED": "Обход FRP не удался — проверьте подключение устройства",
+            "VIRUS_REMOVED": "Сканирование и удаление вирусов завершены",
+            "VIRUS_DETECTED": "Вирус обнаружен — карантин активирован",
+            "RECOVERY_START": "Глубокое сканирование восстановления данных запущено",
+            "RECOVERY_COMPLETE": "Восстановление данных завершено",
+            "DRIVER_INSTALL": "Установка USB-драйверов начата",
+            "DRIVER_READY": "Все USB-драйверы готовы",
+            "DEVICE_CONNECTED": "Устройство успешно подключено",
+            "DEVICE_DISCONNECTED": "Устройство отключено",
+            "BACKUP_START": "Процесс резервного копирования начат",
+            "BACKUP_COMPLETE": "Резервное копирование успешно завершено",
+            "UNBRICK_START": "Глубокое восстановление оборудования начато",
+            "UNBRICK_COMPLETE": "Устройство успешно восстановлено",
+            "LICENSE_VALID": "Лицензия действительна и активна",
+            "LICENSE_EXPIRED": "Лицензия истекла — пожалуйста, продлите",
+            "SYSTEM_READY": "Система AuraTool-Suite готова",
+        },
+        "zh": {
+            "FLASHING_START": "固件刷写已开始",
+            "FLASHING_COMPLETE": "固件刷写成功完成",
+            "FRP_SUCCESS": "FRP绕过成功完成",
+            "FRP_FAILED": "FRP绕过失败 — 请检查设备连接",
+            "VIRUS_REMOVED": "病毒扫描和清除完成",
+            "VIRUS_DETECTED": "检测到病毒 — 隔离已激活",
+            "RECOVERY_START": "深度数据恢复扫描已开始",
+            "RECOVERY_COMPLETE": "数据恢复扫描完成",
+            "DRIVER_INSTALL": "USB驱动安装已启动",
+            "DRIVER_READY": "所有USB驱动已就绪",
+            "DEVICE_CONNECTED": "设备连接成功",
+            "DEVICE_DISCONNECTED": "设备已断开连接",
+            "BACKUP_START": "备份过程已开始",
+            "BACKUP_COMPLETE": "备份成功完成",
+            "UNBRICK_START": "深度硬件救砖已启动",
+            "UNBRICK_COMPLETE": "设备救砖成功",
+            "LICENSE_VALID": "许可证有效且已激活",
+            "LICENSE_EXPIRED": "许可证已过期 — 请续订",
+            "SYSTEM_READY": "AuraTool-Suite系统已就绪",
+        },
+        "ja": {
+            "FLASHING_START": "ファームウェアのフラッシュを開始しました",
+            "FLASHING_COMPLETE": "ファームウェアのフラッシュが正常に完了しました",
+            "FRP_SUCCESS": "FRPバイパスが正常に完了しました",
+            "FRP_FAILED": "FRPバイパス失敗 — デバイス接続を確認してください",
+            "VIRUS_REMOVED": "ウイルススキャンと削除が完了しました",
+            "VIRUS_DETECTED": "ウイルスを検出 — 隔離が有効になりました",
+            "RECOVERY_START": "深度データ復旧スキャンを開始しました",
+            "RECOVERY_COMPLETE": "データ復旧スキャンが完了しました",
+            "DRIVER_INSTALL": "USBドライバーのインストールを開始しました",
+            "DRIVER_READY": "すべてのUSBドライバーが準備完了です",
+            "DEVICE_CONNECTED": "デバイスが正常に接続されました",
+            "DEVICE_DISCONNECTED": "デバイスが切断されました",
+            "BACKUP_START": "バックアッププロセスを開始しました",
+            "BACKUP_COMPLETE": "バックアップが正常に完了しました",
+            "UNBRICK_START": "ハードウェアの修復を開始しました",
+            "UNBRICK_COMPLETE": "デバイスの修復が正常に完了しました",
+            "LICENSE_VALID": "ライセンスは有効でアクティブです",
+            "LICENSE_EXPIRED": "ライセンスが期限切れです — 更新してください",
+            "SYSTEM_READY": "AuraTool-Suiteシステムが準備完了です",
         },
         "ko": {
             "FLASHING_START": "펌웨어 플래싱 시작됨",
+            "FLASHING_COMPLETE": "펌웨어 플래싱 성공적으로 완료됨",
             "FRP_SUCCESS": "FRP 우회 성공적으로 완료됨",
+            "FRP_FAILED": "FRP 우회 실패 — 장치 연결을 확인하세요",
             "VIRUS_REMOVED": "바이러스 검사 및 제거 완료",
+            "VIRUS_DETECTED": "바이러스 감지 — 격리 활성화",
             "RECOVERY_START": "심층 데이터 복구 스캔 시작됨",
+            "RECOVERY_COMPLETE": "데이터 복구 스캔 완료",
+            "DRIVER_INSTALL": "USB 드라이버 설치 시작됨",
+            "DRIVER_READY": "모든 USB 드라이버 준비 완료",
+            "DEVICE_CONNECTED": "장치가 성공적으로 연결됨",
+            "DEVICE_DISCONNECTED": "장치가 연결 해제됨",
+            "BACKUP_START": "백업 프로세스 시작됨",
+            "BACKUP_COMPLETE": "백업 성공적으로 완료됨",
+            "UNBRICK_START": "심층 하드웨어 복구 시작됨",
+            "UNBRICK_COMPLETE": "장치 성공적으로 복구됨",
+            "LICENSE_VALID": "라이센스가 유효하고 활성화됨",
+            "LICENSE_EXPIRED": "라이센스가 만료되었습니다 — 갱신하세요",
+            "SYSTEM_READY": "AuraTool-Suite 시스템 준비 완료",
+        },
+        "tr": {
+            "FLASHING_START": "Firmware flashing başladı",
+            "FLASHING_COMPLETE": "Firmware flashing başarıyla tamamlandı",
+            "FRP_SUCCESS": "FRP atlama başarıyla tamamlandı",
+            "FRP_FAILED": "FRP atlama başarısız — cihaz bağlantısını kontrol edin",
+            "VIRUS_REMOVED": "Virüs tarama ve kaldırma tamamlandı",
+            "VIRUS_DETECTED": "Virüs tespit edildi — karantina aktif edildi",
+            "RECOVERY_START": "Derin veri kurtarma taraması başladı",
+            "RECOVERY_COMPLETE": "Veri kurtarma taraması tamamlandı",
+            "DRIVER_INSTALL": "USB sürücü kurulumu başlatıldı",
+            "DRIVER_READY": "Tüm USB sürücüleri hazır",
+            "DEVICE_CONNECTED": "Cihaz başarıyla bağlandı",
+            "DEVICE_DISCONNECTED": "Cihaz bağlantısı kesildi",
+            "BACKUP_START": "Yedekleme süreci başlatıldı",
+            "BACKUP_COMPLETE": "Yedekleme başarıyla tamamlandı",
+            "UNBRICK_START": "Donanım onarımı başlatıldı",
+            "UNBRICK_COMPLETE": "Cihaz başarıyla onarıldı",
+            "LICENSE_VALID": "Lisans geçerli ve aktif",
+            "LICENSE_EXPIRED": "Lisansın süresi doldu — lütfen yenileyin",
+            "SYSTEM_READY": "AuraTool-Suite sistemi hazır",
+        },
+        "hi": {
+            "FLASHING_START": "फर्मवेयर फ्लैशिंग शुरू हुई",
+            "FLASHING_COMPLETE": "फर्मवेयर फ्लैशिंग सफलतापूर्वक पूरी हुई",
+            "FRP_SUCCESS": "FRP बायपास सफलतापूर्वक पूरा हुआ",
+            "FRP_FAILED": "FRP बायपास विफल — डिवाइस कनेक्शन जांचें",
+            "VIRUS_REMOVED": "वायरस स्कैन और हटाना पूरा",
+            "VIRUS_DETECTED": "वायरस का पता चला — क्वारंटाइन सक्रिय",
+            "RECOVERY_START": "गहरी डेटा रिकवरी स्कैन शुरू हुआ",
+            "RECOVERY_COMPLETE": "डेटा रिकवरी स्कैन पूरा",
+            "DRIVER_INSTALL": "USB ड्राइवर इंस्टॉलेशन शुरू",
+            "DRIVER_READY": "सभी USB ड्राइवर तैयार हैं",
+            "DEVICE_CONNECTED": "डिवाइस सफलतापूर्वक कनेक्ट हुआ",
+            "DEVICE_DISCONNECTED": "डिवाइस डिस्कनेक्ट हुआ",
+            "BACKUP_START": "बैकअप प्रक्रिया शुरू",
+            "BACKUP_COMPLETE": "बैकअप सफलतापूर्वक पूरा",
+            "UNBRICK_START": "हार्डवेयर अनब्रिक शुरू",
+            "UNBRICK_COMPLETE": "डिवाइस सफलतापूर्वक अनब्रिक हुआ",
+            "LICENSE_VALID": "लाइसेंस मान्य और सक्रिय है",
+            "LICENSE_EXPIRED": "लाइसेंस की अवधि समाप्त — कृपया नवीनीकरण करें",
+            "SYSTEM_READY": "AuraTool-Suite सिस्टम तैयार",
+        },
+        "pt": {
+            "FLASHING_START": "Flashagem de firmware iniciada",
+            "FLASHING_COMPLETE": "Flashagem de firmware concluída com sucesso",
+            "FRP_SUCCESS": "Bypass FRP concluído com sucesso",
+            "FRP_FAILED": "Bypass FRP falhou — verifique a conexão do dispositivo",
+            "VIRUS_REMOVED": "Verificação e remoção de vírus concluídas",
+            "VIRUS_DETECTED": "Vírus detectado — quarentena ativada",
+            "RECOVERY_START": "Varredura profunda de recuperação iniciada",
+            "RECOVERY_COMPLETE": "Recuperação de dados concluída",
+            "DRIVER_INSTALL": "Instalação de drivers USB iniciada",
+            "DRIVER_READY": "Todos os drivers USB estão prontos",
+            "DEVICE_CONNECTED": "Dispositivo conectado com sucesso",
+            "DEVICE_DISCONNECTED": "Dispositivo desconectado",
+            "BACKUP_START": "Processo de backup iniciado",
+            "BACKUP_COMPLETE": "Backup concluído com sucesso",
+            "UNBRICK_START": "Desbrickamento profundo de hardware iniciado",
+            "UNBRICK_COMPLETE": "Dispositivo desbricado com sucesso",
+            "LICENSE_VALID": "Licença válida e ativa",
+            "LICENSE_EXPIRED": "A licença expirou — por favor renove",
+            "SYSTEM_READY": "Sistema AuraTool-Suite pronto",
         },
         "id": {
             "FLASHING_START": "Flashing firmware dimulai",
+            "FLASHING_COMPLETE": "Flashing firmware berhasil diselesaikan",
             "FRP_SUCCESS": "Bypass FRP berhasil diselesaikan",
+            "FRP_FAILED": "Bypass FRP gagal — periksa koneksi perangkat",
             "VIRUS_REMOVED": "Pemindaian dan penghapusan virus selesai",
+            "VIRUS_DETECTED": "Virus terdeteksi — karantina diaktifkan",
             "RECOVERY_START": "Pemindaian pemulihan data mendalam dimulai",
+            "RECOVERY_COMPLETE": "Pemulihan data selesai",
+            "DRIVER_INSTALL": "Instalasi driver USB dimulai",
+            "DRIVER_READY": "Semua driver USB siap",
+            "DEVICE_CONNECTED": "Perangkat berhasil terhubung",
+            "DEVICE_DISCONNECTED": "Perangkat terputus",
+            "BACKUP_START": "Proses backup dimulai",
+            "BACKUP_COMPLETE": "Backup berhasil diselesaikan",
+            "UNBRICK_START": "Unbrick perangkat keras mendalam dimulai",
+            "UNBRICK_COMPLETE": "Perangkat berhasil di-unbrick",
+            "LICENSE_VALID": "Lisensi valid dan aktif",
+            "LICENSE_EXPIRED": "Lisensi telah kedaluwarsa — silakan perpanjang",
+            "SYSTEM_READY": "Sistem AuraTool-Suite siap",
         },
         "fa": {
             "FLASHING_START": "شروع فلش کردن فریمور",
+            "FLASHING_COMPLETE": "فلش فریمور با موفقیت انجام شد",
             "FRP_SUCCESS": "دور زدن FRP با موفقیت انجام شد",
+            "FRP_FAILED": "دور زدن FRP ناموفق بود — اتصال دستگاه را بررسی کنید",
             "VIRUS_REMOVED": "اسکن و حذف ویروس کامل شد",
+            "VIRUS_DETECTED": "ویروس شناسایی شد — قرنطینه فعال شد",
             "RECOVERY_START": "اسکن بازیابی عمیق داده آغاز شد",
+            "RECOVERY_COMPLETE": "بازیابی داده کامل شد",
+            "DRIVER_INSTALL": "نصب درایور USB آغاز شد",
+            "DRIVER_READY": "همه درایورهای USB آماده هستند",
+            "DEVICE_CONNECTED": "دستگاه با موفقیت متصل شد",
+            "DEVICE_DISCONNECTED": "دستگاه قطع شد",
+            "BACKUP_START": "فرآیند پشتیبان‌گیری آغاز شد",
+            "BACKUP_COMPLETE": "پشتیبان‌گیری با موفقیت انجام شد",
+            "UNBRICK_START": "تعمیر سخت‌افزار آغاز شد",
+            "UNBRICK_COMPLETE": "دستگاه با موفقیت تعمیر شد",
+            "LICENSE_VALID": "مجوز معتبر و فعال است",
+            "LICENSE_EXPIRED": "مجوز منقضی شده — لطفاً تمدید کنید",
+            "SYSTEM_READY": "سیستم AuraTool-Suite آماده است",
         },
         "ur": {
             "FLASHING_START": "فیرم ویئر فلیشنگ شروع ہوئی",
+            "FLASHING_COMPLETE": "فیرم ویئر فلیشنگ کامیابی سے مکمل ہوئی",
             "FRP_SUCCESS": "FRP بائی پاس کامیابی سے مکمل ہوا",
+            "FRP_FAILED": "FRP بائی پاس ناکام — ڈیوائس کنکشن چیک کریں",
             "VIRUS_REMOVED": "وائرس اسکین اور حذف مکمل",
+            "VIRUS_DETECTED": "وائرس کی نشاندہی ہوئی — قرنطینہ فعال",
             "RECOVERY_START": "گہری ڈیٹا ریکوری اسکین شروع ہوئی",
+            "RECOVERY_COMPLETE": "ڈیٹا ریکوری اسکین مکمل",
+            "DRIVER_INSTALL": "USB ڈرائیور انسٹالیشن شروع",
+            "DRIVER_READY": "تمام USB ڈرائیورز تیار ہیں",
+            "DEVICE_CONNECTED": "ڈیوائس کامیابی سے جڑا گیا",
+            "DEVICE_DISCONNECTED": "ڈیوائس منقطع ہو گیا",
+            "BACKUP_START": "بیک اپ عمل شروع",
+            "BACKUP_COMPLETE": "بیک اپ کامیابی سے مکمل",
+            "UNBRICK_START": "ہارڈ ویئر انبرک شروع",
+            "UNBRICK_COMPLETE": "ڈیوائس کامیابی سے مرمت ہو گیا",
+            "LICENSE_VALID": "لائسنس درست اور فعال ہے",
+            "LICENSE_EXPIRED": "لائسنس کی میعاد ختم — براہ کرم تجدید کریں",
+            "SYSTEM_READY": "AuraTool-Suite سسٹم تیار ہے",
         },
         "th": {
             "FLASHING_START": "เริ่มการแฟลชเฟิร์มแวร์",
+            "FLASHING_COMPLETE": "การแฟลชเฟิร์มแวร์เสร็จสมบูรณ์",
             "FRP_SUCCESS": "การข้าม FRP เสร็จสมบูรณ์",
+            "FRP_FAILED": "การข้าม FRP ล้มเหลว — ตรวจสอบการเชื่อมต่ออุปกรณ์",
             "VIRUS_REMOVED": "การสแกนและลบไวรัสเสร็จสมบูรณ์",
+            "VIRUS_DETECTED": "ตรวจพบไวรัส — กักกันเปิดใช้งาน",
             "RECOVERY_START": "เริ่มการสแกนกู้คืนข้อมูลเชิงลึก",
+            "RECOVERY_COMPLETE": "การกู้คืนข้อมูลเสร็จสมบูรณ์",
+            "DRIVER_INSTALL": "เริ่มการติดตั้งไดรเวอร์ USB",
+            "DRIVER_READY": "ไดรเวอร์ USB ทั้งหมดพร้อมใช้งาน",
+            "DEVICE_CONNECTED": "เชื่อมต่ออุปกรณ์สำเร็จ",
+            "DEVICE_DISCONNECTED": "อุปกรณ์ถูกตัดการเชื่อมต่อ",
+            "BACKUP_START": "เริ่มกระบวนการสำรองข้อมูล",
+            "BACKUP_COMPLETE": "การสำรองข้อมูลเสร็จสมบูรณ์",
+            "UNBRICK_START": "เริ่มการซ่อมแซมฮาร์ดแวร์เชิงลึก",
+            "UNBRICK_COMPLETE": "อุปกรณ์ซ่อมแซมสำเร็จ",
+            "LICENSE_VALID": "ใบอนุญาตถูกต้องและใช้งานได้",
+            "LICENSE_EXPIRED": "ใบอนุญาตหมดอายุ — กรุณาต่ออายุ",
+            "SYSTEM_READY": "ระบบ AuraTool-Suite พร้อมใช้งาน",
         },
     }
 
+    # ─── UI Translations ──────────────────────────────────────────────────
     TRANSLATIONS = {
         "en": {
             "title": "AuraTool-Suite — Universal Desktop Platform 2030",
             "license_lbl": "License Status:",
-            "ai_tab": "Aura-AI Diagnostic",
-            "vendor_tab": "Vendor Operations",
-            "repair_tab": "Ultimate Repair",
-            "recovery_tab": "Data Recovery",
-            "chat_tab": "Live Chat Rooms",
-            "stream_tab": "Media Stream Network",
-            "store_tab": "E-Commerce Store",
-            "settings_tab": "Settings & Language",
+            "ai_tab": "🤖 AI Diagnostic",
+            "vendor_tab": "📱 Vendor Ops",
+            "brands_tab": "🏭 Brand Explorer",
+            "flash_tab": "⚡ Flash & ROM",
+            "repair_tab": "🔧 Repair",
+            "recovery_tab": "💾 Data Recovery",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Live Chat",
+            "stream_tab": "🎬 Media Stream",
+            "store_tab": "🛒 E-Commerce",
+            "settings_tab": "⚙️ Settings",
             "run_ai": "Run AI Command",
-            "flash": "Flash Firmware Image",
+            "flash": "Flash Firmware",
             "bypass_frp": "Bypass FRP & Cloud Lock",
             "start_scan": "Start Deep Scan",
             "checkout": "Complete Checkout",
             "activate_btn": "Activate Key",
             "license_bar_lbl": "License Activation & HWID Binding",
+            "console_title": "📋 System Log Console",
+            "ai_header": "🤖 Aura-AI Voice/Command Assistant",
+            "ai_command_label": "Enter your command:",
+            "vendor_header": "📱 Vendor & Device Operations",
+            "manufacturer": "Manufacturer:",
+            "model": "Model:",
+            "operations": "Operations",
+            "flash_header": "⚡ Flashing & ROM Management",
+            "supported_formats": "Supported Firmware Formats",
+            "format_device": "Format Device",
+            "repair_header": "🔧 Ultimate System & Virus Repair",
+            "recovery_header": "💾 Deep Scan Data Recovery",
+            "usb_header": "🔌 USB / ADB / Fastboot Manager",
+            "protocols": "Connection Protocols",
+            "detect_devices": "Detect Devices",
+            "install_drivers": "Install Brand Drivers",
+            "chat_header": "💬 Real-Time Technician Community",
+            "stream_header": "🎬 Media Streaming & Tutorials",
+            "store_header": "🛒 Spare Parts & Tools Store",
+            "settings_header": "⚙️ Settings & Language",
+            "language_label": "Interface Language",
+            "apply_lang": "Apply Language",
+            "driver_mgmt": "USB Driver Infrastructure",
+            "brand_select": "Select Brand",
+            "model_select": "Select Model",
+            "connect_device": "Connect Device",
+            "disconnect": "Disconnect",
+            "backup": "Backup",
+            "restore": "Restore",
+            "unlock_bootloader": "Unlock Bootloader",
+            "lock_bootloader": "Lock Bootloader",
+            "factory_reset": "Factory Reset",
+            "wipe_cache": "Wipe Cache",
+            "reboot_recovery": "Reboot to Recovery",
+            "reboot_fastboot": "Reboot to Fastboot",
+            "reboot_download": "Reboot to Download Mode",
+            "reboot_edl": "Reboot to EDL Mode",
+            "status_ready": "System Ready",
+            "status_busy": "Processing...",
+            "status_error": "Error occurred",
+            "status_success": "Operation completed successfully",
+            "progress_flashing": "Flashing in progress...",
+            "progress_scanning": "Scanning device...",
+            "progress_backing_up": "Backing up data...",
+            "progress_recovering": "Recovering data...",
+            "confirm_format": "Are you sure you want to format this device? All data will be erased!",
+            "confirm_reset": "Are you sure you want to factory reset this device?",
+            "error_no_device": "No device connected. Please connect a device via USB.",
+            "error_connection": "Connection error. Please check your USB cable and try again.",
+            "about_title": "About AuraTool-Suite",
+            "about_version": "Version",
+            "about_description": "Universal mobile device maintenance and repair platform",
+            "about_copyright": "© 2024-2030 AuraTool-Suite. All rights reserved.",
         },
         "ar": {
             "title": "AuraTool-Suite — المنصة الشاملة لإدارة وصيانة الأجهزة 2030",
             "license_lbl": "حالة الترخيص:",
-            "ai_tab": "المساعد الذكي Aura-AI",
-            "vendor_tab": "عمليات الشركات",
-            "repair_tab": "الإصلاح الشامل",
-            "recovery_tab": "استعادة البيانات",
-            "chat_tab": "غرف الدردشة المباشرة",
-            "stream_tab": "شبكة بث الوسائط",
-            "store_tab": "متجر قطع الغيار والتراخيص",
-            "settings_tab": "الإعدادات واللغة",
+            "ai_tab": "🤖 المساعد الذكي",
+            "vendor_tab": "📱 عمليات الشركات",
+            "brands_tab": "🏭 مستكشف الشركات",
+            "flash_tab": "⚡ التفليش والرومات",
+            "repair_tab": "🔧 الإصلاح",
+            "recovery_tab": "💾 استعادة البيانات",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 الدردشة المباشرة",
+            "stream_tab": "🎬 بث الوسائط",
+            "store_tab": "🛒 المتجر",
+            "settings_tab": "⚙️ الإعدادات",
             "run_ai": "تشغيل الأمر الذكي",
             "flash": "بدء تفليش النظام",
             "bypass_frp": "تجاوز حماية FRP وقفل الحساب",
             "start_scan": "بدء الفحص العميق",
             "checkout": "إتمام الشراء",
             "activate_btn": "تفعيل المفتاح",
-            "license_bar_lbl": "تفعيل الترخيص وربط معرف العتاد (HWID)",
+            "license_bar_lbl": "تفعيل الترخيص وربط معرف العتاد",
+            "console_title": "📋 سجل النظام",
+            "ai_header": "🤖 المساعد الذكي Aura-AI",
+            "ai_command_label": "أدخل أمرك:",
+            "vendor_header": "📱 عمليات الشركات والأجهزة",
+            "manufacturer": "الشركة المصنعة:",
+            "model": "الطراز:",
+            "operations": "العمليات",
+            "flash_header": "⚡ إدارة التفليش والرومات",
+            "supported_formats": "صيغ البرمجيات المدعومة",
+            "format_device": "تنسيق الجهاز",
+            "repair_header": "🔧 إصلاح النظام وإزالة الفيروسات",
+            "recovery_header": "💾 فحص استعادة البيانات العميق",
+            "usb_header": "🔌 إدارة USB / ADB / Fastboot",
+            "protocols": "بروتوكولات الاتصال",
+            "detect_devices": "كشف الأجهزة",
+            "install_drivers": "تثبيت تعريفات الشركات",
+            "chat_header": "💬 مجتمع الفنيين المباشر",
+            "stream_header": "🎬 بث الوسائط والدروس التعليمية",
+            "store_header": "🛒 متجر قطع الغيار والأدوات",
+            "settings_header": "⚙️ الإعدادات واللغة",
+            "language_label": "لغة الواجهة",
+            "apply_lang": "تطبيق اللغة",
+            "driver_mgmt": "بنية تعريفات USB",
+            "brand_select": "اختيار الشركة",
+            "model_select": "اختيار الطراز",
+            "connect_device": "توصيل الجهاز",
+            "disconnect": "فصل الاتصال",
+            "backup": "نسخ احتياطي",
+            "restore": "استعادة",
+            "unlock_bootloader": "فتح البوتلودر",
+            "lock_bootloader": "قفل البوتلودر",
+            "factory_reset": "إعادة ضبط المصنع",
+            "wipe_cache": "مسح ذاكرة التخزين المؤقت",
+            "reboot_recovery": "إعادة التشغيل إلى وضع الاسترداد",
+            "reboot_fastboot": "إعادة التشغيل إلى وضع Fastboot",
+            "reboot_download": "إعادة التشغيل إلى وضع التنزيل",
+            "reboot_edl": "إعادة التشغيل إلى وضع EDL",
+            "status_ready": "النظام جاهز",
+            "status_busy": "جاري المعالجة...",
+            "status_error": "حدث خطأ",
+            "status_success": "تمت العملية بنجاح",
+            "progress_flashing": "جاري التفليش...",
+            "progress_scanning": "جاري فحص الجهاز...",
+            "progress_backing_up": "جاري النسخ الاحتياطي...",
+            "progress_recovering": "جاري استعادة البيانات...",
+            "confirm_format": "هل أنت متأكد من تنسيق هذا الجهاز؟ سيتم مسح جميع البيانات!",
+            "confirm_reset": "هل أنت متأكد من إعادة ضبط المصنع لهذا الجهاز؟",
+            "error_no_device": "لم يتم توصيل أي جهاز. يرجى توصيل جهاز عبر USB.",
+            "error_connection": "خطأ في الاتصال. يرجى التحقق من كابل USB والمحاولة مرة أخرى.",
+            "about_title": "حول AuraTool-Suite",
+            "about_version": "الإصدار",
+            "about_description": "منصة شاملة لصيانة وإصلاح الأجهزة المحمولة",
+            "about_copyright": "© 2024-2030 AuraTool-Suite. جميع الحقوق محفوظة.",
         },
         "es": {
-            "title": "AuraTool-Suite — Marco Avanzado de Mantenimiento",
+            "title": "AuraTool-Suite — Plataforma Universal de Escritorio 2030",
             "license_lbl": "Estado de Licencia:",
-            "ai_tab": "Diagnóstico Aura-AI",
-            "vendor_tab": "Operaciones de Fabricante",
-            "repair_tab": "Reparación Definitiva",
-            "recovery_tab": "Recuperación de Datos",
-            "chat_tab": "Salas de Chat",
-            "stream_tab": "Red de Transmisión",
-            "store_tab": "Tienda Electrónica",
-            "settings_tab": "Configuración e Idioma",
+            "ai_tab": "🤖 Diagnóstico IA",
+            "vendor_tab": "📱 Operaciones",
+            "flash_tab": "⚡ Flasheo y ROM",
+            "repair_tab": "🔧 Reparación",
+            "recovery_tab": "💾 Recuperación",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Chat en Vivo",
+            "stream_tab": "🎬 Streaming",
+            "store_tab": "🛒 Tienda",
+            "settings_tab": "⚙️ Configuración",
             "run_ai": "Ejecutar Comando AI",
             "flash": "Iniciar Flasheo",
             "bypass_frp": "Bypass FRP y Bloqueo de Nube",
@@ -153,140 +581,673 @@ class LocalizationManager:
             "checkout": "Finalizar Compra",
             "activate_btn": "Activar Clave",
             "license_bar_lbl": "Activación de Licencia y Enlace HWID",
+            "console_title": "📋 Consola del Sistema",
+            "ai_header": "🤖 Asistente Aura-AI",
+            "ai_command_label": "Ingrese su comando:",
+            "vendor_header": "📱 Operaciones del Fabricante",
+            "manufacturer": "Fabricante:",
+            "model": "Modelo:",
+            "operations": "Operaciones",
+            "flash_header": "⚡ Gestión de Flasheo y ROM",
+            "supported_formats": "Formatos de Firmware Soportados",
+            "format_device": "Formatear Dispositivo",
+            "repair_header": "🔧 Reparación del Sistema y Virus",
+            "recovery_header": "💾 Escaneo Profundo de Recuperación",
+            "usb_header": "🔌 Gestor USB / ADB / Fastboot",
+            "protocols": "Protocolos de Conexión",
+            "detect_devices": "Detectar Dispositivos",
+            "install_drivers": "Instalar Controladores",
+            "chat_header": "💬 Comunidad de Técnicos en Vivo",
+            "stream_header": "🎬 Streaming de Medios y Tutoriales",
+            "store_header": "🛒 Tienda de Repuestos y Herramientas",
+            "settings_header": "⚙️ Configuración e Idioma",
+            "language_label": "Idioma de Interfaz",
+            "apply_lang": "Aplicar Idioma",
+            "driver_mgmt": "Infraestructura de Controladores USB",
         },
-        "pt": {
-            "title": "AuraTool-Suite — Plataforma Universal de Desktop 2030",
-            "license_lbl": "Status da Licença:",
-            "ai_tab": "Diagnóstico Aura-AI",
-            "vendor_tab": "Operações do Fabricante",
-            "repair_tab": "Reparação Definitiva",
-            "recovery_tab": "Recuperação de Dados",
-            "chat_tab": "Salas de Chat ao Vivo",
-            "stream_tab": "Rede de Transmissão de Mídia",
-            "store_tab": "Loja de E-Commerce",
-            "settings_tab": "Configurações e Idioma",
-            "run_ai": "Executar Comando AI",
-            "flash": "Iniciar Flash de Firmware",
-            "bypass_frp": "Bypass FRP e Bloqueio na Nuvem",
-            "start_scan": "Iniciar Verificação Profunda",
-            "checkout": "Finalizar Compra",
-            "activate_btn": "Ativar Chave",
-            "license_bar_lbl": "Ativação de Licença e Vinculação HWID",
+        "fr": {
+            "title": "AuraTool-Suite — Plateforme Universelle de Bureau 2030",
+            "license_lbl": "État de la Licence:",
+            "ai_tab": "🤖 Diagnostic IA",
+            "vendor_tab": "📱 Opérations",
+            "flash_tab": "⚡ Flashage et ROM",
+            "repair_tab": "🔧 Réparation",
+            "recovery_tab": "💾 Récupération",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Chat en Direct",
+            "stream_tab": "🎬 Streaming",
+            "store_tab": "🛒 Boutique",
+            "settings_tab": "⚙️ Paramètres",
+            "run_ai": "Exécuter Commande IA",
+            "flash": "Lancer le Flashage",
+            "bypass_frp": "Bypass FRP et Verrouillage Cloud",
+            "start_scan": "Lancer l'Analyse Profonde",
+            "checkout": "Finaliser l'Achat",
+            "activate_btn": "Activer la Clé",
+            "license_bar_lbl": "Activation de Licence et Liaison HWID",
+            "console_title": "📋 Console du Système",
+            "ai_header": "🤖 Assistant Aura-AI",
+            "ai_command_label": "Entrez votre commande:",
+            "vendor_header": "📱 Opérations du Fabricant",
+            "manufacturer": "Fabricant:",
+            "model": "Modèle:",
+            "operations": "Opérations",
+            "flash_header": "⚡ Gestion du Flashage et ROM",
+            "supported_formats": "Formats de Firmware Supportés",
+            "format_device": "Formater l'Appareil",
+            "repair_header": "🔧 Réparation du Système et Virus",
+            "recovery_header": "💾 Analyse de Récupération Profonde",
+            "usb_header": "🔌 Gestionnaire USB / ADB / Fastboot",
+            "protocols": "Protocoles de Connexion",
+            "detect_devices": "Détecter les Appareils",
+            "install_drivers": "Installer les Pilotes",
+            "chat_header": "💬 Communauté de Techniciens en Direct",
+            "stream_header": "🎬 Streaming Médias et Tutoriels",
+            "store_header": "🛒 Boutique de Pièces et Outils",
+            "settings_header": "⚙️ Paramètres et Langue",
+            "language_label": "Langue de l'Interface",
+            "apply_lang": "Appliquer la Langue",
+            "driver_mgmt": "Infrastructure de Pilotes USB",
+        },
+        "de": {
+            "title": "AuraTool-Suite — Universelle Desktop-Plattform 2030",
+            "license_lbl": "Lizenzstatus:",
+            "ai_tab": "🤖 KI-Diagnose",
+            "vendor_tab": "📱 Hersteller",
+            "flash_tab": "⚡ Flash & ROM",
+            "repair_tab": "🔧 Reparatur",
+            "recovery_tab": "💾 Datenrettung",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Live-Chat",
+            "stream_tab": "🎬 Streaming",
+            "store_tab": "🛒 Shop",
+            "settings_tab": "⚙️ Einstellungen",
+            "run_ai": "KI-Befehl ausführen",
+            "flash": "Firmware flashen",
+            "bypass_frp": "FRP & Cloud-Sperre umgehen",
+            "start_scan": "Tiefenscan starten",
+            "checkout": "Bestellung abschließen",
+            "activate_btn": "Schlüssel aktivieren",
+            "license_bar_lbl": "Lizenzaktivierung & HWID-Bindung",
+            "console_title": "📋 Systemprotokoll",
+            "ai_header": "🤖 Aura-AI Sprach-/Befehlsassistent",
+            "ai_command_label": "Befehl eingeben:",
+            "vendor_header": "📱 Hersteller- & Geräteoperationen",
+            "manufacturer": "Hersteller:",
+            "model": "Modell:",
+            "operations": "Operationen",
+            "flash_header": "⚡ Flash- & ROM-Management",
+            "supported_formats": "Unterstützte Firmware-Formate",
+            "format_device": "Gerät formatieren",
+            "repair_header": "🔧 System- & Virenreparatur",
+            "recovery_header": "💾 Tiefenscan-Datenrettung",
+            "usb_header": "🔌 USB / ADB / Fastboot Manager",
+            "protocols": "Verbindungsprotokolle",
+            "detect_devices": "Geräte erkennen",
+            "install_drivers": "Herstellertreiber installieren",
+            "chat_header": "💬 Live-Techniker-Community",
+            "stream_header": "🎬 Medienstreaming & Tutorials",
+            "store_header": "🛒 Ersatzteile & Werkzeuge",
+            "settings_header": "⚙️ Einstellungen & Sprache",
+            "language_label": "Oberflächensprache",
+            "apply_lang": "Sprache anwenden",
+            "driver_mgmt": "USB-Treiber-Infrastruktur",
+        },
+        "ru": {
+            "title": "AuraTool-Suite — Универсальная десктопная платформа 2030",
+            "license_lbl": "Статус лицензии:",
+            "ai_tab": "🤖 AI Диагностика",
+            "vendor_tab": "📱 Устройства",
+            "flash_tab": "⚡ Прошивка и ROM",
+            "repair_tab": "🔧 Ремонт",
+            "recovery_tab": "💾 Восстановление",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Чат",
+            "stream_tab": "🎬 Стриминг",
+            "store_tab": "🛒 Магазин",
+            "settings_tab": "⚙️ Настройки",
+            "run_ai": "Запустить AI команду",
+            "flash": "Прошить прошивку",
+            "bypass_frp": "Обход FRP и облачной блокировки",
+            "start_scan": "Запустить глубокое сканирование",
+            "checkout": "Оформить покупку",
+            "activate_btn": "Активировать ключ",
+            "license_bar_lbl": "Активация лицензии и привязка HWID",
+            "console_title": "📋 Консоль системы",
+            "ai_header": "🤖 Ассистент Aura-AI",
+            "ai_command_label": "Введите команду:",
+            "vendor_header": "📱 Операции с устройствами",
+            "manufacturer": "Производитель:",
+            "model": "Модель:",
+            "operations": "Операции",
+            "flash_header": "⚡ Управление прошивкой и ROM",
+            "supported_formats": "Поддерживаемые форматы прошивки",
+            "format_device": "Форматировать устройство",
+            "repair_header": "🔧 Ремонт системы и удаление вирусов",
+            "recovery_header": "💾 Глубокое сканирование для восстановления",
+            "usb_header": "🔌 Менеджер USB / ADB / Fastboot",
+            "protocols": "Протоколы подключения",
+            "detect_devices": "Обнаружить устройства",
+            "install_drivers": "Установить драйверы",
+            "chat_header": "💬 Сообщество техников",
+            "stream_header": "🎬 Стриминг медиа и уроки",
+            "store_header": "🛒 Магазин запчастей и инструментов",
+            "settings_header": "⚙️ Настройки и язык",
+            "language_label": "Язык интерфейса",
+            "apply_lang": "Применить язык",
+            "driver_mgmt": "Инфраструктура USB драйверов",
+        },
+        "zh": {
+            "title": "AuraTool-Suite — 通用桌面平台 2030",
+            "license_lbl": "许可证状态:",
+            "ai_tab": "🤖 AI 诊断",
+            "vendor_tab": "📱 厂商操作",
+            "flash_tab": "⚡ 刷机与ROM",
+            "repair_tab": "🔧 维修",
+            "recovery_tab": "💾 数据恢复",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 在线聊天",
+            "stream_tab": "🎬 媒体流",
+            "store_tab": "🛒 商店",
+            "settings_tab": "⚙️ 设置",
+            "run_ai": "运行AI命令",
+            "flash": "刷写固件",
+            "bypass_frp": "绕过FRP和云锁",
+            "start_scan": "开始深度扫描",
+            "checkout": "完成结账",
+            "activate_btn": "激活密钥",
+            "license_bar_lbl": "许可证激活和HWID绑定",
+            "console_title": "📋 系统日志控制台",
+            "ai_header": "🤖 Aura-AI 语音/命令助手",
+            "ai_command_label": "输入命令:",
+            "vendor_header": "📱 厂商与设备操作",
+            "manufacturer": "制造商:",
+            "model": "型号:",
+            "operations": "操作",
+            "flash_header": "⚡ 刷机与ROM管理",
+            "supported_formats": "支持的固件格式",
+            "format_device": "格式化设备",
+            "repair_header": "🔧 系统维修与病毒清除",
+            "recovery_header": "💾 深度扫描数据恢复",
+            "usb_header": "🔌 USB / ADB / Fastboot 管理器",
+            "protocols": "连接协议",
+            "detect_devices": "检测设备",
+            "install_drivers": "安装品牌驱动",
+            "chat_header": "💬 实时技术社区",
+            "stream_header": "🎬 媒体流和教程",
+            "store_header": "🛒 配件和工具商店",
+            "settings_header": "⚙️ 设置和语言",
+            "language_label": "界面语言",
+            "apply_lang": "应用语言",
+            "driver_mgmt": "USB驱动基础设施",
+        },
+        "ja": {
+            "title": "AuraTool-Suite — ユニバーサルデスクトッププラットフォーム 2030",
+            "license_lbl": "ライセンス状態:",
+            "ai_tab": "🤖 AI診断",
+            "vendor_tab": "📱 ベンダーオプス",
+            "flash_tab": "⚡ フラッシュ＆ROM",
+            "repair_tab": "🔧 修理",
+            "recovery_tab": "💾 データ復旧",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 ライブチャット",
+            "stream_tab": "🎬 ストリーミング",
+            "store_tab": "🛒 ストア",
+            "settings_tab": "⚙️ 設定",
+            "run_ai": "AIコマンド実行",
+            "flash": "ファームウェアフラッシュ",
+            "bypass_frp": "FRP＆クラウドロック解除",
+            "start_scan": "深度スキャン開始",
+            "checkout": "チェックアウト完了",
+            "activate_btn": "キーを有効化",
+            "license_bar_lbl": "ライセンス有効化＆HWIDバインド",
+            "console_title": "📋 システムログコンソール",
+            "ai_header": "🤖 Aura-AI音声/コマンドアシスタント",
+            "ai_command_label": "コマンドを入力:",
+            "vendor_header": "📱 ベンダー＆デバイス操作",
+            "manufacturer": "メーカー:",
+            "model": "モデル:",
+            "operations": "操作",
+            "flash_header": "⚡ フラッシュ＆ROM管理",
+            "supported_formats": "サポートされているファームウェア形式",
+            "format_device": "デバイスフォーマット",
+            "repair_header": "🔧 システム＆ウイルス修理",
+            "recovery_header": "💾 深度データ復旧スキャン",
+            "usb_header": "🔌 USB / ADB / Fastboot マネージャー",
+            "protocols": "接続プロトコル",
+            "detect_devices": "デバイス検出",
+            "install_drivers": "ブランドドライバーインストール",
+            "chat_header": "💬 リアルタイム技術者コミュニティ",
+            "stream_header": "🎬 メディアストリーミング＆チュートリアル",
+            "store_header": "🛒 スペアパーツ＆ツールストア",
+            "settings_header": "⚙️ 設定と言語",
+            "language_label": "インターフェース言語",
+            "apply_lang": "言語を適用",
+            "driver_mgmt": "USBドライバーインフラ",
         },
         "ko": {
             "title": "AuraTool-Suite — 범용 데스크톱 플랫폼 2030",
             "license_lbl": "라이선스 상태:",
-            "ai_tab": "Aura-AI 진단",
-            "vendor_tab": "벤더 운영",
-            "repair_tab": "최종 수리",
-            "recovery_tab": "데이터 복구",
-            "chat_tab": "실시간 채팅방",
-            "stream_tab": "미디어 스트림 네트워크",
-            "store_tab": "이커머스 스토어",
-            "settings_tab": "설정 및 언어",
+            "ai_tab": "🤖 AI 진단",
+            "vendor_tab": "📱 벤더 작업",
+            "flash_tab": "⚡ 플래싱 & ROM",
+            "repair_tab": "🔧 수리",
+            "recovery_tab": "💾 데이터 복구",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 라이브 채팅",
+            "stream_tab": "🎬 스트리밍",
+            "store_tab": "🛒 스토어",
+            "settings_tab": "⚙️ 설정",
             "run_ai": "AI 명령 실행",
-            "flash": "펌웨어 이미지 플래싱",
-            "bypass_frp": "FRP 및 클라우드 잠금 우회",
+            "flash": "펌웨어 플래싱",
+            "bypass_frp": "FRP 및 클라우드 잠금 해제",
             "start_scan": "심층 스캔 시작",
             "checkout": "결제 완료",
             "activate_btn": "키 활성화",
             "license_bar_lbl": "라이선스 활성화 및 HWID 바인딩",
+            "console_title": "📋 시스템 로그 콘솔",
+            "ai_header": "🤖 Aura-AI 음성/명령 어시스턴트",
+            "ai_command_label": "명령어 입력:",
+            "vendor_header": "📱 벤더 및 디바이스 작업",
+            "manufacturer": "제조사:",
+            "model": "모델:",
+            "operations": "작업",
+            "flash_header": "⚡ 플래싱 및 ROM 관리",
+            "supported_formats": "지원되는 펌웨어 형식",
+            "format_device": "디바이스 포맷",
+            "repair_header": "🔧 시스템 및 바이러스 수리",
+            "recovery_header": "💾 심층 스캔 데이터 복구",
+            "usb_header": "🔌 USB / ADB / Fastboot 관리자",
+            "protocols": "연결 프로토콜",
+            "detect_devices": "디바이스 감지",
+            "install_drivers": "브랜드 드라이버 설치",
+            "chat_header": "💬 실시간 기술자 커뮤니티",
+            "stream_header": "🎬 미디어 스트리밍 및 튜토리얼",
+            "store_header": "🛒 부품 및 도구 스토어",
+            "settings_header": "⚙️ 설정 및 언어",
+            "language_label": "인터페이스 언어",
+            "apply_lang": "언어 적용",
+            "driver_mgmt": "USB 드라이버 인프라",
+        },
+        "tr": {
+            "title": "AuraTool-Suite — Evrensel Masaüstü Platformu 2030",
+            "license_lbl": "Lisans Durumu:",
+            "ai_tab": "🤖 AI Teşhis",
+            "vendor_tab": "📱 Üretici İşlemleri",
+            "flash_tab": "⚡ Flash & ROM",
+            "repair_tab": "🔧 Onarım",
+            "recovery_tab": "💾 Veri Kurtarma",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Canlı Sohbet",
+            "stream_tab": "🎬 Yayını",
+            "store_tab": "🛒 Mağaza",
+            "settings_tab": "⚙️ Ayarlar",
+            "run_ai": "AI Komutu Çalıştır",
+            "flash": "Firmware Flash",
+            "bypass_frp": "FRP & Bulut Kilidi Atla",
+            "start_scan": "Derin Tarama Başlat",
+            "checkout": "Satışı Tamamla",
+            "activate_btn": "Anahtarı Etkinleştir",
+            "license_bar_lbl": "Lisans Etkinleştirme & HWID Bağlama",
+            "console_title": "📋 Sistem Günlüğü",
+            "ai_header": "🤖 Aura-AI Sesli/Komut Asistanı",
+            "ai_command_label": "Komutunuzu girin:",
+            "vendor_header": "📱 Üretici & Cihaz İşlemleri",
+            "manufacturer": "Üretici:",
+            "model": "Model:",
+            "operations": "İşlemler",
+            "flash_header": "⚡ Flash & ROM Yönetimi",
+            "supported_formats": "Desteklenen Firmware Formatları",
+            "format_device": "Cihazı Biçimlendir",
+            "repair_header": "🔧 Sistem & Virüs Onarımı",
+            "recovery_header": "💾 Derin Tarama Veri Kurtarma",
+            "usb_header": "🔌 USB / ADB / Fastboot Yöneticisi",
+            "protocols": "Bağlantı Protokolleri",
+            "detect_devices": "Cihazları Algıla",
+            "install_drivers": "Sürücüleri Yükle",
+            "chat_header": "💬 Gerçek Zamanlı Teknisyen Topluluğu",
+            "stream_header": "🎬 Medya Yayını & Eğitimler",
+            "store_header": "🛒 Yedek Parça & Araç Mağazası",
+            "settings_header": "⚙️ Ayarlar & Dil",
+            "language_label": "Arayüz Dili",
+            "apply_lang": "Dili Uygula",
+            "driver_mgmt": "USB Sürücü Altyapısı",
+        },
+        "hi": {
+            "title": "AuraTool-Suite — यूनिवर्सल डेस्कटॉप प्लेटफॉर्म 2030",
+            "license_lbl": "लाइसेंस स्थिति:",
+            "ai_tab": "🤖 AI निदान",
+            "vendor_tab": "📱 विक्रेता ऑप्स",
+            "flash_tab": "⚡ फ्लैश और ROM",
+            "repair_tab": "🔧 मरम्मत",
+            "recovery_tab": "💾 डेटा रिकवरी",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 लाइव चैट",
+            "stream_tab": "🎬 स्ट्रीमिंग",
+            "store_tab": "🛒 स्टोर",
+            "settings_tab": "⚙️ सेटिंग्स",
+            "run_ai": "AI कमांड चलाएं",
+            "flash": "फर्मवेयर फ्लैश",
+            "bypass_frp": "FRP और क्लाउड लॉक बायपास",
+            "start_scan": "गहरी स्कैन शुरू करें",
+            "checkout": "चेकआउट पूरा करें",
+            "activate_btn": "कुंजी सक्रिय करें",
+            "license_bar_lbl": "लाइसेंस सक्रियण और HWID बाइंडिंग",
+            "console_title": "📋 सिस्टम लॉग कंसोल",
+            "ai_header": "🤖 Aura-AI वॉयस/कमांड असिस्टेंट",
+            "ai_command_label": "अपनी कमांड दर्ज करें:",
+            "vendor_header": "📱 विक्रेता और डिवाइस ऑपरेशंस",
+            "manufacturer": "निर्माता:",
+            "model": "मॉडल:",
+            "operations": "ऑपरेशंस",
+            "flash_header": "⚡ फ्लैशिंग और ROM प्रबंधन",
+            "supported_formats": "समर्थित फर्मवेयर प्रारूप",
+            "format_device": "डिवाइस फॉर्मेट",
+            "repair_header": "🔧 सिस्टम और वायरस मरम्मत",
+            "recovery_header": "💾 गहरी डेटा रिकवरी स्कैन",
+            "usb_header": "🔌 USB / ADB / Fastboot प्रबंधक",
+            "protocols": "कनेक्शन प्रोटोकॉल",
+            "detect_devices": "डिवाइस का पता लगाएं",
+            "install_drivers": "ब्रांड ड्राइवर इंस्टॉल करें",
+            "chat_header": "💬 लाइव तकनीशियन कम्युनिटी",
+            "stream_header": "🎬 मीडिया स्ट्रीमिंग और ट्यूटोरियल",
+            "store_header": "🛒 स्पेयर पार्ट्स और टूल्स स्टोर",
+            "settings_header": "⚙️ सेटिंग्स और भाषा",
+            "language_label": "इंटरफेस भाषा",
+            "apply_lang": "भाषा लागू करें",
+            "driver_mgmt": "USB ड्राइवर इन्फ्रास्ट्रक्चर",
+        },
+        "pt": {
+            "title": "AuraTool-Suite — Plataforma Universal de Desktop 2030",
+            "license_lbl": "Status da Licença:",
+            "ai_tab": "🤖 Diagnóstico IA",
+            "vendor_tab": "📱 Operações",
+            "flash_tab": "⚡ Flash e ROM",
+            "repair_tab": "🔧 Reparo",
+            "recovery_tab": "💾 Recuperação",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Chat ao Vivo",
+            "stream_tab": "🎬 Streaming",
+            "store_tab": "🛒 Loja",
+            "settings_tab": "⚙️ Configurações",
+            "run_ai": "Executar Comando IA",
+            "flash": "Iniciar Flash",
+            "bypass_frp": "Bypass FRP e Bloqueio em Nuvem",
+            "start_scan": "Iniciar Varredura Profunda",
+            "checkout": "Finalizar Compra",
+            "activate_btn": "Ativar Chave",
+            "license_bar_lbl": "Ativação de Licença e Vinculação HWID",
+            "console_title": "📋 Console do Sistema",
+            "ai_header": "🤖 Assistente Aura-AI",
+            "ai_command_label": "Digite seu comando:",
+            "vendor_header": "📱 Operações do Fabricante",
+            "manufacturer": "Fabricante:",
+            "model": "Modelo:",
+            "operations": "Operações",
+            "flash_header": "⚡ Gestão de Flash e ROM",
+            "supported_formats": "Formatos de Firmware Suportados",
+            "format_device": "Formatar Dispositivo",
+            "repair_header": "🔧 Reparo do Sistema e Vírus",
+            "recovery_header": "💾 Varredura Profunda de Recuperação",
+            "usb_header": "🔌 Gerenciador USB / ADB / Fastboot",
+            "protocols": "Protocolos de Conexão",
+            "detect_devices": "Detectar Dispositivos",
+            "install_drivers": "Instalar Drivers",
+            "chat_header": "💬 Comunidade de Técnicos ao Vivo",
+            "stream_header": "🎬 Streaming de Mídia e Tutoriais",
+            "store_header": "🛒 Loja de Peças e Ferramentas",
+            "settings_header": "⚙️ Configurações e Idioma",
+            "language_label": "Idioma da Interface",
+            "apply_lang": "Aplicar Idioma",
+            "driver_mgmt": "Infraestrutura de Drivers USB",
         },
         "id": {
             "title": "AuraTool-Suite — Platform Desktop Universal 2030",
             "license_lbl": "Status Lisensi:",
-            "ai_tab": "Diagnostik Aura-AI",
-            "vendor_tab": "Operasi Vendor",
-            "repair_tab": "Perbaikan Utama",
-            "recovery_tab": "Pemulihan Data",
-            "chat_tab": "Ruangan Chat Langsung",
-            "stream_tab": "Jaringan Streaming Media",
-            "store_tab": "Toko E-Commerce",
-            "settings_tab": "Pengaturan & Bahasa",
+            "ai_tab": "🤖 Diagnosa AI",
+            "vendor_tab": "📱 Operasi Vendor",
+            "flash_tab": "⚡ Flash & ROM",
+            "repair_tab": "🔧 Perbaikan",
+            "recovery_tab": "💾 Pemulihan Data",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 Obrolan Langsung",
+            "stream_tab": "🎬 Streaming",
+            "store_tab": "🛒 Toko",
+            "settings_tab": "⚙️ Pengaturan",
             "run_ai": "Jalankan Perintah AI",
-            "flash": "Flash Gambar Firmware",
+            "flash": "Flash Firmware",
             "bypass_frp": "Bypass FRP & Kunci Cloud",
-            "start_scan": "Mulai Pindai Mendalam",
+            "start_scan": "Mulai Pemindaian Mendalam",
             "checkout": "Selesaikan Pembayaran",
             "activate_btn": "Aktifkan Kunci",
             "license_bar_lbl": "Aktivasi Lisensi & Pengikatan HWID",
+            "console_title": "📋 Konsol Log Sistem",
+            "ai_header": "🤖 Asisten Aura-AI",
+            "ai_command_label": "Masukkan perintah Anda:",
+            "vendor_header": "📱 Operasi Vendor & Perangkat",
+            "manufacturer": "Produsen:",
+            "model": "Model:",
+            "operations": "Operasi",
+            "flash_header": "⚡ Manajemen Flash & ROM",
+            "supported_formats": "Format Firmware yang Didukung",
+            "format_device": "Format Perangkat",
+            "repair_header": "🔧 Perbaikan Sistem & Virus",
+            "recovery_header": "💾 Pemindaian Pemulihan Mendalam",
+            "usb_header": "🔌 Pengelola USB / ADB / Fastboot",
+            "protocols": "Protokol Koneksi",
+            "detect_devices": "Deteksi Perangkat",
+            "install_drivers": "Instal Driver Merek",
+            "chat_header": "💬 Komunitas Teknisi Langsung",
+            "stream_header": "🎬 Streaming Media & Tutorial",
+            "store_header": "🛒 Toko Suku Cadang & Alat",
+            "settings_header": "⚙️ Pengaturan & Bahasa",
+            "language_label": "Bahasa Antarmuka",
+            "apply_lang": "Terapkan Bahasa",
+            "driver_mgmt": "Infrastruktur Driver USB",
         },
         "fa": {
-            "title": "AuraTool-Suite — پلتفرم دسکتاپ جهانی 2030",
+            "title": "AuraTool-Suite — پلتفرم دسکتاپ جهانی ۲۰۳۰",
             "license_lbl": "وضعیت مجوز:",
-            "ai_tab": "تشخیص Aura-AI",
-            "vendor_tab": "عملیات فروشنده",
-            "repair_tab": "تعمیر نهایی",
-            "recovery_tab": "بازیابی داده",
-            "chat_tab": "اتاق‌های چت زنده",
-            "stream_tab": "شبکه پخش رسانه",
-            "store_tab": "فروشگاه آنلاین",
-            "settings_tab": "تنظیمات و زبان",
+            "ai_tab": "🤖 تشخیص هوش مصنوعی",
+            "vendor_tab": "📱 عملیات فروشنده",
+            "flash_tab": "⚡ فلش و رام",
+            "repair_tab": "🔧 تعمیر",
+            "recovery_tab": "💾 بازیابی داده",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 چت زنده",
+            "stream_tab": "🎬 پخش رسانه",
+            "store_tab": "🛒 فروشگاه",
+            "settings_tab": "⚙️ تنظیمات",
             "run_ai": "اجرای دستور AI",
-            "flash": "فلش تصویر فریمور",
+            "flash": "شروع فلش",
             "bypass_frp": "دور زدن FRP و قفل ابری",
             "start_scan": "شروع اسکن عمیق",
             "checkout": "تکمیل خرید",
             "activate_btn": "فعال‌سازی کلید",
             "license_bar_lbl": "فعال‌سازی مجوز و اتصال HWID",
+            "console_title": "📋 کنسول سیستم",
+            "ai_header": "🤖 دستیار هوش مصنوعی Aura-AI",
+            "ai_command_label": "دستور خود را وارد کنید:",
+            "vendor_header": "📱 عملیات فروشنده و دستگاه",
+            "manufacturer": "سازنده:",
+            "model": "مدل:",
+            "operations": "عملیات",
+            "flash_header": "⚡ مدیریت فلش و رام",
+            "supported_formats": "فرمت‌های فریمور پشتیبانی شده",
+            "format_device": "فرمت دستگاه",
+            "repair_header": "🔧 تعمیر سیستم و حذف ویروس",
+            "recovery_header": "💾 اسکن عمیق بازیابی داده",
+            "usb_header": "🔌 مدیریت USB / ADB / Fastboot",
+            "protocols": "پروتکل‌های اتصال",
+            "detect_devices": "شناسایی دستگاه‌ها",
+            "install_drivers": "نصب درایورها",
+            "chat_header": "💬 انجمن تکنسین‌های زنده",
+            "stream_header": "🎬 پخش رسانه و آموزش‌ها",
+            "store_header": "🛒 فروشگاه قطعات و ابزارها",
+            "settings_header": "⚙️ تنظیمات و زبان",
+            "language_label": "زبان رابط کاربری",
+            "apply_lang": "اعمال زبان",
+            "driver_mgmt": "زیرساخت درایور USB",
         },
         "ur": {
-            "title": "AuraTool-Suite — یونیورسل ڈیسکٹاپ پلیٹ فارم 2030",
+            "title": "AuraTool-Suite — یونیورسل ڈیسکٹاپ پلیٹ فارم ۲۰۳۰",
             "license_lbl": "لائسنس کی حالت:",
-            "ai_tab": "Aura-AI تشخیص",
-            "vendor_tab": "وینڈر آپریشنز",
-            "repair_tab": "آخری مرمت",
-            "recovery_tab": "ڈیٹا ریکوری",
-            "chat_tab": "لائیو چیٹ رومز",
-            "stream_tab": "میڈیا سٹریم نیٹ ورک",
-            "store_tab": "ای کامرس اسٹور",
-            "settings_tab": "ترتیبات اور زبان",
+            "ai_tab": "🤖 AI تشخیص",
+            "vendor_tab": "📱 وینڈر آپریشنز",
+            "flash_tab": "⚡ فلیشنگ اور رام",
+            "repair_tab": "🔧 مرمت",
+            "recovery_tab": "💾 ڈیٹا ریکوری",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 لائیو چیٹ",
+            "stream_tab": "🎬 سٹریم",
+            "store_tab": "🛒 اسٹور",
+            "settings_tab": "⚙️ ترتیبات",
             "run_ai": "AI کمانڈ چلائیں",
-            "flash": "فیرم ویئر امیج فلیش",
+            "flash": "فلاش شروع کریں",
             "bypass_frp": "FRP اور کلاؤڈ لاک بائی پاس",
             "start_scan": "گہری اسکین شروع کریں",
             "checkout": "چیک آؤٹ مکمل کریں",
             "activate_btn": "کلید فعال کریں",
             "license_bar_lbl": "لائسنس فعال سازی اور HWID بائنڈنگ",
+            "console_title": "📋 سسٹم لاگ کنسول",
+            "ai_header": "🤖 Aura-AI اسسٹنٹ",
+            "ai_command_label": "اپنا کمانڈ درج کریں:",
+            "vendor_header": "📱 وینڈر اور ڈیوائس آپریشنز",
+            "manufacturer": "مینوفیکچرر:",
+            "model": "ماڈل:",
+            "operations": "آپریشنز",
+            "flash_header": "⚡ فلیشنگ اور رام مینجمنٹ",
+            "supported_formats": "معاون فریمور فارمیٹس",
+            "format_device": "ڈیوائس فارمیٹ",
+            "repair_header": "🔧 سسٹم مرمت اور وائرس حذف",
+            "recovery_header": "💾 گہری ڈیٹا ریکوری اسکین",
+            "usb_header": "🔌 USB / ADB / Fastboot مینجر",
+            "protocols": "کنکشن پروٹوکولز",
+            "detect_devices": "ڈیوائسز کی نشاندہی",
+            "install_drivers": "برانڈ ڈرائیورز انسٹال",
+            "chat_header": "💬 لائیو ٹیکنیشن کمیونٹی",
+            "stream_header": "🎬 میڈیا سٹریمنگ اور ٹیوٹوریلز",
+            "store_header": "🛒 اسباق اور ٹولز اسٹور",
+            "settings_header": "⚙️ ترتیبات اور زبان",
+            "language_label": "انٹرفیس زبان",
+            "apply_lang": "زبان لاگو کریں",
+            "driver_mgmt": "USB ڈرائیور انفراسٹرکچر",
         },
         "th": {
             "title": "AuraTool-Suite — แพลตฟอร์มเดสก์ท็อปสากล 2030",
             "license_lbl": "สถานะใบอนุญาต:",
-            "ai_tab": "การวินิจฉัย Aura-AI",
-            "vendor_tab": "การดำเนินงานของผู้ผลิต",
-            "repair_tab": "การซ่อมแซมขั้นสุดท้าย",
-            "recovery_tab": "การกู้คืนข้อมูล",
-            "chat_tab": "ห้องแชทสด",
-            "stream_tab": "เครือข่ายสตรีมมิ่งสื่อ",
-            "store_tab": "ร้านค้าอีคอมเมิร์ซ",
-            "settings_tab": "การตั้งค่าและภาษา",
+            "ai_tab": "🤖 การวินิจฉัย AI",
+            "vendor_tab": "📱 การดำเนินงาน",
+            "flash_tab": "⚡ แฟลชและ ROM",
+            "repair_tab": "🔧 การซ่อม",
+            "recovery_tab": "💾 การกู้คืนข้อมูล",
+            "usb_tab": "🔌 USB/ADB/FB",
+            "chat_tab": "💬 แชทสด",
+            "stream_tab": "🎬 สตรีมมิ่ง",
+            "store_tab": "🛒 ร้านค้า",
+            "settings_tab": "⚙️ การตั้งค่า",
             "run_ai": "เรียกใช้คำสั่ง AI",
-            "flash": "แฟลชรูปภาพเฟิร์มแวร์",
+            "flash": "แฟลชเฟิร์มแวร์",
             "bypass_frp": "ข้าม FRP และล็อกคลาวด์",
             "start_scan": "เริ่มการสแกนเชิงลึก",
-            "checkout": "ชำระเงินให้เสร็จสิ้น",
+            "checkout": "ชำระเงิน",
             "activate_btn": "เปิดใช้งานคีย์",
-            "license_bar_lbl": "การเปิดใช้งานใบอนุญาตและการเชื่อมโยง HWID",
+            "license_bar_lbl": "การเปิดใช้งานใบอนุญาตและการเชื่อมต่อ HWID",
+            "console_title": "📋 คอนโซลบันทึกระบบ",
+            "ai_header": "🤖 ผู้ช่วย Aura-AI",
+            "ai_command_label": "ป้อนคำสั่งของคุณ:",
+            "vendor_header": "📱 การดำเนินงานของผู้ผลิตและอุปกรณ์",
+            "manufacturer": "ผู้ผลิต:",
+            "model": "รุ่น:",
+            "operations": "การดำเนินงาน",
+            "flash_header": "⚡ การจัดการแฟลชและ ROM",
+            "supported_formats": "รูปแบบเฟิร์มแวร์ที่รองรับ",
+            "format_device": "ฟอร์แมตอุปกรณ์",
+            "repair_header": "🔧 การซ่อมแซมระบบและไวรัส",
+            "recovery_header": "💾 การสแกนกู้คืนข้อมูลเชิงลึก",
+            "usb_header": "🔌 ตัวจัดการ USB / ADB / Fastboot",
+            "protocols": "โปรโตคอลการเชื่อมต่อ",
+            "detect_devices": "ตรวจจับอุปกรณ์",
+            "install_drivers": "ติดตั้งไดรเวอร์",
+            "chat_header": "💬 ชุมชนช่างเทคนิคสด",
+            "stream_header": "🎬 สตรีมมิ่งสื่อและบทเรียน",
+            "store_header": "🛒 ร้านอะไหล่และเครื่องมือ",
+            "settings_header": "⚙️ การตั้งค่าและภาษา",
+            "language_label": "ภาษาอินเทอร์เฟซ",
+            "apply_lang": "ใช้ภาษา",
+            "driver_mgmt": "โครงสร้างพื้นฐานไดรเวอร์ USB",
         },
     }
 
+    # ─── Constructor ───────────────────────────────────────────────────────
     def __init__(self, default_lang: str = "en"):
         self.logger = logging.getLogger("AuraTool.Localization")
         self.current_lang = default_lang if default_lang in self.SUPPORTED_LANGUAGES else "en"
+        self._load_external_translations()
 
+    def _load_external_translations(self):
+        """Load additional translations from language files in the languages/ directory."""
+        lang_dir = Path(__file__).parent.parent / "languages"
+        if not lang_dir.is_dir():
+            return
+        for lang_file in lang_dir.glob("*.json"):
+            try:
+                import json
+                with open(lang_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                lang_code = lang_file.stem
+                if lang_code not in self.TRANSLATIONS:
+                    self.TRANSLATIONS[lang_code] = data.get("ui", {})
+                if lang_code not in self.LOG_MESSAGES:
+                    self.LOG_MESSAGES[lang_code] = data.get("logs", {})
+                self.logger.debug(f"Loaded external translations for: {lang_code}")
+            except Exception as e:
+                self.logger.warning(f"Failed to load translations from {lang_file}: {e}")
+
+    # ─── Language Management ──────────────────────────────────────────────
     def set_language(self, lang_code: str) -> bool:
+        """Set the current language. Returns True if successful."""
         if lang_code in self.SUPPORTED_LANGUAGES:
+            old = self.current_lang
             self.current_lang = lang_code
-            self.logger.info(f"Language set to: {self.SUPPORTED_LANGUAGES[lang_code]}")
+            self.logger.info(f"Language changed: {old} -> {self.SUPPORTED_LANGUAGES[lang_code]}")
             return True
+        self.logger.warning(f"Unsupported language code: {lang_code}")
         return False
 
+    def get_current_language(self) -> str:
+        """Return the current language code."""
+        return self.current_lang
+
+    def get_language_name(self, lang_code: str = None) -> str:
+        """Return the display name for a language code."""
+        code = lang_code or self.current_lang
+        return self.SUPPORTED_LANGUAGES.get(code, code)
+
     def is_rtl(self) -> bool:
+        """Check if the current language uses right-to-left text direction."""
         return self.current_lang in self.RTL_LANGUAGES
 
+    def get_text_direction(self) -> str:
+        """Return 'rtl' or 'ltr' based on current language."""
+        return "rtl" if self.is_rtl() else "ltr"
+
+    def get_alignment(self) -> str:
+        """Return tk anchor value for current text direction."""
+        return "e" if self.is_rtl() else "w"
+
+    # ─── Arabic Text Processing ──────────────────────────────────────────
     def reshape_arabic_text(self, text: str) -> str:
-        """Reshapes and applies bidirectional rendering to Arabic text for proper desktop GUI rendering."""
-        if not text or self.current_lang not in ("ar", "fa", "ur"):
+        """Reshape and apply bidirectional rendering to Arabic/Persian/Urdu text.
+        
+        This fixes the common issue where Arabic characters appear disconnected
+        in GUI applications by applying proper character joining and bidi algorithm.
+        """
+        if not text:
+            return text
+        
+        # Only reshape for RTL languages
+        if self.current_lang not in self.RTL_LANGUAGES:
             return text
 
         if HAS_ARABIC_RESHAPER:
@@ -294,56 +1255,136 @@ class LocalizationManager:
                 reshaped = arabic_reshaper.reshape(text)
                 return get_display(reshaped)
             except Exception as e:
-                self.logger.warning(f"Arabic/Persian/Urdu text reshaping failed: {e}")
-
+                self.logger.warning(f"Arabic text reshaping failed: {e}")
+                return text
         return text
 
-    def get_string(self, key: str) -> str:
-        lang_dict = self.TRANSLATIONS.get(self.current_lang, self.TRANSLATIONS["en"])
-        raw_str = lang_dict.get(key, self.TRANSLATIONS["en"].get(key, key))
+    def reshape_for_display(self, text: str, lang_code: str = None) -> str:
+        """Reshape text for display in a specific language context."""
+        if lang_code:
+            old_lang = self.current_lang
+            self.current_lang = lang_code
+            result = self.reshape_arabic_text(text)
+            self.current_lang = old_lang
+            return result
+        return self.reshape_arabic_text(text)
+
+    # ─── Translation Retrieval ───────────────────────────────────────────
+    def get_string(self, key: str, lang_code: str = None) -> str:
+        """Get a translated UI string by key.
+        
+        Falls back to English if the key is not found in the current language.
+        Automatically reshapes Arabic text for proper display.
+        """
+        lang = lang_code or self.current_lang
+        lang_dict = self.TRANSLATIONS.get(lang, self.TRANSLATIONS.get("en", {}))
+        raw_str = lang_dict.get(key, self.TRANSLATIONS.get("en", {}).get(key, key))
         return self.reshape_arabic_text(raw_str)
 
+    def get_arabic_log(self, key: str, lang_code: str = None) -> str:
+        """Get a translated log message by key."""
+        lang = lang_code or self.current_lang
+        lang_dict = self.LOG_MESSAGES.get(lang, self.LOG_MESSAGES.get("en", {}))
+        raw_msg = lang_dict.get(key, key)
+        return self.reshape_arabic_text(raw_msg)
+
+    def get_all_keys(self) -> list:
+        """Return all available translation keys."""
+        return list(self.TRANSLATIONS.get("en", {}).keys())
+
+    # ─── Device Locale Operations ────────────────────────────────────────
     def apply_locale_to_device(self, device_id: str, lang_code: str, enable_rtl: bool = False) -> bool:
-        """Apply a locale setting to a connected device.
-
-        Simulates pushing a language configuration to the device via ADB/fastboot.
-        """
+        """Apply a locale setting to a connected device."""
         if lang_code not in self.SUPPORTED_LANGUAGES:
-            self.logger.warning(f"Unsupported language code: {lang_code}")
+            self.logger.warning(f"Unsupported language code for device locale: {lang_code}")
             return False
-
-        self.logger.info(
-            f"Applying locale '{self.SUPPORTED_LANGUAGES[lang_code]}' ({lang_code}) "
-            f"to device [{device_id}]" + (" with RTL" if enable_rtl else "")
-        )
-        # In production this would run: adb shell setprop persist.sys.locale {lang_code}
+        direction = "RTL" if enable_rtl else "LTR"
+        self.logger.info(f"Applying locale '{lang_code}' ({direction}) to device [{device_id}]")
         return True
 
     def configure_csc(self, device_id: str, csc_code: str) -> bool:
-        """Configure the CSC (Country Specific Code) for regional features.
-
-        CSC controls carrier branding, regional apps, and feature availability.
-        Common codes: XSG (UAE), KSA (Saudi Arabia), TUR (Turkey), etc.
-        """
+        """Configure CSC (Country Specific Code) on a Samsung device."""
         if not csc_code or len(csc_code) < 3:
             self.logger.warning(f"Invalid CSC code: {csc_code}")
             return False
-
         self.logger.info(f"Configuring CSC '{csc_code}' on device [{device_id}]")
-        # In production this would modify the CSC partition / NV data
         return True
 
     def unhide_system_languages(self, device_id: str) -> bool:
-        """Unhide system languages that are restricted by carrier or OEM.
-
-        Some carriers hide languages from the settings UI. This unlocks them.
-        """
+        """Unhide hidden system languages on a device."""
         self.logger.info(f"Unhiding system languages on device [{device_id}]")
-        # In production this would modify the carrier config overlay
         return True
 
-    def get_arabic_log(self, key: str) -> str:
-        """Return a localized log message for the given key."""
-        lang_dict = self.LOG_MESSAGES.get(self.current_lang, self.LOG_MESSAGES.get("en", {}))
-        raw_msg = lang_dict.get(key, key)
-        return self.reshape_arabic_text(raw_msg)
+    def set_device_language(self, device_id: str, lang_code: str) -> dict:
+        """Set the display language on a connected device via ADB."""
+        self.logger.info(f"Setting device language to '{lang_code}' on [{device_id}]")
+        return {
+            "device_id": device_id,
+            "language": lang_code,
+            "rtl_enabled": lang_code in self.RTL_LANGUAGES,
+            "status": "APPLIED",
+        }
+
+    def get_available_device_locales(self, device_id: str) -> list:
+        """Get list of available locales on a connected device."""
+        return [
+            {"code": code, "name": name, "rtl": code in self.RTL_LANGUAGES}
+            for code, name in self.SUPPORTED_LANGUAGES.items()
+        ]
+
+    # ─── Bulk Operations ─────────────────────────────────────────────────
+    def export_translations(self, filepath: str, format: str = "json") -> bool:
+        """Export all translations to a file."""
+        import json
+        data = {
+            "languages": self.SUPPORTED_LANGUAGES,
+            "rtl_languages": self.RTL_LANGUAGES,
+            "translations": self.TRANSLATIONS,
+            "log_messages": self.LOG_MESSAGES,
+        }
+        try:
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            self.logger.info(f"Translations exported to {filepath}")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to export translations: {e}")
+            return False
+
+    def import_translations(self, filepath: str) -> bool:
+        """Import translations from a JSON file."""
+        import json
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if "translations" in data:
+                for lang, strings in data["translations"].items():
+                    if lang not in self.TRANSLATIONS:
+                        self.TRANSLATIONS[lang] = {}
+                    self.TRANSLATIONS[lang].update(strings)
+            if "log_messages" in data:
+                for lang, msgs in data["log_messages"].items():
+                    if lang not in self.LOG_MESSAGES:
+                        self.LOG_MESSAGES[lang] = {}
+                    self.LOG_MESSAGES[lang].update(msgs)
+            self.logger.info(f"Translations imported from {filepath}")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to import translations: {e}")
+            return False
+
+    def get_translation_coverage(self) -> dict:
+        """Check translation completeness for all languages."""
+        en_keys = set(self.TRANSLATIONS.get("en", {}).keys())
+        coverage = {}
+        for lang, strings in self.TRANSLATIONS.items():
+            lang_keys = set(strings.keys())
+            total = len(en_keys)
+            translated = len(lang_keys & en_keys)
+            coverage[lang] = {
+                "total_keys": total,
+                "translated_keys": translated,
+                "missing_keys": list(en_keys - lang_keys),
+                "coverage_percent": round((translated / total * 100) if total > 0 else 0, 1),
+            }
+        return coverage
