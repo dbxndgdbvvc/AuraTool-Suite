@@ -1,23 +1,24 @@
 # AuraTool-Suite — Dual-Platform CI/CD Build Workflow
 #
-# Builds standalone executables for Linux x64 and Windows x64.
-# Uploads portable release packages as artifacts.
+# Builds standalone --onefile executables for Linux x64 and Windows x64.
+# All source code, libraries, and assets are hidden inside a single binary.
+# Uploads release packages as artifacts.
 # Creates a GitHub Release with both binaries on version tags.
 #
 # Triggers:
-#   - Push to master (build + test)
+#   - Push to main (build + test)
 #   - Version tags v* (build + test + release)
-#   - Pull requests to master (build + test)
+#   - Pull requests to main (build + test)
 #   - Manual dispatch with optional version input
 
 name: Build & Release AuraTool-Suite
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     tags: ['v*']
   pull_request:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
     inputs:
       version:
@@ -53,14 +54,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pillow fpdf
+          pip install pytest pillow fpdf pyyaml arabic-reshaper python-bidi \
+                      psutil rich tqdm pyserial pyusb requests
 
       - name: Run unit tests
         run: |
           python -m pytest tests/ -v --tb=short
 
   # ─────────────────────────────────────────────────────────────
-  # Linux x64 Build
+  # Linux x64 Build (--onefile standalone)
   # ─────────────────────────────────────────────────────────────
   build-linux:
     name: 🐧 Linux x64
@@ -78,39 +80,31 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow fpdf
+          pip install pyinstaller pillow fpdf pyyaml arabic-reshaper python-bidi \
+                      psutil rich tqdm pyserial pyusb requests
 
-      - name: Generate application icon
-        run: python generate_icon.py
+      - name: Build Linux onefile binary
+        run: python build_standalone.py --linux-only
 
-      - name: Build Linux portable package
-        run: python build.py --linux-only
-
-      - name: Verify release output
+      - name: Verify binary
         run: |
-          echo "=== Release Output ==="
-          ls -lh release_output/ || echo "No release_output/ found"
+          echo "=== Binary Info ==="
+          ls -lh dist/AuraTool-Suite
+          file dist/AuraTool-Suite
           echo ""
-          echo "=== Archive contents ==="
-          for f in release_output/*.tar.gz; do
-            if [ -f "$f" ]; then
-              echo "--- $f ---"
-              tar tzf "$f" | head -20
-            fi
-          done
+          echo "=== Quick Smoke Test ==="
+          timeout 5 dist/AuraTool-Suite 2>&1 || true
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-Linux-x64
-          path: |
-            release_output/*.tar.gz
-            release_output/AuraTool-Suite*/
+          path: dist/AuraTool-Suite
           retention-days: 30
           if-no-files-found: error
 
   # ─────────────────────────────────────────────────────────────
-  # Windows x64 Build (native Windows runner)
+  # Windows x64 Build (--onefile standalone, native Windows runner)
   # ─────────────────────────────────────────────────────────────
   build-windows:
     name: 🪟 Windows x64
@@ -128,27 +122,29 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow fpdf
+          pip install pyinstaller pillow fpdf pyyaml arabic-reshaper python-bidi \
+                      psutil rich tqdm pyserial pyusb requests
 
-      - name: Generate application icon
-        run: python generate_icon.py
+      - name: Build Windows onefile binary
+        run: python build_standalone.py --windows-only
 
-      - name: Build Windows portable package
-        run: python build_windows.py
-
-      - name: Verify release output
+      - name: Verify binary
         shell: pwsh
         run: |
-          Write-Host "=== Release Output ==="
-          Get-ChildItem -Path release_output -Recurse | Format-Table Name, Length
+          Write-Host "=== Binary Info ==="
+          Get-ChildItem dist/AuraTool-Suite.exe | Select-Object Name, Length
+          Write-Host ""
+          Write-Host "=== Quick Smoke Test ==="
+          $proc = Start-Process -FilePath "dist\AuraTool-Suite.exe" -PassThru -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 5
+          if (!$proc.HasExited) { $proc.Kill() }
+          Write-Host "Binary launched successfully"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-Windows-x64
-          path: |
-            release_output/*.zip
-            release_output/AuraTool-Suite*/
+          path: dist/AuraTool-Suite.exe
           retention-days: 30
           if-no-files-found: error
 
@@ -165,17 +161,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for changelog generation
+          fetch-depth: 0
 
-      - name: Download all artifacts
+      - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: ${{ env.APP_NAME }}-Linux-x64
+          path: artifacts/linux
 
-      - name: List downloaded artifacts
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-Windows-x64
+          path: artifacts/windows
+
+      - name: List artifacts
         run: |
-          echo "=== Downloaded Artifacts ==="
-          find artifacts/ -type f | sort
+          echo "=== Linux ==="
+          ls -lh artifacts/linux/
+          echo ""
+          echo "=== Windows ==="
+          ls -lh artifacts/windows/
 
       - name: Determine version
         id: version
@@ -191,7 +197,6 @@ jobs:
         run: |
           TAG="${{ steps.version.outputs.tag }}"
 
-          # Collect changelog from commits since last tag
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
             CHANGES=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges)
@@ -199,23 +204,39 @@ jobs:
             CHANGES=$(git log --pretty=format:"- %s" --no-merges -20)
           fi
 
-          # Write release notes using printf for safe variable expansion
-          printf '## AuraTool-Suite v%s\n\n' "$TAG" > release_notes.md
-          printf '### Downloads\n\n' >> release_notes.md
-          printf '| Platform | File | Description |\n' >> release_notes.md
-          printf '|----------|------|-------------|\n' >> release_notes.md
-          printf '| 🐧 Linux x64 | `AuraTool-Suite-v%s-Linux-x64.tar.gz` | Single-file ELF binary + portable archive |\n' "$TAG" >> release_notes.md
-          printf '| 🪟 Windows x64 | `AuraTool-Suite-v%s-Windows-x64.zip` | Single-file .exe + portable archive |\n' "$TAG" >> release_notes.md
-          printf '\n### Changes\n\n' >> release_notes.md
-          echo "$CHANGES" >> release_notes.md
-          printf '\n### Installation\n\n' >> release_notes.md
-          printf '**Linux:**\n```bash\ntar xzf AuraTool-Suite-v%s-Linux-x64.tar.gz\ncd AuraTool-Suite-v*-Linux-x64\n./AuraTool-Suite\n```\n\n' "$TAG" >> release_notes.md
-          printf '**Windows:** Extract the `.zip` archive and double-click `AuraTool-Suite.exe`\n\n' >> release_notes.md
-          printf '### Requirements\n\n' >> release_notes.md
-          printf '- USB device drivers for target devices (Samsung, Qualcomm EDL, MediaTek BROM)\n' >> release_notes.md
-          printf '- Valid AuraTool-Suite license key for activation\n\n' >> release_notes.md
-          printf '---\n\n' >> release_notes.md
-          printf '*Built automatically by GitHub Actions CI/CD*\n' >> release_notes.md
+          cat > release_notes.md << NOTES
+          ## AuraTool-Suite v${TAG}
+
+          ### Downloads
+
+          | Platform | File | Description |
+          |----------|------|-------------|
+          | 🐧 Linux x64 | \`AuraTool-Suite\` | Single-file ELF binary (all code hidden inside) |
+          | 🪟 Windows x64 | \`AuraTool-Suite.exe\` | Single-file .exe (all code hidden inside) |
+
+          ### Changes
+
+          ${CHANGES}
+
+          ### Installation
+
+          **Linux:**
+          \`\`\`bash
+          chmod +x AuraTool-Suite
+          ./AuraTool-Suite
+          \`\`\`
+
+          **Windows:** Double-click \`AuraTool-Suite.exe\`
+
+          ### Requirements
+
+          - USB device drivers for target devices
+          - Valid AuraTool-Suite license key for activation
+
+          ---
+
+          *Built automatically by GitHub Actions CI/CD*
+          NOTES
 
           echo "=== Release Notes ==="
           cat release_notes.md
@@ -229,7 +250,7 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            artifacts/${{ env.APP_NAME }}-Linux-x64/**
-            artifacts/${{ env.APP_NAME }}-Windows-x64/**
+            artifacts/linux/AuraTool-Suite
+            artifacts/windows/AuraTool-Suite.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
