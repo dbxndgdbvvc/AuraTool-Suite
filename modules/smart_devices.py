@@ -233,18 +233,241 @@ ECOSYSTEM_CATALOGUE = {
         "Doogee": [
             "Doogee S96 Pro", "Doogee V30", "Doogee DK10",
         ],
-        "Realme": [
-            "GT 5 Pro", "GT 5", "GT Neo5", "GT Neo4",
-            "12 Pro+", "12 Pro", "11 Pro+", "11 Pro",
-            "C67", "C55", "C53", "C51", "C35",
-        ],
-        "Honor": [
-            "Magic6 Pro", "Magic6", "Magic5 Pro", "Magic5",
-            "X9b", "X8b", "X7b",
-        ],
         "Fairphone": [
             "Fairphone 5", "Fairphone 4", "Fairphone 3+",
         ],
+        "Panasonic": [
+            "Panasonic Toughbook FZ-G2", "Panasonic Eluga",
+        ],
+        "Lava": [
+            "Lava Blaze 2", "Lava Agni 2", "Lava Blaze Curve",
+        ],
+        "Micromax": [
+            "Micromax In 2b", "Micromax Canvas",
+        ],
+        "Poco": [
+            "Poco X6 Pro", "Poco X6", "Poco X5 Pro",
+            "Poco F5 Pro", "Poco F5", "Poco M6 Pro",
+            "Poco C65", "Poco X3 NFC",
+        ],
+        "Benco": [
+            "Benco V91", "Benco V40",
+        ],
+        "Itel": [
+            "Itel S23", "Itel A70", "Itel P55",
+        ],
+        "Oppo": [
+            "Find X7 Ultra", "Find X7", "Find X6 Pro", "Find X6",
+            "Find X5 Pro", "Find X3 Pro", "Find X2 Pro",
+            "Reno 11 Pro", "Reno 10 Pro+", "Reno 10 Pro",
+            "Reno 9 Pro", "Reno 8 Pro", "Reno 7",
+            "A78 5G", "A77", "A57", "A38", "A18",
+        ],
+        "Sharp": [
+            "Aquos R8 Pro", "Aquos R7", "Aquos R6",
+            "Aquos Sense 8", "Aquos Sense 7", "Aquos Sense 6",
+            "Aquos zero6", "Aquos zero5",
+            "Aquos S3", "Aquos S2",
+            "Aquos Xx3", "Aquos Xx2",
+        ],
+        "Panasonic": [
+            "Panasonic Toughbook FZ-G2", "Panasonic Toughbook 40",
+            "Panasonic Eluga X1", "Panasonic Eluga Z5",
+            "Panasonic P95", "Panasonic P91",
+        ],
+        "Casio": [
+            "Casio WSD-F30", "Casio WSD-F20",
+            "Casio GZione G'zOne Commando 4G LTE",
+        ],
+        "Siemens": [
+            "Siemens SX1", "Siemens SXG75",
+            "Siemens SK65",
+        ],
+        "Sagem": [
+            "Sagem myX-8", "Sagem my 72",
+            "Sagem my 530x",
+        ],
+        "BenQ-Siemens": [
+            "BenQ-Siemens EF81", "BenQ-Siemens EL71",
+            "BenQ-Siemens SL91",
+        ],
+        "Bird": [
+            "Bird D520", "Bird E380",
+            "Bird 739",
+        ],
+        "Amoi": [
+            "Amoi E78", "Amoi E76",
+            "Amoi A860",
+        ],
+        "Haier": [
+            "Haier V7", "Haier H7",
+            "Haier Apollo",
+        ],
+        "Realme Narzo": [
+            "Narzo 70 Pro", "Narzo 70x", "Narzo 60x",
+            "Narzo 50A", "Narzo 50", "Narzo 30",
+        ],
+        "Poco Global": [
+            "Poco F6 Pro", "Poco F6", "Poco F5 Pro", "Poco F5",
+            "Poco X6 Pro", "Poco X6", "Poco X5 Pro", "Poco X5",
+            "Poco M6 Pro", "Poco M6", "Poco M5s", "Poco M5",
+            "Poco C65", "Poco C60", "Poco C55", "Poco C51",
+        ],
+        "Samsung": [
+            "Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23 FE", 
+            "Galaxy Z Fold5", "Galaxy Z Flip5", "Galaxy A55", "Galaxy A35", "Galaxy A15", 
+            "Galaxy Tab S9 Ultra", "Galaxy Tab S9", "Galaxy Tab S9 FE", "Galaxy Watch6 Classic", 
+            "Galaxy Watch6", "Galaxy Watch FE", "Galaxy Watch5 Pro", "Galaxy Watch5", 
+            "Galaxy Watch4 Classic", "Galaxy Buds FE",
+        ],
+        "Xiaomi": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "Apple": [
+            "smartphone", "ipad", "smartwatch", "smart_glasses",
+        ],
+        "Huawei": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "OPPO": [
+            "smartphone", "tablet",
+        ],
+        "Vivo": [
+            "smartphone",
+        ],
+        "OnePlus": [
+            "smartphone", "smartwatch",
+        ],
+        "Google_Pixel": [
+            "Pixel Tablet", "Pixel 9 Pro Fold",
+        ],
+        "Realme": [
+            "smartphone",
+        ],
+        "Motorola": [
+            "smartphone",
+        ],
+        "Nokia": [
+            "smartphone", "tablet",
+        ],
+        "Sony": [
+            "smartphone",
+        ],
+        "TCL": [
+            "smartphone", "tablet",
+        ],
+        "Sharp": [
+            "smartphone", "tablet",
+        ],
+        "BlackBerry": [
+            "smartphone",
+        ],
+        "Asus": [
+            "ROG Phone 8 Pro", "Zenfone 11 Ultra", "ZenPad 10", "ROG Flow Z13",
+        ],
+        "LG": [
+            "smartphone", "tablet",
+        ],
+        "Lenovo": [
+            "smartphone", "tablet",
+        ],
+        "Honor": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "ZTE": [
+            "smartphone", "tablet",
+        ],
+        "Meizu": [
+            "smartphone",
+        ],
+        "Nothing": [
+            "smartphone",
+        ],
+        "Poco": [
+            "smartphone",
+        ],
+        "Infinix": [
+            "smartphone", "tablet",
+        ],
+        "Tecno": [
+            "smartphone", "tablet",
+        ],
+        "Doogee": [
+            "smartphone",
+        ],
+        "Ulefone": [
+            "smartphone",
+        ],
+        "Cubot": [
+            "smartphone",
+        ],
+        "Nokia_HMD": [
+            "smartphone", "tablet",
+        ],
+        "Fairphone": [
+            "smartphone",
+        ],
+        "Wiko": [
+            "smartphone",
+        ],
+        "Alcatel": [
+            "smartphone",
+        ],
+        "iQOO": [
+            "smartphone",
+        ],
+        "Nubia": [
+            "smartphone",
+        ],
+        "Redmi": [
+            "smartphone", "tablet",
+        ],
+        "Umidigi": [
+            "smartphone",
+        ],
+        "Wileyfox": [
+            "smartphone",
+        ],
+        "Blackview": [
+            "smartphone", "tablet",
+        ],
+        "Oukitel": [
+            "smartphone",
+        ],
+        "Hisense": [
+            "smartphone", "tablet",
+        ],
+        "Lava": [
+            "smartphone",
+        ],
+        "Micromax": [
+            "smartphone",
+        ],
+        "QMobile": [
+            "smartphone",
+        ],
+        "Gionee": [
+            "smartphone",
+        ],
+        "Vertu": [
+            "smartphone",
+        ],
+        "BQ": [
+            "BQ Aquaris X2 Pro", "BQ Aquaris X2", "BQ Aquaris C", "BQ Samsung Tab 10",
+        ],
+        "Panasonic": [
+            "smartphone",
+        ],
+        "Xiaomi_India": [
+            "smartphone",
+        ],
+        "ZTE_Nubia": [
+            "smartphone",
+        ],
+        "Realme_India": [
+            "smartphone",
+        ],
+
     },
 
     # ─── Tablets (Android) ────────────────────────────────────────────────────
@@ -304,6 +527,161 @@ ECOSYSTEM_CATALOGUE = {
             "Surface Pro 10", "Surface Pro 9", "Surface Go 3",
             "Surface Pro X", "Surface 3",
         ],
+        "Nokia": [
+            "Nokia T21", "Nokia T20", "Nokia T10",
+            "Nokia T7",
+        ],
+        "Alcatel": [
+            "Alcatel 3T 8", "Alcatel 3T 10",
+            "Alcatel Joy Tab 2",
+        ],
+        "TCL": [
+            "TCL Tab 10 Gen 2", "TCL Tab 10 FHD 4G",
+            "TCL Tab 8" ],
+        "Blackview": [
+            "Blackview Tab 15", "Blackview Tab 12", "Blackview Tab 8",
+            "Blackview BV9500 Pro",
+        ],
+        "Doogee": [
+            "Doogee T10", "Doogee T30 Pro", "Doogee T20 Mini",
+        ],
+        "Ulefone": [
+            "Ulefone Tab A8", "Ulefone Tab 10",
+            "Ulefone Armor Pad",
+        ],
+        "Samsung Chromebook": [
+            "Chromebook Plus V2", "Chromebook 4",
+            "Galaxy Chromebook 2",
+        ],
+        "Samsung": [
+            "Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23 FE", 
+            "Galaxy Z Fold5", "Galaxy Z Flip5", "Galaxy A55", "Galaxy A35", "Galaxy A15", 
+            "Galaxy Tab S9 Ultra", "Galaxy Tab S9", "Galaxy Tab S9 FE", "Galaxy Watch6 Classic", 
+            "Galaxy Watch6", "Galaxy Watch FE", "Galaxy Watch5 Pro", "Galaxy Watch5", 
+            "Galaxy Watch4 Classic", "Galaxy Buds FE",
+        ],
+        "Xiaomi": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "Apple": [
+            "smartphone", "ipad", "smartwatch", "smart_glasses",
+        ],
+        "Huawei": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "OPPO": [
+            "smartphone", "tablet",
+        ],
+        "OnePlus": [
+            "smartphone", "smartwatch",
+        ],
+        "Google_Pixel": [
+            "Pixel Tablet", "Pixel 9 Pro Fold",
+        ],
+        "Nokia": [
+            "smartphone", "tablet",
+        ],
+        "TCL": [
+            "smartphone", "tablet",
+        ],
+        "Sharp": [
+            "smartphone", "tablet",
+        ],
+        "Asus": [
+            "ROG Phone 8 Pro", "Zenfone 11 Ultra", "ZenPad 10", "ROG Flow Z13",
+        ],
+        "LG": [
+            "smartphone", "tablet",
+        ],
+        "Lenovo": [
+            "smartphone", "tablet",
+        ],
+        "Honor": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "ZTE": [
+            "smartphone", "tablet",
+        ],
+        "Infinix": [
+            "smartphone", "tablet",
+        ],
+        "Tecno": [
+            "smartphone", "tablet",
+        ],
+        "Doogee": [
+            "smartphone",
+        ],
+        "Ulefone": [
+            "smartphone",
+        ],
+        "Nokia_HMD": [
+            "smartphone", "tablet",
+        ],
+        "Microsoft_Surface": [
+            "tablet",
+        ],
+        "Amazon_Fire": [
+            "tablet", "smartwatch",
+        ],
+        "Wiko": [
+            "smartphone",
+        ],
+        "Alcatel": [
+            "smartphone",
+        ],
+        "Redmi": [
+            "smartphone", "tablet",
+        ],
+        "Blackview": [
+            "smartphone", "tablet",
+        ],
+        "Hisense": [
+            "smartphone", "tablet",
+        ],
+        "BQ": [
+            "BQ Aquaris X2 Pro", "BQ Aquaris X2", "BQ Aquaris C", "BQ Samsung Tab 10",
+        ],
+        "Dell": [
+            "Dell Latitude 7220 Rugged", "Dell Venue 8 Pro",
+        ],
+        "HP": [
+            "HP Elite x2 G4", "HP Pro Tablet 608 G2",
+        ],
+        "Amazon_Kids": [
+            "Fire Kids Pro 10", "Fire Kids Pro 7", "Fire HD 8 Kids Edition", "Fire HD 10 Kids Edition",
+        ],
+        "Samsung_Tab": [
+            "Galaxy Tab S9 Ultra", "Galaxy Tab S9+", "Galaxy Tab S9", "Galaxy Tab S9 FE", 
+            "Galaxy Tab S8 Ultra", "Galaxy Tab S8+", "Galaxy Tab S8", "Galaxy Tab S8 FE", 
+            "Galaxy Tab S6 Lite (2024)", "Galaxy Tab A9+", "Galaxy Tab A9", "Galaxy Tab A8", 
+            "Galaxy Tab A7 Lite", "Galaxy Tab Active4 Pro", "Galaxy Tab Active3",
+        ],
+        "iPad_Mini": [
+            "iPad Mini (6th Gen)", "iPad Mini (5th Gen)",
+        ],
+        "Xiaomi_Pad": [
+            "Xiaomi Pad 6 Pro", "Xiaomi Pad 6", "Xiaomi Pad 5 Pro", "Xiaomi Pad 5", "Xiaomi Pad 4 Plus",
+        ],
+        "Realme_Pad": [
+            "Realme Pad X", "Realme Pad 2", "Realme Pad Mini", "Realme Pad",
+        ],
+        "OPPO_Pad": [
+            "OPPO Pad 2", "OPPO Pad Air2", "OPPO Pad Air",
+        ],
+        "Nokia_Tab": [
+            "Nokia T21", "Nokia T20", "Nokia T10",
+        ],
+        "Honor_Pad": [
+            "Honor Pad V8 Pro", "Honor Pad 8", "Honor Pad 7", "Honor Pad X8 Lite",
+        ],
+        "Lenovo_Tab": [
+            "Lenovo Tab P12 Pro", "Lenovo Tab P11 Plus", "Lenovo Tab M10 Plus (3rd Gen)", 
+            "Lenovo Tab M10 (3rd Gen)", "Lenovo Tab E10",
+        ],
+        "TCL_Tab": [
+            "TCL Tab 10 Gen 2", "TCL Tab 8 Lite", "TCL Tab 10s",
+        ],
+
     },
 
     # ─── iPads ────────────────────────────────────────────────────────────────
@@ -320,6 +698,13 @@ ECOSYSTEM_CATALOGUE = {
             "iPad Air 3rd Gen", "iPad Air 2",
             "iPad mini 4", "iPad mini 3", "iPad mini 2",
         ],
+        "Apple": [
+            "smartphone", "ipad", "smartwatch", "smart_glasses",
+        ],
+        "iPad_Mini": [
+            "iPad Mini (6th Gen)", "iPad Mini (5th Gen)",
+        ],
+
     },
 
     # ─── Smartwatches ─────────────────────────────────────────────────────────
@@ -384,6 +769,161 @@ ECOSYSTEM_CATALOGUE = {
         "Kospet": [
             "Kospet Optimus 2", "Kospet Tank T2",
         ],
+        "Suunto": [
+            "Suunto Race", "Suunto 9 Peak Pro", "Suunto 7",
+            "Suunto 5 Peak", "Suunto 3 Fitness",
+        ],
+        "Polar": [
+            "Polar Vantage V3", "Polar Vantage M3", "Polar Pacer Pro",
+            "Polar Grit X Pro",
+        ],
+        "Coros": [
+            "Coros Vertix 2S", "Coros Apex 2 Pro", "Coros Pace 3",
+            "Coros PACE 2",
+        ],
+        "Withings": [
+            "Withings ScanWatch 2", "Withings ScanWatch",
+            "Withings Steel HR Sport",
+        ],
+        "Honor": [
+            "Honor Watch 4", "Honor Watch GS 3",
+            "Honor Band 6", "Honor Band 5",
+        ],
+        "OPPO": [
+            "OPPO Watch 4 Pro", "OPPO Watch 3 Pro",
+            "OPPO Watch Free",
+        ],
+        "Realme": [
+            "Realme Watch S2", "Realme Watch 5",
+            "Realme Watch 4", "Realme Buds Air 5 Pro",
+        ],
+        "Meizu": [
+            "Meizu Watch 2", "Meizu Watch",
+        ],
+        "Boat": [
+            "boAt Lunar Oasis", "boAt Wave Pro 44",
+            "boAt Storm Call",
+        ],
+        "Amazfit X": [
+            "Amazfit X", "Amazfit Bip U",
+        ],
+        "Samsung": [
+            "Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23 FE", 
+            "Galaxy Z Fold5", "Galaxy Z Flip5", "Galaxy A55", "Galaxy A35", "Galaxy A15", 
+            "Galaxy Tab S9 Ultra", "Galaxy Tab S9", "Galaxy Tab S9 FE", "Galaxy Watch6 Classic", 
+            "Galaxy Watch6", "Galaxy Watch FE", "Galaxy Watch5 Pro", "Galaxy Watch5", 
+            "Galaxy Watch4 Classic", "Galaxy Buds FE",
+        ],
+        "Xiaomi": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "Apple": [
+            "smartphone", "ipad", "smartwatch", "smart_glasses",
+        ],
+        "Huawei": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "OnePlus": [
+            "smartphone", "smartwatch",
+        ],
+        "Amazfit": [
+            "Amazfit GTR 4", "Amazfit GTS 4", "Amazfit T-Rex Ultra", "Amazfit Active", 
+            "Amazfit Bip 5", "Amazfit Falcon", "Amazfit Bip U Pro", "Amazfit GTR 3 Pro",
+        ],
+        "Garmin": [
+            "smartwatch",
+        ],
+        "Honor": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "Garmin_Wearables": [
+            "Garmin Venu 3", "Garmin Fenix 7X", "Garmin Forerunner 265", "Garmin Forerunner 965", 
+            "Garmin Venu Sq 2", "Garmin Enduro 3", "Garmin Epix Pro (Gen 2)", 
+            "Garmin Instinct 2X Solar",
+        ],
+        "Fitbit": [
+            "Fitbit Sense 2", "Fitbit Versa 4", "Fitbit Charge 6", "Fitbit Inspire 3", 
+            "Fitbit Luxe", "Fitbit Versa 3", "Fitbit Sense", "Fitbit Ace 3",
+        ],
+        "Amazon_Fire": [
+            "tablet", "smartwatch",
+        ],
+        "TicWatch": [
+            "TicWatch Pro 5", "TicWatch Pro 3 Ultra", "TicWatch E3", "TicWatch GTX",
+        ],
+        "Polar": [
+            "Polar Vantage V3", "Polar Grit X2 Pro", "Polar Pacer Pro", "Polar Ignite 3",
+        ],
+        "Coros": [
+            "COROS PACE 3", "COROS APEX 2 Pro", "COROS VERTIX 2S", "COROS GRAVITY X",
+        ],
+        "Suunto": [
+            "Suunto Race", "Suunto 9 Peak Pro", "Suunto 5 Peak", "Suunto Vertical", "Suunto Ambit3 Peak",
+        ],
+        "Skagen": [
+            "Skagen Falster Gen 6", "Skagen Falster 3", "Skagen Jorn Gen 2",
+        ],
+        "Fossil": [
+            "Fossil Gen 6 Hybrid", "Fossil Gen 6 Wellness Edition", "Fossil Sport",
+        ],
+        "MichaelKors": [
+            "Michael Kors Gen 6 Bradshaw", "Michael Kors MKGO", "Michael Kors Access Sofie",
+        ],
+        "Withings": [
+            "Withings ScanWatch 2", "Withings ScanWatch Horizon", "Withings Steel HR Sport", "Withings Move ECG",
+        ],
+        "Mobvoi": [
+            "Mobvoi TicWatch Pro 5 Endurance", "Mobvoi TicWatch Atlas", "Mobvoi TicWatch GTH 2",
+        ],
+        "Honor_Band": [
+            "Honor Watch 4", "Honor Watch GS 3", "Honor Band 7", "Honor Band 6",
+        ],
+        "Kospet": [
+            "Kospet Optimus 2", "Kospet Prime 2", "Kospet Tank T2",
+        ],
+        "Casio": [
+            "Casio WSD-F30", "Casio WSD-F20", "Casio GSW-H1000",
+        ],
+        "TagHeuer": [
+            "Tag Heuer Connected Calibre E4", "Tag Heuer Formula 1 Connected",
+        ],
+        "Montblanc": [
+            "Montblanc Summit 3", "Montblanc Summit 2+",
+        ],
+        "LouisVuitton": [
+            "Louis Vuitton Tambour Horizon Light Up",
+        ],
+        "LumiWatch": [
+            "LumiWatch C10S", "LumiWatch P1",
+        ],
+        "Kronaby": [
+            "Kronaby Sekel", "Kronaby Nord", "Kronaby Apex",
+        ],
+        "Cat": [
+            "Cat S62 Pro Watch", "Cat B15 Smartwatch",
+        ],
+        "Realme_Watch": [
+            "Realme Watch 5 Pro", "Realme Watch 4 Pro", "Realme Watch 3 Pro", "Realme Watch S",
+        ],
+        "OPPO_Watch": [
+            "OPPO Watch 4 Pro", "OPPO Watch 3 Pro", "OPPO Watch 2", "OPPO Watch Free",
+        ],
+        "OnePlus_Watch": [
+            "OnePlus Watch 2", "OnePlus Watch 2R", "OnePlus Watch Cyberpunk 2077",
+        ],
+        "Huawei_Watch": [
+            "Huawei Watch 4 Pro", "Huawei Watch 4", "Huawei Watch GT 4", "Huawei Watch GT 3 Pro", 
+            "Huawei Watch D2", "Huawei Watch Buds",
+        ],
+        "Google_Watch": [
+            "Pixel Watch 3", "Pixel Watch 2", "Pixel Watch",
+        ],
+        "Xiaomi_Watch": [
+            "Xiaomi Watch 2 Pro", "Xiaomi Watch S3", "Xiaomi Watch S1 Pro", 
+            "Xiaomi Smart Band 8 Pro", "Xiaomi Smart Band 7 Pro", "Redmi Watch 4", 
+            "Redmi Watch 3 Active",
+        ],
+
     },
 
     # ─── Smart Glasses ────────────────────────────────────────────────────────
@@ -440,6 +980,56 @@ ECOSYSTEM_CATALOGUE = {
         "Xiaomi": [
             "Xiaomi smart glasses",
         ],
+        "Snap": [
+            "Snap Spectacles (AR)",
+        ],
+        "Lenovo": [
+            "Lenovo ThinkReality A3", "Lenovo Mirage Camera",
+        ],
+        "Epson": [
+            "Epson Moverio BT-40S", "Epson Moverio BT-35E",
+            "Epson Moverio BT-30",
+        ],
+        "Solos": [
+            "Solos AirGo Vision", "Solos SmartGlass",
+        ],
+        "Even Realities": [
+            "Even G1 Smart Glasses",
+        ],
+        "Xiaomi": [
+            "smartphone", "tablet", "smartwatch",
+        ],
+        "Apple": [
+            "smartphone", "ipad", "smartwatch", "smart_glasses",
+        ],
+        "Meta_Quest": [
+            "Meta Quest 3S", "Meta Quest 3", "Meta Quest Pro", "Meta Quest 2", "Meta Ray-Ban Smart Glasses",
+        ],
+        "Apple_Vision": [
+            "Apple Vision Pro", "Apple Vision Pro 2",
+        ],
+        "XREAL": [
+            "XREAL Air 2 Ultra", "XREAL Air 2 Pro", "XREAL Air 2", "XREAL Air",
+        ],
+        "Pico": [
+            "Pico 4 Ultra", "Pico 4 Enterprise", "Pico 4", "Pico Neo3 Pro", "Pico G2 4K",
+        ],
+        "HTC_Vive": [
+            "HTC Vive XR Elite", "HTC Vive Focus 3", "HTC Vive Pro 2", "HTC Vive Cosmos Elite",
+        ],
+        "Nreal": [
+            "Nreal Air", "Nreal Light",
+        ],
+        "Rokid": [
+            "Rokid Max 2", "Rokid Air Pro", "Rokid Air", "Rokid Station",
+        ],
+        "RayNeo": [
+            "RayNeo Air 2s", "RayNeo Air 2", "RayNeo Air",
+        ],
+        "Solos": [
+            "Solos AirGo Vision", "Solos SmartGlass 3",
+        ],
+
     },
 
     # ─── AR/VR Headsets ───────────────────────────────────────────────────────
@@ -475,6 +1065,59 @@ ECOSYSTEM_CATALOGUE = {
         "Magic Leap": [
             "Magic Leap 2",
         ],
+        "3Glasses": [
+            "3Glasses X1", "3Glasses S2",
+        ],
+        "DPVR": [
+            "DPVR E4", "DPVR E3",
+        ],
+        "Lenovo VR": [
+            "Lenovo Mirage Solo", "Lenovo Explorer",
+        ],
+        "Dell": [
+            "Dell Visor",
+        ],
+        "Acer": [
+            "Acer Windows Mixed Reality", "Acer StarVR One",
+        ],
+        "Asus": [
+            "Asus Windows Mixed Reality",
+        ],
+        "Samsung Odyssey": [
+            "Samsung Odyssey G9", "Samsung HMD Odyssey+",
+            "Samsung Gear VR",
+        ],
+        "Google Daydream": [
+            "Google Daydream View",
+        ],
+        "Meta_Quest": [
+            "Meta Quest 3S", "Meta Quest 3", "Meta Quest Pro", "Meta Quest 2", "Meta Ray-Ban Smart Glasses",
+        ],
+        "Apple_Vision": [
+            "Apple Vision Pro", "Apple Vision Pro 2",
+        ],
+        "XREAL": [
+            "XREAL Air 2 Ultra", "XREAL Air 2 Pro", "XREAL Air 2", "XREAL Air",
+        ],
+        "Pico": [
+            "Pico 4 Ultra", "Pico 4 Enterprise", "Pico 4", "Pico Neo3 Pro", "Pico G2 4K",
+        ],
+        "HTC_Vive": [
+            "HTC Vive XR Elite", "HTC Vive Focus 3", "HTC Vive Pro 2", "HTC Vive Cosmos Elite",
+        ],
+        "Nreal": [
+            "Nreal Air", "Nreal Light",
+        ],
+        "Rokid": [
+            "Rokid Max 2", "Rokid Air Pro", "Rokid Air", "Rokid Station",
+        ],
+        "RayNeo": [
+            "RayNeo Air 2s", "RayNeo Air 2", "RayNeo Air",
+        ],
+        "Solos": [
+            "Solos AirGo Vision", "Solos SmartGlass 3",
+        ],
+
     },
 }
 
@@ -499,7 +1142,7 @@ SUPPORTED_PROTOCOLS = {
 }
 
 # ─── Year-Range Device Support ──────────────────────────────────────────────
-SUPPORTED_YEAR_RANGE = list(range(2002, 2031))  # 2002–2030
+SUPPORTED_YEAR_RANGE = list(range(2000, 2031))  # 2000–2030
 
 # ─── Major Partnerships & Chipset Coverage ──────────────────────────────────
 CHIPSET_SUPPORT = {
@@ -560,6 +1203,48 @@ CHIPSET_SUPPORT = {
     ],
     "Spreadtrum": [
         "SC9853", "SC9832", "SC7731",
+    ],
+    "Samsung Exynos W": [
+        "Exynos W1000", "Exynos W930",
+        "Exynos W920", "Exynos W910",
+    ],
+    "Apple S-series": [
+        "Apple S9", "Apple S8", "Apple S7",
+        "Apple S6", "Apple S5", "Apple S4",
+        "Apple S3", "Apple S2", "Apple S1",
+    ],
+    "Qualcomm Snapdragon W": [
+        "Snapdragon W5+ Gen 1", "Snapdragon W5 Gen 1",
+        "Snapdragon W3+ Gen 1",
+    ],
+    "Google Tensor": [
+        "Tensor G4", "Tensor G3", "Tensor G2", "Tensor",
+    ],
+    "Texas Instruments OMAP": [
+        "OMAP4460", "OMAP4430", "OMAP3630", "OMAP3530",
+    ],
+    "Broadcom": [
+        "BCM2835", "BCM2836", "BCM2837",
+    ],
+    "Nvidia Tegra": [
+        "Tegra X1", "Tegra K1", "Tegra 4",
+        "Tegra 3", "Tegra 2",
+    ],
+    "Intel Atom": [
+        "Atom x7-Z8750", "Atom x5-Z8350",
+        "Atom Z3745", "Atom Z2580",
+    ],
+    "Marvell": [
+        "Armada 388", "Armada 3720",
+    ],
+    "Rockchip": [
+        "RK3588", "RK3399", "RK3288", "RK3188",
+    ],
+    "Allwinner": [
+        "A133", "A100", "A80", "A64", "A33",
+    ],
+    "Amlogic": [
+        "S928X", "S905X4", "S905X3", "S912", "S905",
     ],
 }
 

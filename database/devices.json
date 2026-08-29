@@ -3,7 +3,7 @@
     "version": "6.0.0",
     "description": "AuraTool-Suite Global Device Database — Repair Hooks, Testpoints & Unlock Sequences",
     "last_updated": "2025-01-15",
-    "total_brands": 42,
+    "total_brands": 89,
     "categories": [
       "smartphone",
       "tablet",
@@ -234,54 +234,43 @@
       "primary_protocol": "SAMSUNG_ODIN",
       "frp_method": "ODIN_MODE",
       "frp_steps": [
-        "Enter Samsung Download Mode (Vol Down + Power from USB)",
-        "Flash FRP reset combination via Odin3/Heimdall",
-        "Wipe persist and cache partitions",
-        "Reboot to system"
+        "Enter Download Mode",
+        "Flash FRP reset via Odin3",
+        "Wipe data",
+        "Reboot"
       ],
       "testpoints": {
-        "download_mode": "Vol Down + Power + USB cable (from powered off state)",
-        "recovery_mode": "Vol Up + Power + USB cable",
-        "edl_mode": "Disconnect battery, short testpoint to ground, connect USB"
+        "download_mode": "Vol Down + Power + USB",
+        "recovery": "Vol Up + Power"
       },
-      "bootloader_unlock": {
-        "method": "Developer Options → OEM Unlock toggle",
-        "warning": "Enables Knox warranty bit (0x1). Cannot be reversed.",
-        "command": "fastboot flashing unlock"
-      },
+      "models": [
+        "Galaxy S24 Ultra",
+        "Galaxy S24+",
+        "Galaxy S24",
+        "Galaxy S23 Ultra",
+        "Galaxy S23 FE",
+        "Galaxy Z Fold5",
+        "Galaxy Z Flip5",
+        "Galaxy A55",
+        "Galaxy A35",
+        "Galaxy A15",
+        "Galaxy Tab S9 Ultra",
+        "Galaxy Tab S9",
+        "Galaxy Tab S9 FE",
+        "Galaxy Watch6 Classic",
+        "Galaxy Watch6",
+        "Galaxy Watch FE",
+        "Galaxy Watch5 Pro",
+        "Galaxy Watch5",
+        "Galaxy Watch4 Classic",
+        "Galaxy Buds FE"
+      ],
       "repair_hooks": {
-        "flash": "SAMSUNG_ODIN",
-        "frp": "ODIN_MODE",
-        "format": "FASTBOOT",
-        "unbrick": "EDL_9008",
-        "bootloader": "ODIN_MODE"
+        "flash": "ODIN",
+        "unlock": "FASTBOOT",
+        "frp": "ODIN_MODE"
       },
-      "models": {
-        "smartphone": [
-          "Galaxy S24 Ultra",
-          "Galaxy S24+",
-          "Galaxy S24",
-          "Galaxy S23 Ultra",
-          "Galaxy S23",
-          "Galaxy S22",
-          "Galaxy A54",
-          "Galaxy A14",
-          "Galaxy Z Fold5",
-          "Galaxy Z Flip5"
-        ],
-        "tablet": [
-          "Galaxy Tab S9 Ultra",
-          "Galaxy Tab S9+",
-          "Galaxy Tab S9",
-          "Galaxy Tab A9+"
-        ],
-        "smartwatch": [
-          "Galaxy Watch6 Classic",
-          "Galaxy Watch6",
-          "Galaxy Watch5 Pro",
-          "Galaxy Watch4"
-        ]
-      }
+      "bootloader_unlock": "fastboot oem unlock (Exynos) / Knox Trip"
     },
     "Xiaomi": {
       "category": [
@@ -582,36 +571,25 @@
       "primary_protocol": "FASTBOOT",
       "frp_method": "FASTBOOT",
       "frp_steps": [
-        "Enter Fastboot mode (Vol Down + Power)",
+        "Enter Fastboot (Vol Down + Power)",
         "fastboot flashing unlock",
         "fastboot erase persist",
-        "fastboot reboot"
+        "Reboot"
       ],
       "testpoints": {
-        "fastboot_mode": "Vol Down + Power + USB",
-        "edl_mode": "fastboot oem edl (some models)"
-      },
-      "bootloader_unlock": {
-        "method": "fastboot flashing unlock (official support)",
-        "warning": "Enables Factory Reset Protection. Data will be wiped.",
-        "command": "fastboot flashing unlock"
+        "fastboot": "Vol Down + Power + USB",
+        "edl": "fastboot oem otami-cmd"
       },
       "repair_hooks": {
         "flash": "FASTBOOT",
-        "frp": "FASTBOOT",
-        "format": "FASTBOOT",
-        "unbrick": "EDL_9008",
-        "bootloader": "FASTBOOT"
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
       },
-      "models": {
-        "smartphone": [
-          "Pixel 8 Pro",
-          "Pixel 8",
-          "Pixel 8a",
-          "Pixel 7 Pro",
-          "Pixel 6a"
-        ]
-      }
+      "models": [
+        "Pixel Tablet",
+        "Pixel 9 Pro Fold"
+      ],
+      "bootloader_unlock": "fastboot flashing unlock"
     },
     "Realme": {
       "category": [
@@ -731,120 +709,186 @@
     },
     "Meta_Quest": {
       "category": [
-        "ar_vr_headset",
-        "smart_glasses"
+        "smart_glasses",
+        "ar_vr_headset"
       ],
-      "vendor_id": "2c7c",
+      "vendor_id": "2c37",
       "primary_protocol": "FASTBOOT",
       "frp_method": "FASTBOOT",
       "frp_steps": [
-        "Enter Fastboot mode",
+        "Enter Fastboot (Power + Vol Down)",
         "fastboot oem unlock",
-        "fastboot reboot"
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Vol Down",
+        "sideload": "Recovery mode + ADB sideload"
+      },
+      "models": [
+        "Meta Quest 3S",
+        "Meta Quest 3",
+        "Meta Quest Pro",
+        "Meta Quest 2",
+        "Meta Ray-Ban Smart Glasses"
       ],
       "repair_hooks": {
         "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
         "frp": "FASTBOOT"
       },
-      "models": {
-        "ar_vr_headset": [
-          "Meta Quest 3",
-          "Meta Quest 3S",
-          "Meta Quest Pro",
-          "Meta Quest 2"
-        ],
-        "smart_glasses": [
-          "Ray-Ban Meta Smart Glasses (2024)",
-          "Ray-Ban Stories"
-        ]
-      }
+      "bootloader_unlock": "fastboot oem unlock (dev mode)"
     },
     "Apple_Vision": {
       "category": [
-        "smart_glasses"
+        "smart_glasses",
+        "ar_vr_headset"
       ],
       "vendor_id": "05ac",
       "primary_protocol": "APPLE_DFU",
       "frp_method": "DFU_RESTORE",
-      "note": "Apple Vision Pro uses M2+R1 chip. DFU restore via Apple service tools only.",
+      "frp_steps": [
+        "Enter DFU mode",
+        "Connect to Mac",
+        "Restore via IPSW",
+        "Setup as new"
+      ],
+      "testpoints": {
+        "dfu": "Device-specific combo",
+        "recovery": "Crown + top button"
+      },
+      "models": [
+        "Apple Vision Pro",
+        "Apple Vision Pro 2"
+      ],
       "repair_hooks": {
-        "flash": "APPLE_DFU",
+        "flash": "DFU",
+        "unlock": "DFU",
         "frp": "DFU_RESTORE"
       },
-      "models": {
-        "smart_glasses": [
-          "Apple Vision Pro"
-        ]
-      }
+      "bootloader_unlock": "N/A - Apple locked"
     },
     "XREAL": {
       "category": [
-        "smart_glasses"
+        "smart_glasses",
+        "ar_vr_headset"
       ],
-      "vendor_id": "2c7c",
-      "primary_protocol": "FASTBOOT",
-      "repair_hooks": {
-        "flash": "FASTBOOT"
+      "vendor_id": "18d1",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Nebula app",
+        "Factory reset",
+        "Re-flash firmware"
+      ],
+      "testpoints": {
+        "recovery": "USB-C diagnostic port"
       },
-      "models": {
-        "smart_glasses": [
-          "XREAL Air 2 Ultra",
-          "XREAL Air 2 Pro",
-          "XREAL Air 2"
-        ]
-      }
+      "models": [
+        "XREAL Air 2 Ultra",
+        "XREAL Air 2 Pro",
+        "XREAL Air 2",
+        "XREAL Air"
+      ],
+      "repair_hooks": {
+        "flash": "NEBULA_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
     },
     "Pico": {
       "category": [
+        "smart_glasses",
         "ar_vr_headset"
       ],
-      "vendor_id": "2c7c",
+      "vendor_id": "2d95",
       "primary_protocol": "FASTBOOT",
-      "repair_hooks": {
-        "flash": "FASTBOOT"
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Vol Down",
+        "recovery": "Power long press"
       },
-      "models": {
-        "ar_vr_headset": [
-          "Pico 4 Ultra",
-          "Pico 4 Pro",
-          "Pico Neo 3 Pro"
-        ]
-      }
+      "models": [
+        "Pico 4 Ultra",
+        "Pico 4 Enterprise",
+        "Pico 4",
+        "Pico Neo3 Pro",
+        "Pico G2 4K"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
     },
     "HTC_Vive": {
       "category": [
+        "smart_glasses",
         "ar_vr_headset"
       ],
       "vendor_id": "0bb4",
       "primary_protocol": "FASTBOOT",
-      "repair_hooks": {
-        "flash": "FASTBOOT"
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + button combo"
       },
-      "models": {
-        "ar_vr_headset": [
-          "HTC Vive XR Elite",
-          "HTC Vive Focus 3",
-          "HTC Vive Pro 2"
-        ]
-      }
+      "models": [
+        "HTC Vive XR Elite",
+        "HTC Vive Focus 3",
+        "HTC Vive Pro 2",
+        "HTC Vive Cosmos Elite"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
     },
     "Amazfit": {
       "category": [
         "smartwatch"
       ],
-      "vendor_id": "2d95",
+      "vendor_id": "2717",
       "primary_protocol": "FASTBOOT",
-      "repair_hooks": {
-        "flash": "FASTBOOT"
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Hold top button for 15s",
+        "Connect USB",
+        "Flash firmware via companion app"
+      ],
+      "testpoints": {
+        "recovery": "Hold button for 20s"
       },
-      "models": {
-        "smartwatch": [
-          "GTR 4",
-          "GTS 4",
-          "T-Rex Ultra",
-          "Bip 5"
-        ]
-      }
+      "models": [
+        "Amazfit GTR 4",
+        "Amazfit GTS 4",
+        "Amazfit T-Rex Ultra",
+        "Amazfit Active",
+        "Amazfit Bip 5",
+        "Amazfit Falcon",
+        "Amazfit Bip U Pro",
+        "Amazfit GTR 3 Pro"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
     },
     "Garmin": {
       "category": [
@@ -999,38 +1043,26 @@
       "primary_protocol": "FASTBOOT",
       "frp_method": "FASTBOOT",
       "frp_steps": [
-        "Enter Fastboot mode (Vol Down + Power)",
-        "fastboot flashing unlock",
-        "fastboot erase persist",
-        "fastboot reboot"
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
       ],
       "testpoints": {
-        "fastboot_mode": "Vol Down + Power + USB",
-        "edl_mode": "fastboot oem edl (Qualcomm ROG models)"
-      },
-      "bootloader_unlock": {
-        "method": "fastboot flashing unlock (official support on ROG/ZenFone)",
-        "command": "fastboot flashing unlock"
+        "fastboot": "Vol Down + USB"
       },
       "repair_hooks": {
         "flash": "FASTBOOT",
-        "frp": "FASTBOOT",
-        "format": "FASTBOOT",
-        "unbrick": "EDL_9008",
-        "bootloader": "FASTBOOT"
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
       },
-      "models": {
-        "smartphone": [
-          "ROG Phone 8 Pro",
-          "ROG Phone 7 Ultimate",
-          "Zenfone 11 Ultra",
-          "Zenfone 10",
-          "ROG Phone 6"
-        ],
-        "tablet": [
-          "Asus ROG Flow Z13"
-        ]
-      }
+      "bootloader_unlock": "fastboot oem unlock",
+      "models": [
+        "ROG Phone 8 Pro",
+        "Zenfone 11 Ultra",
+        "ZenPad 10",
+        "ROG Flow Z13"
+      ]
     },
     "LG": {
       "category": [
@@ -1596,57 +1628,63 @@
       ],
       "vendor_id": "091e",
       "primary_protocol": "Proprietary",
-      "frp_method": "FactoryReset",
-      "note": "Garmin uses proprietary firmware. No standard flashing protocol. Firmware updates via Garmin Express or Garmin Connect.",
+      "frp_method": "COMPANION_APP",
       "frp_steps": [
-        "Connect watch via USB to Garmin Express",
-        "Select 'Restore' option if available",
-        "Or use device Settings > System > Reset"
+        "Connect to Garmin Express",
+        "Factory reset via settings",
+        "Re-flash firmware"
+      ],
+      "testpoints": {
+        "recovery": "Hold Light + Back buttons"
+      },
+      "models": [
+        "Garmin Venu 3",
+        "Garmin Fenix 7X",
+        "Garmin Forerunner 265",
+        "Garmin Forerunner 965",
+        "Garmin Venu Sq 2",
+        "Garmin Enduro 3",
+        "Garmin Epix Pro (Gen 2)",
+        "Garmin Instinct 2X Solar"
       ],
       "repair_hooks": {
-        "flash": "Proprietary",
-        "frp": "FactoryReset"
+        "flash": "GARMIN_EXPRESS",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
       },
-      "models": {
-        "smartwatch": [
-          "Venu 3S",
-          "Venu 3",
-          "Forerunner 265/265S",
-          "Forerunner 165",
-          "Fenix 7X/7",
-          "Enduro 3",
-          "Instinct 3",
-          "Tactix 8"
-        ]
-      }
+      "bootloader_unlock": "N/A"
     },
     "Fitbit": {
       "category": [
         "smartwatch"
       ],
-      "vendor_id": "2c7c",
+      "vendor_id": "2687",
       "primary_protocol": "Proprietary",
-      "frp_method": "FactoryReset",
-      "note": "Fitbit (now owned by Google) uses proprietary protocol. Firmware updates via Fitbit app or web interface.",
+      "frp_method": "COMPANION_APP",
       "frp_steps": [
-        "Open Fitbit app on phone",
-        "Go to device settings",
-        "Select 'Factory Reset' or 'Clear User Data'",
-        "Or hold all buttons for 10 seconds for hardware reset"
+        "Connect to Fitbit app",
+        "Factory reset from settings",
+        "Sync with cloud"
+      ],
+      "testpoints": {
+        "recovery": "Hold button for 10s"
+      },
+      "models": [
+        "Fitbit Sense 2",
+        "Fitbit Versa 4",
+        "Fitbit Charge 6",
+        "Fitbit Inspire 3",
+        "Fitbit Luxe",
+        "Fitbit Versa 3",
+        "Fitbit Sense",
+        "Fitbit Ace 3"
       ],
       "repair_hooks": {
-        "flash": "Proprietary",
-        "frp": "FactoryReset"
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
       },
-      "models": {
-        "smartwatch": [
-          "Fitbit Sense 2",
-          "Fitbit Versa 4",
-          "Fitbit Charge 6",
-          "Fitbit Inspire 3",
-          "Fitbit Ace 3"
-        ]
-      }
+      "bootloader_unlock": "N/A"
     },
     "Microsoft_Surface": {
       "category": [
@@ -1763,6 +1801,1723 @@
           "Wiko Ride 5G"
         ]
       }
+    },
+    "Alcatel": {
+      "category": [
+        "smartphone",
+        "tablet"
+      ],
+      "vendor_id": "1bbb",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Alcatel 1S (2023)",
+          "Alcatel 3L",
+          "Alcatel 1SE",
+          "Alcatel Joy Tab 2"
+        ]
+      }
+    },
+    "iQOO": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2d95",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (Vivo iQOO bootloader unlock)",
+        "command": "fastboot oem unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008"
+      },
+      "models": {
+        "smartphone": [
+          "iQOO 12 Pro",
+          "iQOO 11S",
+          "iQOO Neo 8 Pro",
+          "iQOO Z7"
+        ]
+      }
+    },
+    "Nubia": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (official Nubia unlock portal)",
+        "command": "fastboot oem unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008"
+      },
+      "models": {
+        "smartphone": [
+          "Nubia Red Magic 9 Pro",
+          "Nubia Z60 Ultra",
+          "Nubia Flip 5G",
+          "Nubia Pad 3D"
+        ]
+      }
+    },
+    "Redmi": {
+      "category": [
+        "smartphone",
+        "tablet"
+      ],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "Mi Unlock Tool (requires Mi Account + 7-day wait)",
+        "url": "en.miui.com/unlock",
+        "command": "fastboot oem unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008"
+      },
+      "models": {
+        "smartphone": [
+          "Redmi Note 13 Pro+",
+          "Redmi Note 13 Pro",
+          "Redmi Note 13",
+          "Redmi 13C",
+          "Redmi A3"
+        ],
+        "tablet": [
+          "Redmi Pad Pro",
+          "Redmi Pad SE"
+        ]
+      }
+    },
+    "Umidigi": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2d95",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode",
+        "Send account reset payload",
+        "Clear FRP partition",
+        "Reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE"
+      },
+      "models": {
+        "smartphone": [
+          "Umidigi A15 Pro",
+          "Umidigi Power 8",
+          "Umidigi Bison 2 Pro"
+        ]
+      }
+    },
+    "Wileyfox": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2d95",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Wileyfox Swift 2 X",
+          "Wileyfox Spark X",
+          "Wileyfox Pro"
+        ]
+      }
+    },
+    "Blackview": {
+      "category": [
+        "smartphone",
+        "tablet"
+      ],
+      "vendor_id": "2d95",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode",
+        "Send account reset payload",
+        "Clear FRP partition",
+        "Reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE"
+      },
+      "models": {
+        "smartphone": [
+          "Blackview BV9300 Pro",
+          "Blackview BL8800",
+          "Blackview A200 Pro"
+        ],
+        "tablet": [
+          "Blackview Tab 18",
+          "Blackview Tab 16"
+        ]
+      }
+    },
+    "Oukitel": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2d95",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode",
+        "Send account reset payload",
+        "Clear FRP partition",
+        "Reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE"
+      },
+      "models": {
+        "smartphone": [
+          "Oukitel WP30 Pro",
+          "Oukitel RT7",
+          "Oukitel K15 Pro"
+        ]
+      }
+    },
+    "Hisense": {
+      "category": [
+        "smartphone",
+        "tablet"
+      ],
+      "vendor_id": "1f3a",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Hisense A9 Pro",
+          "Hisense U60 Pro"
+        ],
+        "tablet": [
+          "Hisense Hi Reader Pro"
+        ]
+      }
+    },
+    "Lava": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "1782",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Lava Blaze 2 Pro",
+          "Lava Agni 2",
+          "Lava Blaze Curve"
+        ]
+      }
+    },
+    "Micromax": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "1782",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Micromax Canvas 1",
+          "Micromax IN Note 2",
+          "Micromax Bharat 5 Pro"
+        ]
+      }
+    },
+    "QMobile": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2d95",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode",
+        "Send account reset payload",
+        "Clear FRP partition",
+        "Reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE"
+      },
+      "models": {
+        "smartphone": [
+          "QMobile Noir Z12",
+          "QMobile CS1",
+          "QMobile HD Plus"
+        ]
+      }
+    },
+    "Gionee": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "0482",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Gionee Max Pro",
+          "Gionee F9 Plus",
+          "Gionee M12"
+        ]
+      }
+    },
+    "Vertu": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited support)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Vertu iVertu",
+          "Vertu Signature Touch",
+          "Vertu Ti"
+        ]
+      }
+    },
+    "BQ": {
+      "category": [
+        "smartphone",
+        "tablet"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "BQ Aquaris X2 Pro",
+        "BQ Aquaris X2",
+        "BQ Aquaris C",
+        "BQ Samsung Tab 10"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Panasonic": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "04da",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": [
+          "Panasonic Eluga I9",
+          "Panasonic Toughbook FZ-L1"
+        ]
+      }
+    },
+    "Xiaomi_India": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "Mi Unlock Tool (requires Mi Account + 7-day wait)",
+        "command": "fastboot oem unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008"
+      },
+      "models": {
+        "smartphone": [
+          "Redmi 13",
+          "Redmi 13C",
+          "POCO C65",
+          "POCO M6"
+        ]
+      }
+    },
+    "ZTE_Nubia": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "05c6",
+      "primary_protocol": "EDL_QUALCOMM",
+      "frp_method": "EDL_9008",
+      "frp_steps": [
+        "Enter EDL mode",
+        "Send Qualcomm Firehose FRP reset",
+        "Clear persist partition",
+        "Reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)"
+      },
+      "repair_hooks": {
+        "flash": "EDL_QUALCOMM",
+        "frp": "EDL_9008",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008"
+      },
+      "models": {
+        "smartphone": [
+          "ZTE nubia Red Magic 9S Pro",
+          "ZTE nubia Z60 Ultra",
+          "ZTE nubia Flip"
+        ]
+      }
+    },
+    "Realme_India": {
+      "category": [
+        "smartphone"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode",
+        "Send Realme account reset payload",
+        "Clear FRP partition",
+        "Reboot"
+      ],
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)",
+        "note": "Realme shares parent with OPPO/OnePlus"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE"
+      },
+      "models": {
+        "smartphone": [
+          "Realme 12 Pro+",
+          "Realme GT 5 Pro",
+          "Realme C67",
+          "Realme Narzo 70 Pro"
+        ]
+      }
+    },
+    "Dell": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "413c",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter BIOS Recovery (Vol Up + Power)",
+        "Flash firmware",
+        "Reboot"
+      ],
+      "testpoints": {
+        "bios_recovery": "Vol Up + Power + Fn"
+      },
+      "models": [
+        "Dell Latitude 7220 Rugged",
+        "Dell Venue 8 Pro"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "BIOS",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "BIOS unlock required"
+    },
+    "HP": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "03f0",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + USB"
+      },
+      "models": [
+        "HP Elite x2 G4",
+        "HP Pro Tablet 608 G2"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "Fastboot"
+    },
+    "Amazon_Kids": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "1949",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Vol Down"
+      },
+      "models": [
+        "Fire Kids Pro 10",
+        "Fire Kids Pro 7",
+        "Fire HD 8 Kids Edition",
+        "Fire HD 10 Kids Edition"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock (developer edition)"
+    },
+    "Samsung_Tab": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "04e8",
+      "primary_protocol": "SAMSUNG_ODIN",
+      "frp_method": "ODIN_MODE",
+      "frp_steps": [
+        "Enter Download Mode (Vol Down + Power + USB)",
+        "Flash FRP reset via Odin3",
+        "Wipe data/factory reset",
+        "Reboot"
+      ],
+      "testpoints": {
+        "download_mode": "Vol Down + Power + USB",
+        "recovery": "Vol Up + Power"
+      },
+      "models": [
+        "Galaxy Tab S9 Ultra",
+        "Galaxy Tab S9+",
+        "Galaxy Tab S9",
+        "Galaxy Tab S9 FE",
+        "Galaxy Tab S8 Ultra",
+        "Galaxy Tab S8+",
+        "Galaxy Tab S8",
+        "Galaxy Tab S8 FE",
+        "Galaxy Tab S6 Lite (2024)",
+        "Galaxy Tab A9+",
+        "Galaxy Tab A9",
+        "Galaxy Tab A8",
+        "Galaxy Tab A7 Lite",
+        "Galaxy Tab Active4 Pro",
+        "Galaxy Tab Active3"
+      ],
+      "repair_hooks": {
+        "flash": "ODIN",
+        "unlock": "FASTBOOT",
+        "frp": "ODIN_MODE"
+      },
+      "bootloader_unlock": "fastboot oem unlock (via Magisk or SamFW tool)"
+    },
+    "iPad_Mini": {
+      "category": [
+        "tablet",
+        "ipad"
+      ],
+      "vendor_id": "05ac",
+      "primary_protocol": "APPLE_DFU",
+      "frp_method": "DFU_RESTORE",
+      "frp_steps": [
+        "Enter DFU (Power 5s, Home + Power 10s, release Power)",
+        "Connect to Finder/iTunes",
+        "Restore via IPSW"
+      ],
+      "testpoints": {
+        "dfu": "Home + Power button combo",
+        "recovery": "Home + Volume Up"
+      },
+      "models": [
+        "iPad Mini (6th Gen)",
+        "iPad Mini (5th Gen)"
+      ],
+      "repair_hooks": {
+        "flash": "DFU",
+        "unlock": "DFU",
+        "frp": "DFU_RESTORE"
+      },
+      "bootloader_unlock": "N/A - Apple locked"
+    },
+    "Xiaomi_Pad": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot (Vol Down + USB)",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB",
+        "edl": "fastboot oem edl"
+      },
+      "models": [
+        "Xiaomi Pad 6 Pro",
+        "Xiaomi Pad 6",
+        "Xiaomi Pad 5 Pro",
+        "Xiaomi Pad 5",
+        "Xiaomi Pad 4 Plus"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Realme_Pad": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "Realme Pad X",
+        "Realme Pad 2",
+        "Realme Pad Mini",
+        "Realme Pad"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "OPPO_Pad": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot (Vol Down + USB)",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "OPPO Pad 2",
+        "OPPO Pad Air2",
+        "OPPO Pad Air"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Nokia_Tab": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "2e04",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "Nokia T21",
+        "Nokia T20",
+        "Nokia T10"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Honor_Pad": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "fastboot erase frp",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "Honor Pad V8 Pro",
+        "Honor Pad 8",
+        "Honor Pad 7",
+        "Honor Pad X8 Lite"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Lenovo_Tab": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "17ef",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "Lenovo Tab P12 Pro",
+        "Lenovo Tab P11 Plus",
+        "Lenovo Tab M10 Plus (3rd Gen)",
+        "Lenovo Tab M10 (3rd Gen)",
+        "Lenovo Tab E10"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "TCL_Tab": {
+      "category": [
+        "tablet"
+      ],
+      "vendor_id": "1532",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Vol Down + USB"
+      },
+      "models": [
+        "TCL Tab 10 Gen 2",
+        "TCL Tab 8 Lite",
+        "TCL Tab 10s"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "TicWatch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot (hold Power + Swipe down)",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Swipe down",
+        "recovery": "Power long press"
+      },
+      "models": [
+        "TicWatch Pro 5",
+        "TicWatch Pro 3 Ultra",
+        "TicWatch E3",
+        "TicWatch GTX"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Polar": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Polar Flow app",
+        "Factory reset",
+        "Sync"
+      ],
+      "testpoints": {
+        "recovery": "Button combo"
+      },
+      "models": [
+        "Polar Vantage V3",
+        "Polar Grit X2 Pro",
+        "Polar Pacer Pro",
+        "Polar Ignite 3"
+      ],
+      "repair_hooks": {
+        "flash": "POLAR_FLOW",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Coros": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to COROS app",
+        "Factory reset",
+        "Sync firmware"
+      ],
+      "testpoints": {
+        "recovery": "Hold all buttons 15s"
+      },
+      "models": [
+        "COROS PACE 3",
+        "COROS APEX 2 Pro",
+        "COROS VERTIX 2S",
+        "COROS GRAVITY X"
+      ],
+      "repair_hooks": {
+        "flash": "COROS_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Suunto": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Suunto app",
+        "Factory reset",
+        "Re-flash firmware"
+      ],
+      "testpoints": {
+        "recovery": "Hold all buttons"
+      },
+      "models": [
+        "Suunto Race",
+        "Suunto 9 Peak Pro",
+        "Suunto 5 Peak",
+        "Suunto Vertical",
+        "Suunto Ambit3 Peak"
+      ],
+      "repair_hooks": {
+        "flash": "SUUNTO_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Skagen": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power button combo"
+      },
+      "models": [
+        "Skagen Falster Gen 6",
+        "Skagen Falster 3",
+        "Skagen Jorn Gen 2"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Fossil": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power button combo"
+      },
+      "models": [
+        "Fossil Gen 6 Hybrid",
+        "Fossil Gen 6 Wellness Edition",
+        "Fossil Sport"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "MichaelKors": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power button combo"
+      },
+      "models": [
+        "Michael Kors Gen 6 Bradshaw",
+        "Michael Kors MKGO",
+        "Michael Kors Access Sofie"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Withings": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Health Mate app",
+        "Factory reset",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Hold button 10s"
+      },
+      "models": [
+        "Withings ScanWatch 2",
+        "Withings ScanWatch Horizon",
+        "Withings Steel HR Sport",
+        "Withings Move ECG"
+      ],
+      "repair_hooks": {
+        "flash": "HEALTH_MATE",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Mobvoi": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Swipe down"
+      },
+      "models": [
+        "Mobvoi TicWatch Pro 5 Endurance",
+        "Mobvoi TicWatch Atlas",
+        "Mobvoi TicWatch GTH 2"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Honor_Band": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Connect USB",
+        "Wipe data from companion app",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Button combo"
+      },
+      "models": [
+        "Honor Watch 4",
+        "Honor Watch GS 3",
+        "Honor Band 7",
+        "Honor Band 6"
+      ],
+      "repair_hooks": {
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Kospet": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + button combo"
+      },
+      "models": [
+        "Kospet Optimus 2",
+        "Kospet Prime 2",
+        "Kospet Tank T2"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Casio": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Casio app",
+        "Factory reset from watch",
+        "Sync firmware"
+      ],
+      "testpoints": {
+        "recovery": "Button combo varies"
+      },
+      "models": [
+        "Casio WSD-F30",
+        "Casio WSD-F20",
+        "Casio GSW-H1000"
+      ],
+      "repair_hooks": {
+        "flash": "CASIO_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "TagHeuer": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "05ac",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to TAG Heuer Connected app",
+        "Factory reset",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Crown + button combo"
+      },
+      "models": [
+        "Tag Heuer Connected Calibre E4",
+        "Tag Heuer Formula 1 Connected"
+      ],
+      "repair_hooks": {
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Montblanc": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to MB app",
+        "Factory reset",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Crown combo"
+      },
+      "models": [
+        "Montblanc Summit 3",
+        "Montblanc Summit 2+"
+      ],
+      "repair_hooks": {
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "LouisVuitton": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to LV app",
+        "Factory reset",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Crown combo"
+      },
+      "models": [
+        "Louis Vuitton Tambour Horizon Light Up"
+      ],
+      "repair_hooks": {
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "LumiWatch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power button combo"
+      },
+      "models": [
+        "LumiWatch C10S",
+        "LumiWatch P1"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Kronaby": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "0cas",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Kronaby app",
+        "Factory reset",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Crown button 10s"
+      },
+      "models": [
+        "Kronaby Sekel",
+        "Kronaby Nord",
+        "Kronaby Apex"
+      ],
+      "repair_hooks": {
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Cat": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + button combo"
+      },
+      "models": [
+        "Cat S62 Pro Watch",
+        "Cat B15 Smartwatch"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Realme_Watch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Realme Link",
+        "Factory reset",
+        "Re-pair"
+      ],
+      "testpoints": {
+        "recovery": "Button combo"
+      },
+      "models": [
+        "Realme Watch 5 Pro",
+        "Realme Watch 4 Pro",
+        "Realme Watch 3 Pro",
+        "Realme Watch S"
+      ],
+      "repair_hooks": {
+        "flash": "COMPANION_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "OPPO_Watch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Vol Down"
+      },
+      "models": [
+        "OPPO Watch 4 Pro",
+        "OPPO Watch 3 Pro",
+        "OPPO Watch 2",
+        "OPPO Watch Free"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "OnePlus_Watch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Power + Vol Down"
+      },
+      "models": [
+        "OnePlus Watch 2",
+        "OnePlus Watch 2R",
+        "OnePlus Watch Cyberpunk 2077"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Huawei_Watch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "12d1",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Huawei Health app",
+        "Factory reset",
+        "Re-pair",
+        "Re-flash via HiSuite"
+      ],
+      "testpoints": {
+        "recovery": "Hold buttons 15s",
+        "download_mode": "Connect USB + button combo"
+      },
+      "models": [
+        "Huawei Watch 4 Pro",
+        "Huawei Watch 4",
+        "Huawei Watch GT 4",
+        "Huawei Watch GT 3 Pro",
+        "Huawei Watch D2",
+        "Huawei Watch Buds"
+      ],
+      "repair_hooks": {
+        "flash": "HISUITE",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A (Huawei locked bootloader)"
+    },
+    "Google_Watch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot flashing unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Swipe to FTF + hold crown",
+        "recovery": "Power off + hold crown + swipe down"
+      },
+      "models": [
+        "Pixel Watch 3",
+        "Pixel Watch 2",
+        "Pixel Watch"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot flashing unlock"
+    },
+    "Xiaomi_Watch": {
+      "category": [
+        "smartwatch"
+      ],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot",
+        "fastboot oem unlock",
+        "Wipe data",
+        "Reboot"
+      ],
+      "testpoints": {
+        "fastboot": "Crown + button combo"
+      },
+      "models": [
+        "Xiaomi Watch 2 Pro",
+        "Xiaomi Watch S3",
+        "Xiaomi Watch S1 Pro",
+        "Xiaomi Smart Band 8 Pro",
+        "Xiaomi Smart Band 7 Pro",
+        "Redmi Watch 4",
+        "Redmi Watch 3 Active"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "unlock": "FASTBOOT",
+        "frp": "FASTBOOT"
+      },
+      "bootloader_unlock": "fastboot oem unlock"
+    },
+    "Nreal": {
+      "category": [
+        "smart_glasses",
+        "ar_vr_headset"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Nebula app",
+        "Factory reset",
+        "Re-flash"
+      ],
+      "testpoints": {
+        "recovery": "USB-C diagnostic"
+      },
+      "models": [
+        "Nreal Air",
+        "Nreal Light"
+      ],
+      "repair_hooks": {
+        "flash": "NEBULA_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Rokid": {
+      "category": [
+        "smart_glasses",
+        "ar_vr_headset"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Rokid app",
+        "Factory reset",
+        "Re-flash firmware"
+      ],
+      "testpoints": {
+        "recovery": "USB-C diagnostic"
+      },
+      "models": [
+        "Rokid Max 2",
+        "Rokid Air Pro",
+        "Rokid Air",
+        "Rokid Station"
+      ],
+      "repair_hooks": {
+        "flash": "ROKID_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "RayNeo": {
+      "category": [
+        "smart_glasses",
+        "ar_vr_headset"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to RayNeo app",
+        "Factory reset",
+        "Re-flash"
+      ],
+      "testpoints": {
+        "recovery": "USB-C diagnostic"
+      },
+      "models": [
+        "RayNeo Air 2s",
+        "RayNeo Air 2",
+        "RayNeo Air"
+      ],
+      "repair_hooks": {
+        "flash": "RAYNEO_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
+    },
+    "Solos": {
+      "category": [
+        "smart_glasses",
+        "ar_vr_headset"
+      ],
+      "vendor_id": "18d1",
+      "primary_protocol": "Proprietary",
+      "frp_method": "COMPANION_APP",
+      "frp_steps": [
+        "Connect to Solos app",
+        "Factory reset",
+        "Re-flash"
+      ],
+      "testpoints": {
+        "recovery": "Button combo"
+      },
+      "models": [
+        "Solos AirGo Vision",
+        "Solos SmartGlass 3"
+      ],
+      "repair_hooks": {
+        "flash": "SOLOS_APP",
+        "unlock": "N/A",
+        "frp": "COMPANION_APP"
+      },
+      "bootloader_unlock": "N/A"
     }
   }
 }
