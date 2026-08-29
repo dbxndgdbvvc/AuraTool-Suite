@@ -42,6 +42,12 @@ audit.jsonl.archived*
 # Test fixture temp dirs (regenerated on every test run)
 tests/_test_lic_tmp_*/
 
+# Coverage reports
+docs/coverage_html/
+.coverage
+.coverage.*
+htmlcov/
+
 # Temporary
 tmp/
 temp/
