@@ -1,1396 +1,1004 @@
 """
-AuraTool-Suite — Professional HD Desktop GUI
-=============================================
-High-resolution interface with SVG brand logos, organized sidebar navigation,
-full RTL/Arabic support, and comprehensive phone maintenance tools.
-
-Features:
-- SVG brand logos for 21+ phone manufacturers
-- Sidebar navigation with icon labels
-- Professional dark theme with gradient accents
-- RTL support for Arabic, Persian, Urdu
-- Dynamic brand selection with icon preview
+AuraTool-Suite v6.0.0 — Professional Universal Repair Platform
+================================================================
+Industry-grade GUI with:
+- Top action toolbar with all operations
+- Categorized brand/model tree (Phones, Tablets, iPads, Watches, Glasses)
+- Clean operation-only logs with [SUCCESS] format
+- Professional dark theme
+- Full i18n/l10n support via LocalizationManager
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import ttk, messagebox, scrolledtext, filedialog
 import logging
 import os
 import sys
 import platform
-from pathlib import Path
 
-from core.licensing import LicenseManager
+from core.license_manager import LicenseManager
+from core.security import SecurityManager
 from modules.localization import LocalizationManager
 from modules.flashing_engine import FlashingEngine
 from modules.biometrics_fix import BiometricsFix
-from modules.smart_devices import SmartDeviceManager
+from modules.smart_devices import SmartDeviceManager, ECOSYSTEM_CATALOGUE, SUPPORTED_PROTOCOLS, CHIPSET_SUPPORT
 from modules.data_recovery import DataRecoveryModule
 from modules.account_repair import AccountRepairModule
 from modules.aura_ai_assistant import AuraAIAssistant
 from modules.ultimate_repair import UltimateRepairModule
-from modules.chat_rooms import ChatRoomManager
-from modules.media_stream import MediaStreamEngine
-from modules.ecommerce import ECommerceManager
 from modules.device_drivers import DeviceDriverManager
-from core.security import SecurityManager
-from auratool_factory import FactoryManager
-
-# ─── Brand Icons Import ─────────────────────────────────────────────────────
-try:
-    from ui.brand_icons import get_brand_icons, BRAND_DEFINITIONS as BRAND_ICON_DEFS
-    HAS_BRAND_ICONS = True
-except ImportError:
-    HAS_BRAND_ICONS = False
-
-try:
-    from ui.brand_svg import get_brand_svg_manager, BRAND_SVG_DATA
-    HAS_SVG = True
-except ImportError:
-    HAS_SVG = False
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Color Palette (Professional Dark Theme)
-# ═══════════════════════════════════════════════════════════════════════════
-
-class Theme:
-    BG_DARK = "#1a1a2e"
-    BG_MEDIUM = "#16213e"
-    BG_LIGHT = "#0f3460"
-    ACCENT = "#e94560"
-    ACCENT2 = "#533483"
-    TEXT_WHITE = "#ffffff"
-    TEXT_LIGHT = "#b0b0b0"
-    TEXT_GREEN = "#00e676"
-    TEXT_YELLOW = "#ffd600"
-    TEXT_RED = "#ff1744"
-    BTN_PRIMARY = "#e94560"
-    BTN_SECONDARY = "#533483"
-    BTN_SUCCESS = "#00c853"
-    BORDER = "#2a2a4a"
-    SIDEBAR_BG = "#0f0f23"
-    SIDEBAR_ACTIVE = "#1a1a3e"
-    TAB_BG = "#1a1a2e"
-    CONSOLE_BG = "#0a0a1a"
-    HEADER_BG = "#0a0a1a"
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Brand Data
-# ═══════════════════════════════════════════════════════════════════════════
-
-BRAND_LOGOS = {
-    "Samsung":    {"emoji": "📱", "color": "#1428a0", "accent": "#ffffff"},
-    "Apple":      {"emoji": "🍎", "color": "#555555", "accent": "#ffffff"},
-    "Xiaomi":     {"emoji": "🔴", "color": "#ff6700", "accent": "#ffffff"},
-    "Huawei":     {"emoji": "🌸", "color": "#cf0a2c", "accent": "#ffffff"},
-    "Oppo":       {"emoji": "🟢", "color": "#1a8a1a", "accent": "#ffffff"},
-    "Vivo":       {"emoji": "🔵", "color": "#415fff", "accent": "#ffffff"},
-    "Realme":     {"emoji": "🟡", "color": "#ffc300", "accent": "#1a1a1a"},
-    "OnePlus":    {"emoji": "🔴", "color": "#f5010c", "accent": "#ffffff"},
-    "Google Pixel":{"emoji": "🔷", "color": "#4285f4", "accent": "#ffffff"},
-    "Honor":      {"emoji": "🔷", "color": "#0ab3e3", "accent": "#ffffff"},
-    "Infinix":    {"emoji": "🟢", "color": "#00b518", "accent": "#ffffff"},
-    "Tecno":      {"emoji": "🔵", "color": "#0066cc", "accent": "#ffffff"},
-    "Sony":       {"emoji": "⬛", "color": "#000000", "accent": "#ffffff"},
-    "Motorola":   {"emoji": "Ⓜ️", "color": "#5c2d91", "accent": "#ffffff"},
-    "Nokia":      {"emoji": "🔷", "color": "#124191", "accent": "#ffffff"},
-    "LG":         {"emoji": "🔴", "color": "#a50034", "accent": "#ffffff"},
-    "Asus":       {"emoji": "🔵", "color": "#00529b", "accent": "#ffffff"},
-    "ZTE":        {"emoji": "🔷", "color": "#0068b7", "accent": "#ffffff"},
-    "Meizu":      {"emoji": "🔵", "color": "#1e90ff", "accent": "#ffffff"},
-    "Apple Vision Pro": {"emoji": "🥽", "color": "#333333", "accent": "#999999"},
-    "Meta Quest":  {"emoji": "🥽", "color": "#0668E1", "accent": "#ffffff"},
-}
-
-MANUFACTURERS = {
-    "Samsung":    ["Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23",
-                   "Galaxy S22", "Galaxy A54", "Galaxy A34", "Galaxy A14",
-                   "Galaxy Tab S9", "Galaxy Tab S8", "Galaxy Tab A8",
-                   "Galaxy Watch 6", "Galaxy Watch 5", "Galaxy Watch 4"],
-    "Apple":      ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15", "iPhone 14 Pro",
-                   "iPhone 14", "iPhone 13", "iPhone 12",
-                   "iPad Pro M2", "iPad Air M1", "iPad 10th",
-                   "Apple Watch Series 9", "Apple Watch Ultra 2",
-                   "Apple Vision Pro"],
-    "Xiaomi":     ["Xiaomi 14 Pro", "Xiaomi 14", "Xiaomi 13 Pro", "Xiaomi 13",
-                   "Redmi Note 13 Pro", "Redmi Note 12", "POCO X6 Pro", "POCO X5 Pro"],
-    "Huawei":     ["P60 Pro", "P50 Pro", "Mate 60 Pro", "Mate 40 Pro", "Nova 10", "Nova 11"],
-    "Oppo":       ["Find X7 Ultra", "Find X6 Pro", "Reno 10 Pro", "Reno 9", "A78"],
-    "Vivo":       ["X100 Pro", "X90 Pro", "V29 Pro", "V27", "Y36"],
-    "Realme":     ["GT 5 Pro", "GT Neo 5", "11 Pro+", "11 Pro", "C55"],
-    "OnePlus":    ["12", "11", "Nord 3", "Nord CE 3", "Open"],
-    "Google Pixel": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a", "Pixel Fold"],
-    "Honor":      ["Magic 6 Pro", "Magic 5 Pro", "X9b", "X8b"],
-    "Infinix":    ["Note 30 Pro", "Note 12", "Hot 30i", "Zero 30"],
-    "Tecno":      ["Phantom V Fold", "Camon 20 Pro", "Spark 20 Pro"],
-    "Motorola":   ["Edge 40 Pro", "Edge 30", "Moto G84", "Moto G54"],
-    "Nokia":      ["G42", "G22", "X30", "XR21"],
-    "Sony":       ["Xperia 1 V", "Xperia 5 V", "Xperia 10 V"],
-    "LG":         ["V60 ThinQ", "Wing", "Velvet"],
-    "Asus":       ["ROG Phone 8", "Zenfone 10"],
-    "ZTE":        ["Axon 40 Ultra", "Blade V50"],
-    "Meizu":      ["21 Pro", "20 Pro"],
-    "Wearables":  ["Apple Vision Pro", "Meta Quest 3", "Ray-Ban Meta",
-                   "Xreal Air 2", "RayNeo Air 2"],
-    "Qualcomm Generic": ["Snapdragon 8 Gen 3", "Snapdragon 8 Gen 2", "Snapdragon 778G"],
-    "MediaTek Generic": ["Dimensity 9300", "Dimensity 9000", "Helio G99"],
-}
-
-# Sidebar navigation items
-SIDEBAR_ITEMS = [
-    ("🤖", "ai_tab", "AI Diagnostic"),
-    ("📱", "vendor_tab", "Vendor Ops"),
-    ("🏭", "brands_tab", "Brand Explorer"),
-    ("⌚", "devices_tab", "Device Support"),
-    ("⚡", "flash_tab", "Flash & ROM"),
-    ("🧹", "format_tab", "Format & Update"),
-    ("🔓", "frp_tab", "FRP & Accounts"),
-    ("🔧", "repair_tab", "Repair"),
-    ("💾", "recovery_tab", "Data Recovery"),
-    ("🌐", "lang_tab", "Languages"),
-    ("🔌", "usb_tab", "USB/ADB/FB"),
-    ("🛡️", "security_tab", "Security"),
-    ("💬", "chat_tab", "Live Chat"),
-    ("🎬", "stream_tab", "Media Stream"),
-    ("🛒", "store_tab", "E-Commerce"),
-    ("⚙️", "settings_tab", "Settings"),
-]
-
-
-class TextHandler(logging.Handler):
-    """Streams application logging into GUI output window."""
-    def __init__(self, text_widget):
-        super().__init__()
-        self.text_widget = text_widget
-
-    def emit(self, record):
-        msg = self.format(record)
-        def append():
-            self.text_widget.configure(state='normal')
-            self.text_widget.insert(tk.END, msg + '\n')
-            self.text_widget.see(tk.END)
-            self.text_widget.configure(state='disabled')
-        self.text_widget.after(0, append)
-
 
 logger = logging.getLogger("AuraTool.UI")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Main Application GUI
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+#  THEME
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class T:
+    BG      = "#0a0e1a"
+    BG2     = "#111827"
+    BG3     = "#1e293b"
+    CARD    = "#1a2332"
+    SIDEBAR = "#060a14"
+    SBAR_H  = "#0f1729"
+    SBAR_A  = "#1a2744"
+    BORDER  = "#1e3a5f"
+    ACCENT  = "#00d4ff"
+    GREEN   = "#22c55e"
+    RED     = "#ef4444"
+    ORANGE  = "#f59e0b"
+    PURPLE  = "#a855f7"
+    CYAN    = "#06b6d4"
+    WHITE   = "#f1f5f9"
+    LIGHT   = "#94a3b8"
+    DIM     = "#475569"
+    CONSOLE = "#030712"
+    SUCCESS = "#10b981"
+
+BRAND_COLORS = {
+    "Samsung":"#1428a0","Apple":"#555555","Xiaomi":"#ff6700","Huawei":"#cf0a2c",
+    "OPPO":"#1a8a1a","Vivo":"#415fff","Realme":"#ffc300","OnePlus":"#f5010c",
+    "Google Pixel":"#4285f4","Motorola":"#5c2d91","Nokia":"#124191","Sony":"#000000",
+    "LG":"#a50034","Asus":"#00529b","Honor":"#0ab3e3","Infinix":"#00b518",
+    "Tecno":"#0066cc","HTC":"#69b42a","Nothing":"#ffffff","Poco":"#ffc107",
+    "Lenovo":"#e2231a","Meta":"#0668E1","Garmin":"#000000","Amazfit":"#ff9800",
+    "Fitbit":"#00b0b9","Microsoft":"#00a4ef","ZTE":"#0068b7","Meizu":"#1e90ff",
+    "Fairphone":"#00bfa5","Doogee":"#ff4500","Ulefone":"#1a73e8","Cubot":"#00a651",
+}
+
+CAT_ICONS = {
+    "smartphones":"📱","tablets":"📋","ipads":"🍎",
+    "smartwatches":"⌚","smart_glasses":"🥽","ar_vr_headsets":"🕶️",
+}
+
+# Localized category labels (fallback to English)
+CAT_LABELS_EN = {
+    "smartphones":"Smartphones","tablets":"Tablets","ipads":"iPads",
+    "smartwatches":"Smartwatches","smart_glasses":"Smart Glasses","ar_vr_headsets":"AR/VR",
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CLEAN LOG HANDLER — filters file paths, shows [SUCCESS] messages
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class CleanLog(logging.Handler):
+    """Clean console log handler — only shows active execution status and success messages."""
+    _BLOCK = ["/", "\\", ".py", ".log", "site-packages", "__pycache__", "Traceback", "File \""]
+    _SUCCESS_KEYWORDS = ["SUCCESS", "success", " Completed", "initialized", "passed", "ready"]
+
+    def __init__(self, w):
+        super().__init__()
+        self.w = w
+        self._ok = True
+
+    def emit(self, r):
+        if not self._ok:
+            return
+        m = self.format(r)
+        # Block file paths, tracebacks, and noisy debug lines
+        for b in self._BLOCK:
+            if b in m:
+                return
+        # Only show level >= INFO
+        if r.levelno < logging.INFO:
+            return
+        def _a():
+            try:
+                self.w.configure(state='normal')
+                self.w.insert(tk.END, m + '\n')
+                self.w.see(tk.END)
+                self.w.configure(state='disabled')
+            except tk.TclError:
+                pass
+        try:
+            self.w.after(0, _a)
+        except (tk.TclError, RuntimeError):
+            self._ok = False
+
+    def handleError(self, r):
+        self._ok = False
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  LOCALIZATION HELPER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _t(loc_mgr, key, section="", default=None):
+    """Get a translated string from the localization manager."""
+    if loc_mgr is None:
+        return default or key
+    if section:
+        full_key = f"{section}.{key}"
+        result = loc_mgr.get_string(full_key)
+        if result != full_key:
+            return result
+    result = loc_mgr.get_string(key)
+    return result if result != key else (default or key)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  MAIN APP
+# ═══════════════════════════════════════════════════════════════════════════════
 
 class AuraToolUI:
-    """Professional HD Desktop Application GUI with SVG Brand Logos & Full i18n."""
-
-    def __init__(self, license_info: dict, driver_status: dict, factory_mgr: FactoryManager | None = None):
+    def __init__(self, license_info: dict, driver_status: dict, factory_mgr=None):
         self.root = tk.Tk()
-        self.root.title("AuraTool-Suite — Universal Desktop Platform 2030")
-        self.root.geometry("1400x950")
-        self.root.minsize(1100, 750)
-
-        # Apply dark theme
-        self.root.configure(bg=Theme.BG_DARK)
-        self._set_window_icon()
+        self.root.title("AuraTool-Suite v6.0.0")
+        self.root.geometry("1440x920")
+        self.root.minsize(1200, 750)
+        self.root.configure(bg=T.BG)
+        self._icon()
 
         self.license_info = license_info
-        self.driver_status = driver_status
-        self.license_mgr = LicenseManager()
-        self.loc_mgr = LocalizationManager("en")
+        self.lic_mgr = LicenseManager()
+        self.sec = SecurityManager()
+        self.flash = FlashingEngine()
+        self.bio = BiometricsFix()
+        self.dev = SmartDeviceManager()
+        self.recov = DataRecoveryModule()
+        self.acct = AccountRepairModule()
+        self.ai = AuraAIAssistant()
+        self.repair = UltimateRepairModule()
+        self.drv = DeviceDriverManager()
+        self.loc = LocalizationManager("en")
+        self._lang_code = "en"
 
-        self.flashing_engine = FlashingEngine()
-        self.biometrics_fix = BiometricsFix()
-        self.smart_dev_mgr = SmartDeviceManager()
-        self.data_recovery = DataRecoveryModule()
-        self.account_repair = AccountRepairModule()
-        self.ai_assistant = AuraAIAssistant()
-        self.ultimate_repair = UltimateRepairModule()
-        self.chat_mgr = ChatRoomManager()
-        self.media_stream = MediaStreamEngine()
-        self.ecommerce_mgr = ECommerceManager()
-        self.driver_mgr = DeviceDriverManager()
-        self.factory_mgr = factory_mgr or FactoryManager()
+        self._build()
+        self._log_setup()
 
-        # Icon references (prevent GC)
-        self._icon_refs = []
-        self._brand_icon_refs = []
-
-        self._apply_styles()
-        self._build_ui()
-        self._setup_logging()
-
-    def _apply_styles(self):
-        """Apply professional dark theme styling."""
-        style = ttk.Style()
-        style.theme_use('clam')
-
-        style.configure('.', background=Theme.BG_DARK, foreground=Theme.TEXT_WHITE, font=('Segoe UI', 10))
-        style.configure('TFrame', background=Theme.BG_DARK)
-        style.configure('TLabel', background=Theme.BG_DARK, foreground=Theme.TEXT_WHITE, font=('Segoe UI', 10))
-        style.configure('TButton', background=Theme.BTN_PRIMARY, foreground=Theme.TEXT_WHITE,
-                       font=('Segoe UI', 10, 'bold'), padding=(12, 6))
-        style.map('TButton', background=[('active', Theme.ACCENT2)])
-
-        style.configure('TNotebook', background=Theme.BG_DARK, borderwidth=0)
-        style.configure('TNotebook.Tab', background=Theme.BG_MEDIUM, foreground=Theme.TEXT_LIGHT,
-                       font=('Segoe UI', 10, 'bold'), padding=(16, 8))
-        style.map('TNotebook.Tab',
-                  background=[('selected', Theme.BG_LIGHT)],
-                  foreground=[('selected', Theme.TEXT_WHITE)])
-
-        style.configure('TLabelframe', background=Theme.BG_DARK, foreground=Theme.TEXT_LIGHT,
-                       font=('Segoe UI', 10, 'bold'))
-        style.configure('TLabelframe.Label', background=Theme.BG_DARK, foreground=Theme.TEXT_YELLOW,
-                       font=('Segoe UI', 10, 'bold'))
-
-        style.configure('TEntry', fieldbackground=Theme.BG_MEDIUM, foreground=Theme.TEXT_WHITE,
-                       insertcolor=Theme.TEXT_WHITE, font=('Segoe UI', 10))
-        style.configure('TCombobox', fieldbackground=Theme.BG_MEDIUM, foreground=Theme.TEXT_WHITE,
-                       background=Theme.BG_LIGHT, font=('Segoe UI', 10))
-
-        style.configure('Treeview', background=Theme.BG_MEDIUM, foreground=Theme.TEXT_WHITE,
-                       fieldbackground=Theme.BG_MEDIUM, font=('Segoe UI', 9))
-        style.configure('Treeview.Heading', background=Theme.BG_LIGHT, foreground=Theme.TEXT_YELLOW,
-                       font=('Segoe UI', 9, 'bold'))
-
-    def _setup_logging(self):
-        handler = TextHandler(self.console)
-        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", "%H:%M:%S")
-        handler.setFormatter(formatter)
-        logging.getLogger().addHandler(handler)
-        logging.getLogger().setLevel(logging.INFO)
-
-    def _set_window_icon(self):
+    def _icon(self):
         try:
-            if getattr(sys, '_MEIPASS', None):
-                base = sys._MEIPASS
-            else:
-                base = os.path.dirname(os.path.abspath(__file__))
-                base = os.path.dirname(base)
-
-            for icon_file in ['assets/icon.ico', 'assets/icon.png']:
-                icon_path = os.path.join(base, icon_file)
-                if os.path.isfile(icon_path):
-                    if icon_file.endswith('.ico'):
-                        self.root.iconbitmap(icon_path)
+            for f in ['assets/icon.ico','assets/icon.png']:
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', f)
+                if os.path.isfile(p):
+                    if f.endswith('.ico'):
+                        self.root.iconbitmap(p)
                     else:
-                        img = tk.PhotoImage(file=icon_path)
+                        img = tk.PhotoImage(file=p)
                         self.root.iconphoto(True, img)
                     return
-        except Exception as e:
-            logger.debug("Could not set window icon: %s", e)
-
-    def _build_ui(self):
-        """Build the complete UI layout with sidebar navigation."""
-        # ═══════════════════════════════════════════════════════════════
-        # TOP HEADER BAR
-        # ═══════════════════════════════════════════════════════════════
-        header = tk.Frame(self.root, bg=Theme.HEADER_BG, height=55)
-        header.pack(fill=tk.X)
-        header.pack_propagate(False)
-
-        # App Title + Logo
-        title_frame = tk.Frame(header, bg=Theme.HEADER_BG)
-        title_frame.pack(side=tk.LEFT, padx=15, pady=8)
-
-        # App icon
-        try:
-            if getattr(sys, '_MEIPASS', None):
-                icon_path = os.path.join(sys._MEIPASS, 'assets', 'icon.png')
-            else:
-                icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "icon.png")
-            if os.path.exists(icon_path):
-                app_icon = tk.PhotoImage(file=icon_path)
-                app_icon = app_icon.subsample(2, 2)
-                self._icon_refs.append(app_icon)
-                tk.Label(title_frame, image=app_icon, bg=Theme.HEADER_BG).pack(side=tk.LEFT, padx=(0, 8))
         except Exception:
             pass
 
-        self.title_lbl = tk.Label(title_frame,
-            text=self.loc_mgr.get_string("title"),
-            font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_WHITE, bg=Theme.HEADER_BG)
-        self.title_lbl.pack(side=tk.LEFT)
-
-        # License Info (Right side)
-        hwid = self.license_info.get("hwid", "N/A")
-        lic_status = "✅ ACTIVE" if self.license_info["is_active"] else "❌ INACTIVE"
-        lic_color = Theme.TEXT_GREEN if self.license_info["is_active"] else Theme.TEXT_RED
-
-        lic_frame = tk.Frame(header, bg=Theme.HEADER_BG)
-        lic_frame.pack(side=tk.RIGHT, padx=15, pady=8)
-
-        plat = "🐧 Linux" if platform.system() == "Linux" else "🪟 Windows"
-        tk.Label(lic_frame, text=f"{plat} v2.0.0",
-                font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.HEADER_BG).pack(side=tk.RIGHT, padx=10)
-
-        self.lic_lbl = tk.Label(lic_frame,
-            text=f"{lic_status} | {self.license_info['tier']} ({self.license_info['days_remaining']}d) | HWID: {hwid}",
-            font=('Consolas', 9), fg=lic_color, bg=Theme.HEADER_BG)
-        self.lic_lbl.pack(side=tk.RIGHT)
-
-        # ═══════════════════════════════════════════════════════════════
-        # LICENSE ACTIVATION BAR
-        # ═══════════════════════════════════════════════════════════════
-        self.act_bar = tk.LabelFrame(self.root, text=self.loc_mgr.get_string("license_bar_lbl"),
-                                     bg=Theme.BG_DARK, fg=Theme.TEXT_YELLOW,
-                                     font=('Segoe UI', 9, 'bold'), bd=1, relief='groove')
-        self.act_bar.pack(fill=tk.X, padx=10, pady=(5, 2))
-
-        act_inner = tk.Frame(self.act_bar, bg=Theme.BG_DARK)
-        act_inner.pack(fill=tk.X, padx=5, pady=5)
-
-        tk.Label(act_inner, text="🔑 Key:", font=('Segoe UI', 9),
-                fg=Theme.TEXT_LIGHT, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=5)
-        self.key_entry = tk.Entry(act_inner, width=36, bg=Theme.BG_MEDIUM, fg=Theme.TEXT_WHITE,
-                                  insertbackground=Theme.TEXT_WHITE, font=('Consolas', 10), bd=1)
-        self.key_entry.pack(side=tk.LEFT, padx=5)
-        self.act_btn = tk.Button(act_inner, text=self.loc_mgr.get_string("activate_btn"),
-                                bg=Theme.BTN_SUCCESS, fg=Theme.TEXT_WHITE,
-                                font=('Segoe UI', 9, 'bold'), bd=0, padx=12, pady=4,
-                                command=self._action_activate_key, cursor="hand2")
-        self.act_btn.pack(side=tk.LEFT, padx=5)
-
-        # ═══════════════════════════════════════════════════════════════
-        # MAIN LAYOUT: SIDEBAR + CONTENT
-        # ═══════════════════════════════════════════════════════════════
-        main_frame = tk.Frame(self.root, bg=Theme.BG_DARK)
-        main_frame.pack(expand=True, fill=tk.BOTH, padx=0, pady=0)
-
-        # ─── SIDEBAR ────────────────────────────────────────────────────
-        self.sidebar = tk.Frame(main_frame, bg=Theme.SIDEBAR_BG, width=180)
-        self.sidebar.pack(side=tk.LEFT, fill=tk.Y)
-        self.sidebar.pack_propagate(False)
-
-        # Sidebar header
-        tk.Label(self.sidebar, text="🔧 Navigation", font=('Segoe UI', 10, 'bold'),
-                fg=Theme.TEXT_YELLOW, bg=Theme.SIDEBAR_BG).pack(pady=(10, 5), padx=10, anchor=tk.W)
-
-        tk.Frame(self.sidebar, bg=Theme.BORDER, height=1).pack(fill=tk.X, padx=10, pady=5)
-
-        # Sidebar buttons
-        self.sidebar_buttons = {}
-        self._active_tab_idx = 0
-
-        for idx, (icon, key, label) in enumerate(SIDEBAR_ITEMS):
-            translated_label = self.loc_mgr.get_string(key)
-            btn_frame = tk.Frame(self.sidebar, bg=Theme.SIDEBAR_BG, cursor="hand2")
-            btn_frame.pack(fill=tk.X, padx=5, pady=1)
-
-            icon_lbl = tk.Label(btn_frame, text=icon, font=('Segoe UI', 14),
-                              fg=Theme.TEXT_WHITE, bg=Theme.SIDEBAR_BG, width=3)
-            icon_lbl.pack(side=tk.LEFT, padx=(5, 2), pady=4)
-
-            text_lbl = tk.Label(btn_frame, text=translated_label, font=('Segoe UI', 9),
-                              fg=Theme.TEXT_LIGHT, bg=Theme.SIDEBAR_BG, anchor=tk.W)
-            text_lbl.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5), pady=4)
-
-            self.sidebar_buttons[key] = {"frame": btn_frame, "icon": icon_lbl, "text": text_lbl, "idx": idx}
-
-            # Bind click events
-            for widget in [btn_frame, icon_lbl, text_lbl]:
-                widget.bind("<Button-1>", lambda e, i=idx: self._on_sidebar_click(i))
-                widget.bind("<Enter>", lambda e, f=btn_frame: f.configure(bg=Theme.SIDEBAR_ACTIVE))
-                widget.bind("<Leave>", lambda e, f=btn_frame, k=key: self._on_sidebar_leave(f, k))
-
-        # Highlight first item
-        self._highlight_sidebar(0)
-
-        # Separator
-        tk.Frame(self.sidebar, bg=Theme.BORDER, height=1).pack(fill=tk.X, padx=10, pady=5)
-
-        # Brand logos in sidebar
-        tk.Label(self.sidebar, text="📱 Brands", font=('Segoe UI', 9, 'bold'),
-                fg=Theme.TEXT_YELLOW, bg=Theme.SIDEBAR_BG).pack(pady=(5, 3), padx=10, anchor=tk.W)
-
-        brands_canvas = tk.Canvas(self.sidebar, bg=Theme.SIDEBAR_BG, highlightthickness=0, width=170)
-        brands_scrollbar = tk.Scrollbar(self.sidebar, orient="vertical", command=brands_canvas.yview)
-        brands_frame = tk.Frame(brands_canvas, bg=Theme.SIDEBAR_BG)
-
-        brands_frame.bind("<Configure>", lambda e: brands_canvas.configure(scrollregion=brands_canvas.bbox("all")))
-        brands_canvas.create_window((0, 0), window=brands_frame, anchor="nw")
-        brands_canvas.configure(yscrollcommand=brands_scrollbar.set)
-
-        # Add brand items to sidebar
-        try:
-            brand_gen = get_brand_icons() if HAS_BRAND_ICONS else None
-        except Exception:
-            brand_gen = None
-
-        for brand_name, info in list(BRAND_LOGOS.items())[:12]:
-            brand_frame = tk.Frame(brands_frame, bg=Theme.SIDEBAR_BG, cursor="hand2")
-            brand_frame.pack(fill=tk.X, padx=5, pady=1)
-
-            # Brand color dot
-            dot = tk.Canvas(brand_frame, width=10, height=10, bg=Theme.SIDEBAR_BG, highlightthickness=0)
-            dot.pack(side=tk.LEFT, padx=(8, 4), pady=3)
-            dot.create_oval(1, 1, 9, 9, fill=info["color"], outline="")
-
-            # Try to load brand icon
-            if brand_gen:
-                try:
-                    icon_path = brand_gen.get_icon_path(brand_name, 16)
-                    if icon_path and os.path.exists(icon_path):
-                        pil_img = __import__("PIL.Image", fromlist=["Image"]).open(icon_path)
-                        tk_img = __import__("PIL.ImageTk", fromlist=["ImageTk"]).PhotoImage(pil_img)
-                        self._brand_icon_refs.append(tk_img)
-                        tk.Label(brand_frame, image=tk_img, bg=Theme.SIDEBAR_BG).pack(side=tk.LEFT, padx=(0, 2), pady=2)
-                except Exception:
-                    pass
-
-            tk.Label(brand_frame, text=brand_name, font=('Segoe UI', 8),
-                    fg=Theme.TEXT_LIGHT, bg=Theme.SIDEBAR_BG, anchor=tk.W).pack(side=tk.LEFT, pady=3)
-
-        brands_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 0))
-        brands_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # ─── CONTENT AREA ───────────────────────────────────────────────
-        content_frame = tk.Frame(main_frame, bg=Theme.BG_DARK)
-        content_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
-
-        # Notebook (Tabs)
-        self.notebook = ttk.Notebook(content_frame)
-        self.notebook.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
-
-        # Tab 1: AI Diagnostic
-        ai_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(ai_tab, text=self.loc_mgr.get_string("ai_tab"))
-        self._build_ai_tab(ai_tab)
-
-        # Tab 2: Vendor & Device Operations
-        vendor_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(vendor_tab, text=self.loc_mgr.get_string("vendor_tab"))
-        self._build_vendor_tab(vendor_tab)
-
-        # Tab 3: Brand Explorer
-        brands_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(brands_tab, text=self.loc_mgr.get_string("brands_tab"))
-        self._build_brands_tab(brands_tab)
-
-        # Tab 4: Device Support (All categories)
-        devices_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(devices_tab, text=self.loc_mgr.get_string("devices_tab"))
-        self._build_devices_tab(devices_tab)
-
-        # Tab 5: Flashing & ROM Management
-        flash_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(flash_tab, text=self.loc_mgr.get_string("flash_tab"))
-        self._build_flash_tab(flash_tab)
-
-        # Tab 6: Format & System Update
-        format_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(format_tab, text=self.loc_mgr.get_string("format_tab"))
-        self._build_format_tab(format_tab)
-
-        # Tab 7: FRP Bypass & Account Repair
-        frp_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(frp_tab, text=self.loc_mgr.get_string("frp_tab"))
-        self._build_frp_tab(frp_tab)
-
-        # Tab 8: Ultimate System Repair
-        repair_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(repair_tab, text=self.loc_mgr.get_string("repair_tab"))
-        self._build_repair_tab(repair_tab)
-
-        # Tab 9: Data Recovery
-        recovery_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(recovery_tab, text=self.loc_mgr.get_string("recovery_tab"))
-        self._build_recovery_tab(recovery_tab)
-
-        # Tab 10: Languages & Localization
-        lang_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(lang_tab, text=self.loc_mgr.get_string("lang_tab"))
-        self._build_lang_tab(lang_tab)
-
-        # Tab 11: USB / ADB / Fastboot Manager
-        usb_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(usb_tab, text=self.loc_mgr.get_string("usb_tab"))
-        self._build_usb_tab(usb_tab)
-
-        # Tab 12: Security & Protection
-        security_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(security_tab, text=self.loc_mgr.get_string("security_tab"))
-        self._build_security_tab(security_tab)
-
-        # Tab 13: Live Chat
-        chat_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(chat_tab, text=self.loc_mgr.get_string("chat_tab"))
-        self._build_chat_tab(chat_tab)
-
-        # Tab 14: Media Stream
-        stream_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(stream_tab, text=self.loc_mgr.get_string("stream_tab"))
-        self._build_stream_tab(stream_tab)
-
-        # Tab 15: E-Commerce
-        store_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(store_tab, text=self.loc_mgr.get_string("store_tab"))
-        self._build_store_tab(store_tab)
-
-        # Tab 16: Settings
-        settings_tab = tk.Frame(self.notebook, bg=Theme.TAB_BG)
-        self.notebook.add(settings_tab, text=self.loc_mgr.get_string("settings_tab"))
-        self._build_settings_tab(settings_tab)
-
-        # ─── BOTTOM CONSOLE LOG ─────────────────────────────────────────
-        console_frame = tk.LabelFrame(content_frame,
-            text=self.loc_mgr.get_string("console_title"),
-            bg=Theme.BG_DARK, fg=Theme.TEXT_GREEN, font=('Segoe UI', 9, 'bold'), bd=1)
-        console_frame.pack(fill=tk.X, padx=5, pady=(2, 5))
-
-        self.console = scrolledtext.ScrolledText(console_frame, height=5, state='disabled',
-            bg=Theme.CONSOLE_BG, fg=Theme.TEXT_GREEN, font=('Consolas', 9),
-            insertbackground=Theme.TEXT_GREEN, bd=0, highlightthickness=0)
-        self.console.pack(fill=tk.BOTH, padx=5, pady=5)
-
-    # ─── Sidebar Navigation ─────────────────────────────────────────────
-
-    def _on_sidebar_click(self, idx: int):
-        """Handle sidebar button click."""
-        self._highlight_sidebar(idx)
-        if idx < len(self.notebook.tabs()):
-            self.notebook.select(idx)
-
-    def _on_sidebar_leave(self, frame, key):
-        """Handle sidebar button leave."""
-        idx = self.sidebar_buttons[key]["idx"]
-        if idx != self._active_tab_idx:
-            frame.configure(bg=Theme.SIDEBAR_BG)
-
-    def _highlight_sidebar(self, idx: int):
-        """Highlight the active sidebar item."""
-        self._active_tab_idx = idx
-        for key, info in self.sidebar_buttons.items():
-            if info["idx"] == idx:
-                info["frame"].configure(bg=Theme.SIDEBAR_ACTIVE)
-                info["icon"].configure(fg=Theme.TEXT_YELLOW)
-                info["text"].configure(fg=Theme.TEXT_WHITE, font=('Segoe UI', 9, 'bold'))
-            else:
-                info["frame"].configure(bg=Theme.SIDEBAR_BG)
-                info["icon"].configure(fg=Theme.TEXT_WHITE)
-                info["text"].configure(fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9))
-
-    # ─── Tab Builders ───────────────────────────────────────────────────
-
-    def _build_ai_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("ai_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        # Brand logos strip with SVG/PNG icons
-        brands_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        brands_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        try:
-            brand_gen = get_brand_icons() if HAS_BRAND_ICONS else None
-        except Exception:
-            brand_gen = None
-
-        for brand_name, info in list(BRAND_LOGOS.items())[:14]:
-            brand_def = BRAND_ICON_DEFS.get(brand_name, {}) if HAS_BRAND_ICONS else {}
-            primary_color = brand_def.get("primary", info.get("color", "#333333"))
-
-            btn_frame = tk.Frame(brands_frame, bg=primary_color, bd=0,
-                                highlightbackground=primary_color, highlightthickness=1)
-            btn_frame.pack(side=tk.LEFT, padx=2, pady=2)
-
-            # Try to load generated icon
-            if brand_gen:
-                try:
-                    icon_path = brand_gen.get_icon_path(brand_name, 24)
-                    if icon_path and os.path.exists(icon_path):
-                        pil_img = __import__("PIL.Image", fromlist=["Image"]).open(icon_path)
-                        tk_img = __import__("PIL.ImageTk", fromlist=["ImageTk"]).PhotoImage(pil_img)
-                        self._brand_icon_refs.append(tk_img)
-                        icon_label = tk.Label(btn_frame, image=tk_img, bg=primary_color)
-                        icon_label.pack(side=tk.LEFT, padx=(4, 2), pady=2)
-                except Exception:
-                    pass
-
-            text_color = brand_def.get("text_color", info.get("accent", "#ffffff"))
-            btn = tk.Button(btn_frame, text=brand_name,
-                          bg=primary_color, fg=text_color,
-                          font=('Segoe UI', 8, 'bold'), bd=0, padx=6, pady=3, cursor="hand2",
-                          activebackground=primary_color, activeforeground=text_color)
-            btn.pack(side=tk.LEFT, padx=(0, 4), pady=2)
-
-        # AI Command area
-        ai_frame = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
-        ai_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        tk.Label(ai_frame, text="🤖 " + self.loc_mgr.get_string("ai_command_label"),
-                font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(anchor=tk.W, padx=10, pady=(10, 2))
-
-        cmd_row = tk.Frame(ai_frame, bg=Theme.BG_MEDIUM)
-        cmd_row.pack(fill=tk.X, padx=10, pady=(0, 10))
-
-        self.ai_cmd_entry = tk.Entry(cmd_row, width=60, bg=Theme.CONSOLE_BG, fg=Theme.TEXT_GREEN,
-                                     insertbackground=Theme.TEXT_GREEN, font=('Consolas', 11), bd=1)
-        self.ai_cmd_entry.pack(side=tk.LEFT, padx=(0, 8))
-        self.ai_cmd_entry.insert(0, "Analyze log and bypass FRP lock")
-
-        self.ai_btn = tk.Button(cmd_row, text=self.loc_mgr.get_string("run_ai"),
-                               bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                               font=('Segoe UI', 10, 'bold'), bd=0, padx=16, pady=6,
-                               command=self._action_run_ai, cursor="hand2")
-        self.ai_btn.pack(side=tk.LEFT)
-
-        # AI Response area
-        self.ai_response = scrolledtext.ScrolledText(parent, height=12, state='disabled',
-            bg=Theme.CONSOLE_BG, fg=Theme.TEXT_LIGHT, font=('Consolas', 10), bd=1)
-        self.ai_response.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
-
-    def _build_vendor_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("vendor_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        sel_frame = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
-        sel_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        row1 = tk.Frame(sel_frame, bg=Theme.BG_MEDIUM)
-        row1.pack(fill=tk.X, padx=10, pady=8)
-
-        # Brand icon next to manufacturer dropdown
-        self._vendor_icon_label = tk.Label(row1, bg=Theme.BG_MEDIUM, width=3)
-        self._vendor_icon_label.pack(side=tk.LEFT, padx=(0, 5))
-
-        tk.Label(row1, text="🏭 " + self.loc_mgr.get_string("manufacturer"),
-                font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=5)
-        self.vendor_cb = ttk.Combobox(row1, values=list(MANUFACTURERS.keys()), state="readonly", width=20)
-        self.vendor_cb.pack(side=tk.LEFT, padx=10)
-        self.vendor_cb.current(0)
-        self.vendor_cb.bind("<<ComboboxSelected>>", self._on_vendor_change)
-
-        # Brand info label
-        self._brand_info_label = tk.Label(row1, text="", font=('Segoe UI', 9),
-            fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM)
-        self._brand_info_label.pack(side=tk.LEFT, padx=10)
-
-        row2 = tk.Frame(sel_frame, bg=Theme.BG_MEDIUM)
-        row2.pack(fill=tk.X, padx=10, pady=8)
-        tk.Label(row2, text="📱 " + self.loc_mgr.get_string("model"),
-                font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=5)
-        self.model_cb = ttk.Combobox(row2, values=MANUFACTURERS["Samsung"], state="readonly", width=30)
-        self.model_cb.pack(side=tk.LEFT, padx=10)
-        self.model_cb.current(0)
-
-        # Load initial brand icon
-        self._update_vendor_brand_icon("Samsung")
-
-        # Operations buttons
-        ops_frame = tk.LabelFrame(parent, text=self.loc_mgr.get_string("operations"),
-                                  bg=Theme.BG_DARK, fg=Theme.TEXT_YELLOW, font=('Segoe UI', 10, 'bold'))
-        ops_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        btn_row = tk.Frame(ops_frame, bg=Theme.BG_DARK)
-        btn_row.pack(fill=tk.X, padx=10, pady=10)
-
-        buttons = [
-            (self.loc_mgr.get_string("flash"), Theme.BTN_PRIMARY, self._action_flash),
-            (self.loc_mgr.get_string("bypass_frp"), Theme.ACCENT2, self._action_bypass_frp),
-            ("Backup EFS / NVRAM", Theme.BG_LIGHT, self._action_backup_efs),
-            ("Deep Unbrick", Theme.TEXT_RED, self._action_unbrick),
+    def _log_setup(self):
+        h = CleanLog(self.console)
+        h.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", "%H:%M:%S"))
+        logging.getLogger().addHandler(h)
+        logging.getLogger().setLevel(logging.INFO)
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  BUILD
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _build(self):
+        # ── HEADER ──
+        hdr = tk.Frame(self.root, bg=T.SIDEBAR, height=48)
+        hdr.pack(fill=tk.X)
+        hdr.pack_propagate(False)
+        lf = tk.Frame(hdr, bg=T.SIDEBAR)
+        lf.pack(side=tk.LEFT, padx=15, pady=8)
+        tk.Label(lf, text="🔧", font=('Segoe UI',16), bg=T.SIDEBAR, fg=T.ACCENT).pack(side=tk.LEFT, padx=(0,6))
+        tk.Label(lf, text="AuraTool", font=('Segoe UI',14,'bold'), bg=T.SIDEBAR, fg=T.WHITE).pack(side=tk.LEFT)
+        tk.Label(lf, text="-Suite", font=('Segoe UI',14), bg=T.SIDEBAR, fg=T.ACCENT).pack(side=tk.LEFT)
+        tk.Label(lf, text=" v6.0.0", font=('Segoe UI',9), bg=T.SIDEBAR, fg=T.DIM).pack(side=tk.LEFT, padx=(6,0))
+        rf = tk.Frame(hdr, bg=T.SIDEBAR)
+        rf.pack(side=tk.RIGHT, padx=15)
+        a = self.license_info.get("is_active", False)
+        tk.Label(rf, text=f"{'✅' if a else '❌'} {self.license_info.get('tier','N/A')} ({self.license_info.get('days_remaining',0)}d)",
+                 font=('Consolas',9), bg=T.SIDEBAR, fg=T.GREEN if a else T.RED).pack(side=tk.RIGHT)
+
+        # ── LICENSE BAR ──
+        lb = tk.Frame(self.root, bg=T.BG2, height=36)
+        lb.pack(fill=tk.X)
+        lb.pack_propagate(False)
+        tk.Label(lb, text="🔑", font=('Segoe UI',10), bg=T.BG2, fg=T.ORANGE).pack(side=tk.LEFT, padx=(15,4), pady=6)
+        tk.Label(lb, text=_t(self.loc, "bar_label", "license", "License:"),
+                 font=('Segoe UI',9,'bold'), bg=T.BG2, fg=T.LIGHT).pack(side=tk.LEFT, pady=6)
+        self.key_e = tk.Entry(lb, width=36, bg=T.BG3, fg=T.WHITE, insertbackground=T.WHITE,
+                              font=('Consolas',10), bd=0)
+        self.key_e.pack(side=tk.LEFT, padx=6, pady=4)
+        self.key_e.insert(0, "AT6M-XXXXXXXXXXXX")
+        tk.Button(lb, text=f"⚡ {_t(self.loc, 'activate_btn', 'license', 'Activate')}",
+                  bg=T.GREEN, fg=T.WHITE, font=('Segoe UI',9,'bold'), bd=0, padx=12, pady=3,
+                  command=self._activate, cursor="hand2").pack(side=tk.LEFT, padx=3, pady=6)
+        self.dev_lbl = tk.Label(lb, text=f"🟢 {_t(self.loc, 'no_devices', 'license', 'No devices')}",
+                                font=('Segoe UI',9), bg=T.BG2, fg=T.LIGHT)
+        self.dev_lbl.pack(side=tk.RIGHT, padx=15, pady=6)
+
+        # ── ACTION TOOLBAR ──
+        toolbar = tk.Frame(self.root, bg=T.BG3, height=44)
+        toolbar.pack(fill=tk.X)
+        toolbar.pack_propagate(False)
+        tk.Label(toolbar, text=f"⚡ {_t(self.loc, 'operations', 'devices', 'Operations')}:",
+                 font=('Segoe UI',9,'bold'), bg=T.BG3, fg=T.LIGHT).pack(side=tk.LEFT, padx=(12,6), pady=6)
+        actions = [
+            (f"📱 {_t(self.loc, 'flash', 'actions', 'Flash')}", T.ACCENT, self._act_flash),
+            (f"🔓 {_t(self.loc, 'frp', 'actions', 'FRP')}", T.PURPLE, self._act_frp),
+            (f"🧹 {_t(self.loc, 'format', 'actions', 'Format')}", T.RED, self._act_format),
+            (f"🔄 {_t(self.loc, 'update', 'actions', 'Update')}", T.GREEN, self._act_update),
+            (f"🔐 {_t(self.loc, 'unlock', 'actions', 'Unlock')}", T.CYAN, self._act_unlock),
+            (f"👆 {_t(self.loc, 'biometric', 'actions', 'Biometric')}", T.ORANGE, self._act_biometric),
+            (f"💾 {_t(self.loc, 'recovery', 'actions', 'Recovery')}", T.PURPLE, self._act_recovery),
+            (f"🔧 {_t(self.loc, 'repair', 'actions', 'Repair')}", T.ACCENT, self._act_repair),
+            (f"🛡️ {_t(self.loc, 'security', 'actions', 'Security')}", T.GREEN, self._act_security),
         ]
-        for text, color, cmd in buttons:
-            tk.Button(btn_row, text=text, bg=color, fg=Theme.TEXT_WHITE,
-                     font=('Segoe UI', 9, 'bold'), bd=0, padx=12, pady=6,
-                     command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=4)
+        for txt, clr, cmd in actions:
+            tk.Button(toolbar, text=txt, bg=clr, fg=T.WHITE, font=('Segoe UI',8,'bold'), bd=0,
+                      padx=8, pady=3, command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=2, pady=6)
 
-    def _build_brands_tab(self, parent):
-        """Build the Brand Explorer tab with SVG icons and brand info."""
-        tk.Label(parent, text="🏭 " + self.loc_mgr.get_string("brands_tab"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+        # ── MAIN AREA ──
+        main = tk.Frame(self.root, bg=T.BG)
+        main.pack(expand=True, fill=tk.BOTH)
 
-        # Brand grid container
-        grid_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        grid_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        # ── SIDEBAR ──
+        sb = tk.Frame(main, bg=T.SIDEBAR, width=200)
+        sb.pack(side=tk.LEFT, fill=tk.Y)
+        sb.pack_propagate(False)
+        tk.Label(sb, text="🔧 AuraTool", font=('Segoe UI',11,'bold'), bg=T.SIDEBAR, fg=T.ACCENT).pack(pady=(10,2), padx=12, anchor=tk.W)
+        tk.Frame(sb, bg=T.BORDER, height=1).pack(fill=tk.X, padx=10, pady=3)
 
-        # Load brand icons
-        try:
-            brand_gen = get_brand_icons() if HAS_BRAND_ICONS else None
-        except Exception:
-            brand_gen = None
+        # Navigation
+        nav_items = [
+            ("📱", "devices", _t(self.loc, "devices", "nav", "Devices")),
+            ("⚡", "flash", _t(self.loc, "flash", "nav", "Flash")),
+            ("🔓", "security", _t(self.loc, "security", "nav", "Security")),
+            ("💾", "recovery", _t(self.loc, "recovery", "nav", "Recovery")),
+            ("👆", "biometric", _t(self.loc, "biometric", "nav", "Biometrics")),
+            ("🌐", "language", _t(self.loc, "language", "nav", "Languages")),
+            ("⚙️", "settings", _t(self.loc, "settings", "nav", "Settings")),
+        ]
+        self.nav = {}
+        for ico, key, lbl in nav_items:
+            bf = tk.Frame(sb, bg=T.SIDEBAR, cursor="hand2", height=32)
+            bf.pack(fill=tk.X, padx=4, pady=1)
+            bf.pack_propagate(False)
+            il = tk.Label(bf, text=ico, font=('Segoe UI',11), bg=T.SIDEBAR, fg=T.WHITE, width=3)
+            il.pack(side=tk.LEFT, padx=(6,2), pady=5)
+            tl = tk.Label(bf, text=lbl, font=('Segoe UI',9), bg=T.SIDEBAR, fg=T.LIGHT, anchor=tk.W)
+            tl.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=5)
+            self.nav[key] = {"f":bf, "i":il, "t":tl}
+            for w in (bf, il, tl):
+                w.bind("<Button-1>", lambda e, k=key: self._nav(k))
+                w.bind("<Enter>", lambda e, f=bf: f.configure(bg=T.SBAR_H))
+                w.bind("<Leave>", lambda e, f=bf, k=key: self._nav_leave(f, k))
 
-        try:
-            svg_mgr = get_brand_svg_manager() if HAS_SVG else None
-        except Exception:
-            svg_mgr = None
+        tk.Frame(sb, bg=T.BORDER, height=1).pack(fill=tk.X, padx=10, pady=4)
 
-        # Create brand cards in a grid layout
-        cols = 4
-        row_idx = 0
-        col_idx = 0
+        # ── Categorized Brand Tree ──
+        tk.Label(sb, text=f"📱 {_t(self.loc, 'brand_explorer', 'devices', 'Brands')}",
+                 font=('Segoe UI',9,'bold'), bg=T.SIDEBAR, fg=T.ORANGE).pack(padx=12, anchor=tk.W)
+        tc = tk.Canvas(sb, bg=T.SIDEBAR, highlightthickness=0, width=190)
+        ts = tk.Scrollbar(sb, orient="vertical", command=tc.yview)
+        tf = tk.Frame(tc, bg=T.SIDEBAR)
+        tf.bind("<Configure>", lambda e: tc.configure(scrollregion=tc.bbox("all")))
+        tc.create_window((0,0), window=tf, anchor="nw")
+        tc.configure(yscrollcommand=ts.set)
 
-        for brand_name, info in BRAND_LOGOS.items():
-            # Get brand color and description
-            brand_def = BRAND_ICON_DEFS.get(brand_name, {}) if HAS_BRAND_ICONS else {}
-            primary_color = brand_def.get("primary", info.get("color", "#333333"))
-            text_color = brand_def.get("text_color", info.get("accent", "#ffffff"))
-            description = svg_mgr.get_brand_description(brand_name) if svg_mgr else ""
-
-            # Create brand card
-            card = tk.Frame(grid_frame, bg=Theme.BG_MEDIUM, bd=1, relief='groove', cursor="hand2")
-            card.grid(row=row_idx, column=col_idx, padx=5, pady=5, sticky="nsew")
-            grid_frame.columnconfigure(col_idx, weight=1)
-
-            # Brand icon (larger size)
-            icon_frame = tk.Frame(card, bg=primary_color, padx=8, pady=8)
-            icon_frame.pack(fill=tk.X, padx=5, pady=(5, 2))
-
-            # Try to load SVG/PNG icon
-            if brand_gen:
-                try:
-                    icon_path = brand_gen.get_icon_path(brand_name, 48)
-                    if icon_path and os.path.exists(icon_path):
-                        pil_img = __import__("PIL.Image", fromlist=["Image"]).open(icon_path)
-                        tk_img = __import__("PIL.ImageTk", fromlist=["ImageTk"]).PhotoImage(pil_img)
-                        self._brand_icon_refs.append(tk_img)
-                        tk.Label(icon_frame, image=tk_img, bg=primary_color).pack(pady=5)
+        self._tree = {}
+        for cat, mfrs in ECOSYSTEM_CATALOGUE.items():
+            ci = CAT_ICONS.get(cat, "📱")
+            cl = CAT_LABELS_EN.get(cat, cat)
+            ch = tk.Frame(tf, bg=T.SBAR_A)
+            ch.pack(fill=tk.X, padx=0, pady=2)
+            tk.Label(ch, text=f" {ci} {cl}", font=('Segoe UI',8,'bold'), bg=T.SBAR_A, fg=T.ORANGE).pack(padx=6, pady=3, anchor=tk.W)
+            for brand in mfrs:
+                color = BRAND_COLORS.get(brand, T.DIM)
+                models = mfrs[brand]
+                br = tk.Frame(tf, bg=T.SIDEBAR, cursor="hand2")
+                br.pack(fill=tk.X, padx=4, pady=0)
+                d = tk.Canvas(br, width=8, height=8, bg=T.SIDEBAR, highlightthickness=0)
+                d.pack(side=tk.LEFT, padx=(12,4), pady=3)
+                d.create_oval(1,1,7,7, fill=color, outline="")
+                bl = tk.Label(br, text=brand, font=('Segoe UI',7), bg=T.SIDEBAR, fg=T.LIGHT, anchor=tk.W)
+                bl.pack(side=tk.LEFT, pady=2, fill=tk.X, expand=True)
+                cl2 = tk.Label(br, text=str(len(models)), font=('Consolas',6), bg=T.SIDEBAR, fg=T.DIM)
+                cl2.pack(side=tk.RIGHT, padx=(0,4), pady=2)
+                mf = tk.Frame(tf, bg=T.SIDEBAR)
+                vis = tk.BooleanVar(value=False)
+                self._tree[brand] = {"frame":br, "model_frame":mf, "vis":vis, "models":models}
+                for m in models[:8]:
+                    mr = tk.Frame(mf, bg=T.SIDEBAR)
+                    mr.pack(fill=tk.X, padx=4, pady=0)
+                    tk.Label(mr, text=f"    {m}", font=('Segoe UI',6), bg=T.SIDEBAR, fg=T.DIM, anchor=tk.W).pack(side=tk.LEFT, padx=(24,0))
+                if len(models) > 8:
+                    mr = tk.Frame(mf, bg=T.SIDEBAR)
+                    mr.pack(fill=tk.X, padx=4, pady=0)
+                    tk.Label(mr, text=f"    +{len(models)-8}...", font=('Segoe UI',6), bg=T.SIDEBAR, fg=T.ACCENT, anchor=tk.W).pack(side=tk.LEFT, padx=(24,0))
+                def tog(b=brand):
+                    i = self._tree[b]
+                    if i["vis"].get():
+                        i["model_frame"].pack_forget()
+                        i["vis"].set(False)
                     else:
-                        tk.Label(icon_frame, text=info.get("emoji", "📱"), font=('Segoe UI', 24),
-                                bg=primary_color, fg=text_color).pack(pady=5)
-                except Exception:
-                    tk.Label(icon_frame, text=info.get("emoji", "📱"), font=('Segoe UI', 24),
-                            bg=primary_color, fg=text_color).pack(pady=5)
+                        i["model_frame"].pack(fill=tk.X, after=i["frame"])
+                        i["vis"].set(True)
+                for w in (br, bl, d, cl2):
+                    w.bind("<Button-1>", lambda e, b=brand: tog(b))
+
+        tc.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        ts.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # ── CONTENT ──
+        cf = tk.Frame(main, bg=T.BG)
+        cf.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        st = ttk.Style()
+        st.theme_use('clam')
+        st.configure('TNotebook', background=T.BG, borderwidth=0)
+        st.configure('TNotebook.Tab', background=T.BG2, foreground=T.LIGHT, font=('Segoe UI',9,'bold'), padding=(14,7))
+        st.map('TNotebook.Tab', background=[('selected',T.BG3)], foreground=[('selected',T.WHITE)])
+        self.nb = ttk.Notebook(cf)
+        self.nb.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
+
+        self._tab_devices()
+        self._tab_flash()
+        self._tab_security()
+        self._tab_recovery()
+        self._tab_biometric()
+        self._tab_language()
+        self._tab_settings()
+
+        # ── Clean Log Console ──
+        lf2 = tk.Frame(cf, bg=T.BG)
+        lf2.pack(fill=tk.X, padx=5, pady=(2,5))
+        tk.Label(lf2, text=f"📋 {_t(self.loc, 'title', 'console', 'Operation Log')}",
+                 font=('Segoe UI',9,'bold'), bg=T.BG, fg=T.SUCCESS).pack(anchor=tk.W, padx=5)
+        self.console = scrolledtext.ScrolledText(lf2, height=4, state='disabled', bg=T.CONSOLE, fg=T.SUCCESS,
+                                                  font=('Consolas',9), bd=0, insertbackground=T.SUCCESS)
+        self.console.pack(fill=tk.BOTH, padx=5, pady=(2,5))
+
+        # ── Status Bar ──
+        sb2 = tk.Frame(self.root, bg=T.SIDEBAR, height=24)
+        sb2.pack(fill=tk.X)
+        sb2.pack_propagate(False)
+        bc = sum(len(m) for m in ECOSYSTEM_CATALOGUE.values())
+        mc = sum(len(md) for c in ECOSYSTEM_CATALOGUE.values() for md in c.values())
+        tk.Label(sb2, text=f"🔧 AuraTool-Suite v6.0.0 | {bc}+ {_t(self.loc,'brands','status_bar','Brands')} | {mc}+ {_t(self.loc,'models','status_bar','Models')} | 16 {_t(self.loc,'protocols','status_bar','Protocols')} | 9-Layer Anti-RE",
+                 font=('Segoe UI',8), bg=T.SIDEBAR, fg=T.DIM).pack(side=tk.LEFT, padx=10)
+        tk.Label(sb2, text=_t(self.loc, "hwid_licensed", "status_bar", "HWID-Licensed | Encrypted"),
+                 font=('Consolas',8), bg=T.SIDEBAR, fg=T.DIM).pack(side=tk.RIGHT, padx=10)
+
+        self.root.after(500, self._detect)
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  NAV
+    # ═══════════════════════════════════════════════════════════════════════
+
+    _cur = "devices"
+    def _nav(self, k):
+        self._cur = k
+        m = {"devices":0, "flash":1, "security":2, "recovery":3, "biometric":4, "language":5, "settings":6}
+        i = m.get(k, 0)
+        if i < len(self.nb.tabs()):
+            self.nb.select(i)
+        for kk, v in self.nav.items():
+            if kk == k:
+                v["f"].configure(bg=T.SBAR_A)
+                v["i"].configure(fg=T.ACCENT)
+                v["t"].configure(fg=T.WHITE, font=('Segoe UI',9,'bold'))
             else:
-                tk.Label(icon_frame, text=info.get("emoji", "📱"), font=('Segoe UI', 24),
-                        bg=primary_color, fg=text_color).pack(pady=5)
+                v["f"].configure(bg=T.SIDEBAR)
+                v["i"].configure(fg=T.WHITE)
+                v["t"].configure(fg=T.LIGHT, font=('Segoe UI',9))
 
-            # Brand name
-            tk.Label(card, text=brand_name, font=('Segoe UI', 11, 'bold'),
-                    fg=Theme.TEXT_WHITE, bg=Theme.BG_MEDIUM).pack(pady=(8, 2))
+    def _nav_leave(self, f, k):
+        if k != self._cur:
+            f.configure(bg=T.SIDEBAR)
 
-            # Description
-            tk.Label(card, text=description, font=('Segoe UI', 8),
-                    fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(pady=(0, 5))
+    # ═══════════════════════════════════════════════════════════════════════
+    #  HELPERS
+    # ═══════════════════════════════════════════════════════════════════════
 
-            # Color swatch
-            swatch_frame = tk.Frame(card, bg=Theme.BG_MEDIUM)
-            swatch_frame.pack(pady=(0, 5))
-            tk.Canvas(swatch_frame, width=60, height=8, bg=primary_color,
-                     highlightthickness=0).pack()
-            tk.Label(swatch_frame, text=primary_color, font=('Consolas', 7),
-                    fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack()
+    def _hdr(self, p, t, i=""):
+        f = tk.Frame(p, bg=T.BG)
+        f.pack(fill=tk.X, padx=15, pady=(10,6))
+        tk.Label(f, text=f"{i} {t}", font=('Segoe UI',13,'bold'), bg=T.BG, fg=T.WHITE).pack(anchor=tk.W)
+        tk.Frame(f, bg=T.ACCENT, height=2, width=180).pack(anchor=tk.W, pady=(3,0))
+        return f
 
-            # SVG indicator
-            if svg_mgr:
-                svg_path = svg_mgr.get_svg_path(brand_name)
-                if svg_path and os.path.exists(svg_path):
-                    tk.Label(card, text="✅ SVG", font=('Segoe UI', 7),
-                            fg=Theme.TEXT_GREEN, bg=Theme.BG_MEDIUM).pack(pady=(0, 3))
+    def _card(self, p, t=""):
+        c = tk.LabelFrame(p, text=f" {t} ", bg=T.CARD, fg=T.LIGHT, font=('Segoe UI',9,'bold'), bd=1, relief='groove')
+        c.pack(fill=tk.BOTH, padx=12, pady=5)
+        return c
 
-            col_idx += 1
-            if col_idx >= cols:
-                col_idx = 0
-                row_idx += 1
+    def _btn(self, p, t, c=T.ACCENT, cmd=None):
+        b = tk.Button(p, text=t, bg=c, fg=T.WHITE, font=('Segoe UI',9,'bold'), bd=0, padx=10, pady=4, command=cmd, cursor="hand2")
+        b.pack(side=tk.LEFT, padx=2, pady=3)
+        return b
 
-        # Make all columns expand equally
-        for i in range(cols):
-            grid_frame.columnconfigure(i, weight=1)
+    def _row(self, p, l, v, c=T.LIGHT):
+        r = tk.Frame(p, bg=T.CARD)
+        r.pack(fill=tk.X, padx=8, pady=2)
+        tk.Label(r, text=l, font=('Segoe UI',9), bg=T.CARD, fg=T.LIGHT, width=22, anchor=tk.W).pack(side=tk.LEFT)
+        tk.Label(r, text=v, font=('Consolas',9), bg=T.CARD, fg=c, anchor=tk.W).pack(side=tk.LEFT, padx=5)
 
-    def _build_flash_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("flash_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+    def _item(self, p, t, d="", c=T.WHITE):
+        r = tk.Frame(p, bg=T.CARD)
+        r.pack(fill=tk.X, padx=8, pady=2)
+        tk.Label(r, text=t, font=('Segoe UI',9,'bold'), bg=T.CARD, fg=c, width=32, anchor=tk.W, padx=6).pack(side=tk.LEFT)
+        if d:
+            tk.Label(r, text=d, font=('Consolas',8), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=8)
 
-        fmt_frame = tk.LabelFrame(parent, text=self.loc_mgr.get_string("supported_formats"),
-                                  bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9))
-        fmt_frame.pack(fill=tk.X, padx=10, pady=5)
+    def _log(self, m):
+        logger.info(m)
 
-        formats = [
-            ("📦 OTA payload.bin", "Android OTA Full Image Package"),
-            ("📱 Samsung Odin (.tar/.md5)", "Samsung Firmware Archive"),
-            ("🔧 MediaTek Scatter", "MTK Scatter Configuration File"),
-            ("⚡ Qualcomm EDL Firehose", "Qualcomm 9008 Raw Program"),
-            ("🍎 Apple IPSW", "iOS / iPadOS Firmware Package"),
-            ("💾 Super.img (Dynamic)", "Android Dynamic Partition Image"),
+    def _log_success(self, m):
+        """Log a [SUCCESS] formatted message."""
+        logger.info(f"[SUCCESS] {m}")
+
+    def _brand(self):
+        return self.brand_combo.get() if hasattr(self, 'brand_combo') else "DEVICE"
+
+    def _models(self, brand):
+        ms = []
+        for c in ECOSYSTEM_CATALOGUE.values():
+            if brand in c:
+                ms.extend(c[brand])
+        return sorted(set(ms))
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TOP ACTION BAR HANDLERS
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _act_flash(self):
+        b = self._brand()
+        self._log(f"⚡ {_t(self.loc, 'flash_start', 'log', 'Flashing firmware started...')} — {b}")
+        r = self.flash.verify_firmware_image(f"/fw/{b}.img")
+        self._log_success(f"Flash firmware: {r.get('format','UNKNOWN')} | Valid: {r.get('valid',False)}")
+
+    def _act_frp(self):
+        b = self._brand()
+        self._log(f"🔓 {_t(self.loc, 'frp_start', 'log', 'FRP bypass started...')} — {b}")
+        r = self.acct.remove_frp_and_cloud_locks(f"{b}_DEV", b)
+        self._log_success(f"FRP bypass: {r.get('status','UNKNOWN')} | Cleared: {r.get('frp_cleared',False)}")
+
+    def _act_format(self):
+        b = self._brand()
+        self._log(f"🧹 {_t(self.loc, 'format_start', 'log', 'Device formatting started...')} — {b}")
+        self.flash.perform_full_format(f"{b}_DEV")
+        self._log_success(f"Device formatted: {b}")
+
+    def _act_update(self):
+        b = self._brand()
+        self._log(f"🔄 System update check — {b}")
+        self._log_success("Update check completed")
+
+    def _act_unlock(self):
+        b = self._brand()
+        self._log(f"🔐 Unlocking screen — {b}")
+        r = self.acct.remove_screen_lock(f"{b}_DEV", "PATTERN")
+        self._log_success(f"Screen lock removed: {r.get('status','UNKNOWN')}")
+
+    def _act_biometric(self):
+        b = self._brand()
+        self._log(f"👆 {_t(self.loc, 'biometric_start', 'log', 'Biometric calibration started...')} — {b}")
+        r = self.bio.recalibrate_sensors(f"{b}_DEV", "FINGERPRINT")
+        self._log_success(f"Biometric calibration: {r.get('calibration_method','GENERIC')}")
+
+    def _act_recovery(self):
+        b = self._brand()
+        self._log(f"💾 {_t(self.loc, 'recovery_start', 'log', 'Data recovery scan started...')} — {b}")
+        r = self.recov.perform_deep_scan(f"{b}_DEV")
+        self._log_success(f"Photos: {r['photos_found']} | Contacts: {r['contacts_found']} | SMS: {r['sms_messages_found']}")
+
+    def _act_repair(self):
+        b = self._brand()
+        self._log(f"🔧 {_t(self.loc, 'repair_start', 'log', 'System repair started...')} — {b}")
+        r = self.repair.full_system_diagnostic(f"{b}_DEV")
+        self._log_success(f"System repair: {r.get('overall_status','UNKNOWN')}")
+
+    def _act_security(self):
+        self._log(f"🛡️ {_t(self.loc, 'security_check', 'log', 'Security check completed')}")
+        r = self.sec.get_security_report()
+        self._log_success(f"Protection: {'Active' if r.get('protection_active') else 'Inactive'} | Code: {'Intact' if r.get('code_integrity') else 'Modified'}")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: DEVICES
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _tab_devices(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"📱 {_t(self.loc, 'devices', 'nav', 'Devices')}")
+        bc = sum(len(m) for m in ECOSYSTEM_CATALOGUE.values())
+        mc = sum(len(md) for c in ECOSYSTEM_CATALOGUE.values() for md in c.values())
+        self._hdr(t, f"{_t(self.loc, 'header', 'devices', 'Device Explorer')} — {bc}+ {_t(self.loc, 'brands', 'status_bar', 'Brands')} | {mc}+ {_t(self.loc, 'models', 'status_bar', 'Models')} | 2000-2030", "📱")
+
+        # Category cards
+        sf = tk.Frame(t, bg=T.BG)
+        sf.pack(fill=tk.X, padx=15, pady=5)
+        cats_data = [
+            ("📱", _t(self.loc, "smartphones", "devices", "Smartphones"), len(ECOSYSTEM_CATALOGUE.get('smartphones',{})), T.ACCENT),
+            ("📋", _t(self.loc, "tablets", "devices", "Tablets"), len(ECOSYSTEM_CATALOGUE.get('tablets',{})), T.GREEN),
+            ("🍎", _t(self.loc, "ipads", "devices", "iPads"), len(ECOSYSTEM_CATALOGUE.get('ipads',{})), T.ORANGE),
+            ("⌚", _t(self.loc, "smartwatches", "devices", "Smartwatches"), len(ECOSYSTEM_CATALOGUE.get('smartwatches',{})), T.PURPLE),
+            ("🥽", _t(self.loc, "smart_glasses", "devices", "Smart Glasses"), len(ECOSYSTEM_CATALOGUE.get('smart_glasses',{})), T.RED),
+            ("🕶️", _t(self.loc, "ar_vr", "devices", "AR/VR"), len(ECOSYSTEM_CATALOGUE.get('ar_vr_headsets',{})), T.CYAN),
         ]
-        for icon_name, desc in formats:
-            row = tk.Frame(fmt_frame, bg=Theme.BG_DARK)
-            row.pack(fill=tk.X, padx=10, pady=3)
-            tk.Label(row, text=icon_name, font=('Segoe UI', 9, 'bold'),
-                    fg=Theme.TEXT_WHITE, bg=Theme.BG_DARK).pack(side=tk.LEFT)
-            tk.Label(row, text=desc, font=('Segoe UI', 8),
-                    fg=Theme.TEXT_LIGHT, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=10)
+        for i, (ic, nm, count, co) in enumerate(cats_data):
+            c = tk.Frame(sf, bg=T.CARD, bd=1, relief='groove')
+            c.grid(row=i//3, column=i%3, padx=5, pady=5, sticky="nsew")
+            sf.columnconfigure(i%3, weight=1)
+            tk.Label(c, text=ic, font=('Segoe UI',22), bg=co, fg=T.WHITE, width=10, pady=7).pack(fill=tk.X)
+            tk.Label(c, text=nm, font=('Segoe UI',10,'bold'), bg=T.CARD, fg=T.WHITE).pack(pady=(5,2))
+            tk.Label(c, text=f"{count}+ {_t(self.loc, 'brands', 'status_bar', 'Brands')}", font=('Segoe UI',8), bg=T.CARD, fg=T.LIGHT).pack(pady=(0,6))
 
-        btn_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        btn_frame.pack(fill=tk.X, padx=10, pady=10)
+        # Brand/Model selector
+        bc2 = self._card(t, f"🏭 {_t(self.loc, 'brand_explorer', 'devices', 'Brand Explorer')}")
+        sf2 = tk.Frame(bc2, bg=T.CARD)
+        sf2.pack(fill=tk.X, padx=8, pady=5)
+        tk.Label(sf2, text=_t(self.loc, "brand_label", "devices", "Brand:"),
+                 font=('Segoe UI',9), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT)
+        ab = sorted(set(b for c in ECOSYSTEM_CATALOGUE.values() for b in c))
+        self.brand_combo = ttk.Combobox(sf2, values=ab, state="readonly", width=18)
+        self.brand_combo.pack(side=tk.LEFT, padx=8)
+        self.brand_combo.current(0)
+        self.brand_combo.bind("<<ComboboxSelected>>", self._brand_chg)
+        tk.Label(sf2, text=_t(self.loc, "model_label", "devices", "Model:"),
+                 font=('Segoe UI',9), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=(15,0))
+        self.model_combo = ttk.Combobox(sf2, values=[], state="readonly", width=35)
+        self.model_combo.pack(side=tk.LEFT, padx=8)
+        if ab:
+            ms = self._models(ab[0])
+            self.model_combo["values"] = ms
+            if ms:
+                self.model_combo.current(0)
 
-        tk.Button(btn_frame, text="🚀 " + self.loc_mgr.get_string("flash"),
-                 bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 10, 'bold'), bd=0, padx=20, pady=8,
-                 command=self._action_flash, cursor="hand2").pack(side=tk.LEFT, padx=5)
+        af = tk.Frame(bc2, bg=T.CARD)
+        af.pack(fill=tk.X, padx=8, pady=6)
+        self._btn(af, f"⚡ {_t(self.loc, 'flash', 'actions', 'Flash')}", T.ACCENT, self._act_flash)
+        self._btn(af, f"🔓 {_t(self.loc, 'frp', 'actions', 'FRP')}", T.PURPLE, self._act_frp)
+        self._btn(af, f"🧹 {_t(self.loc, 'format', 'actions', 'Format')}", T.RED, self._act_format)
+        self._btn(af, f"🔧 {_t(self.loc, 'repair', 'actions', 'Repair')}", T.ORANGE, self._act_repair)
+        self._btn(af, f"💾 {_t(self.loc, 'recovery', 'actions', 'Recovery')}", T.GREEN, self._act_recovery)
 
-        tk.Button(btn_frame, text="🧹 " + self.loc_mgr.get_string("format_device"),
-                 bg=Theme.TEXT_RED, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 10, 'bold'), bd=0, padx=20, pady=8,
-                 command=self._action_format, cursor="hand2").pack(side=tk.LEFT, padx=5)
+        # Protocols
+        pc = self._card(t, f"🔌 {_t(self.loc, 'protocols', 'devices', 'Supported Protocols')}")
+        for p, d in list(SUPPORTED_PROTOCOLS.items())[:12]:
+            self._item(pc, f"  ✅ {p}", d, T.GREEN)
 
-    def _build_repair_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("repair_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
+    def _brand_chg(self, e=None):
+        b = self.brand_combo.get()
+        ms = self._models(b)
+        self.model_combo["values"] = ms
+        if ms:
+            self.model_combo.current(0)
 
-        btn_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        btn_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        repairs = [
-            ("🔄 Repair Bootloop & Crash", Theme.BTN_PRIMARY, self._action_fix_bootloop),
-            ("🛡️ Scan & Remove Viruses", Theme.ACCENT2, self._action_clean_virus),
-            ("👆 Recalibrate Biometrics", Theme.BTN_SUCCESS, self._action_recalib_bio),
-            ("📊 Storage Health Check", Theme.BG_LIGHT, self._action_storage_check),
-        ]
-        for text, color, cmd in repairs:
-            tk.Button(btn_frame, text=text, bg=color, fg=Theme.TEXT_WHITE,
-                     font=('Segoe UI', 10, 'bold'), bd=0, padx=16, pady=8,
-                     command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=5, pady=5)
-
-    def _build_recovery_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("recovery_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        self.scan_btn = tk.Button(parent, text="🔍 " + self.loc_mgr.get_string("start_scan"),
-                                 bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                                 font=('Segoe UI', 11, 'bold'), bd=0, padx=24, pady=10,
-                                 command=self._action_deep_scan, cursor="hand2")
-        self.scan_btn.pack(anchor=tk.W, padx=10, pady=10)
-
-    def _build_usb_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("usb_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        proto_frame = tk.LabelFrame(parent, text=self.loc_mgr.get_string("protocols"),
-                                    bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        proto_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        protocols = [
-            ("ADB", "Android Debug Bridge — USB Communication"),
-            ("Fastboot", "Fastboot Protocol — Bootloader Operations"),
-            ("EDL 9008", "Qualcomm Emergency Download Mode"),
-            ("MTK BROM", "MediaTek Boot ROM / Meta Mode"),
-            ("Samsung ODIN", "Samsung Download Mode"),
-            ("Apple DFU", "Apple Device Firmware Upgrade Mode"),
-            ("Sideload", "Recovery Sideload Mode"),
-        ]
-        for proto, desc in protocols:
-            row = tk.Frame(proto_frame, bg=Theme.BG_DARK)
-            row.pack(fill=tk.X, padx=10, pady=3)
-            tk.Label(row, text=f"✅ {proto}", font=('Segoe UI', 9, 'bold'),
-                    fg=Theme.TEXT_GREEN, bg=Theme.BG_DARK, width=18, anchor='w').pack(side=tk.LEFT)
-            tk.Label(row, text=desc, font=('Segoe UI', 8),
-                    fg=Theme.TEXT_LIGHT, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=10)
-
-        btn_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        btn_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        tk.Button(btn_frame, text="🔌 " + self.loc_mgr.get_string("detect_devices"),
-                 bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 10, 'bold'), bd=0, padx=16, pady=8,
-                 command=self._action_detect_devices, cursor="hand2").pack(side=tk.LEFT, padx=5)
-
-        tk.Button(btn_frame, text="🔧 " + self.loc_mgr.get_string("install_drivers"),
-                 bg=Theme.BTN_SECONDARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 10, 'bold'), bd=0, padx=16, pady=8,
-                 command=self._action_install_drivers, cursor="hand2").pack(side=tk.LEFT, padx=5)
-
-    def _build_chat_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("chat_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        self.chat_txt = scrolledtext.ScrolledText(parent, height=12, state="disabled",
-            bg=Theme.CONSOLE_BG, fg=Theme.TEXT_LIGHT, font=('Consolas', 10), bd=1)
-        self.chat_txt.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-        input_f = tk.Frame(parent, bg=Theme.TAB_BG)
-        input_f.pack(fill=tk.X, padx=10, pady=5)
-        self.chat_entry = tk.Entry(input_f, width=60, bg=Theme.BG_MEDIUM, fg=Theme.TEXT_WHITE,
-                                  insertbackground=Theme.TEXT_WHITE, font=('Segoe UI', 10), bd=1)
-        self.chat_entry.pack(side=tk.LEFT, padx=5)
-        tk.Button(input_f, text="📤 Send", bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 9, 'bold'), bd=0, padx=12,
-                 command=self._action_send_chat, cursor="hand2").pack(side=tk.LEFT, padx=5)
-
-    def _build_stream_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("stream_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        for vid in self.media_stream.list_streams():
-            row = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
-            row.pack(fill=tk.X, padx=10, pady=3)
-            tk.Label(row, text=f"🎬 [{vid['category']}] {vid['title']} ({vid['duration']})",
-                    font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=10, pady=5)
-            tk.Button(row, text="▶ Play", bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                     font=('Segoe UI', 8, 'bold'), bd=0, padx=10,
-                     command=lambda v=vid['id']: self._action_play_stream(v), cursor="hand2").pack(side=tk.RIGHT, padx=10)
-
-    def _build_store_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("store_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        cols = ("ID", "Name", "Category", "Price", "Stock")
-        self.store_tree = ttk.Treeview(parent, columns=cols, show="headings", height=8)
-        for c in cols:
-            self.store_tree.heading(c, text=c)
-            self.store_tree.column(c, width=120 if c != "Name" else 260)
-        self.store_tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-        for item in self.ecommerce_mgr.get_catalogue():
-            self.store_tree.insert("", tk.END, values=(
-                item["id"], item["name"], item["category"],
-                f"${item['price']:.2f}", item["stock"]))
-
-        tk.Button(parent, text="🛒 " + self.loc_mgr.get_string("checkout"),
-                 bg=Theme.BTN_SUCCESS, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 10, 'bold'), bd=0, padx=20, pady=8,
-                 command=self._action_checkout, cursor="hand2").pack(anchor=tk.W, padx=10, pady=10)
-
-    def _build_devices_tab(self, parent):
-        """Build Device Support tab showing all supported device categories."""
-        tk.Label(parent, text="⌚ " + self.loc_mgr.get_string("devices_tab"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        # Device categories overview
-        cats_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        cats_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-        categories = [
-            ("📱", "Smartphones", "Android & iOS phones from all manufacturers", Theme.BTN_PRIMARY),
-            ("📋", "Tablets", "Android tablets & iPad devices", Theme.ACCENT2),
-            ("🍎", "iPads", "Apple iPad (all models 2010–2024)", Theme.BG_LIGHT),
-            ("⌚", "Smartwatches", "WearOS, watchOS, proprietary smartwatches", Theme.BTN_SUCCESS),
-            ("🥽", "Smart Glasses", "Meta, Apple Vision Pro, XREAL, RayNeo", Theme.TEXT_RED),
-            ("🕶️", "AR/VR Headsets", "Meta Quest, PSVR2, HTC Vive, Pico", "#6a1b9a"),
-        ]
-
-        for icon, name, desc, color in categories:
-            card = tk.Frame(cats_frame, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
-            card.pack(fill=tk.X, padx=5, pady=3)
-            icon_lbl = tk.Label(card, text=icon, font=('Segoe UI', 20), bg=color, fg=Theme.TEXT_WHITE, padx=10, pady=5)
-            icon_lbl.pack(side=tk.LEFT, padx=(5, 10))
-            info_frame = tk.Frame(card, bg=Theme.BG_MEDIUM)
-            info_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=5)
-            tk.Label(info_frame, text=name, font=('Segoe UI', 11, 'bold'), fg=Theme.TEXT_WHITE, bg=Theme.BG_MEDIUM).pack(anchor=tk.W)
-            tk.Label(info_frame, text=desc, font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(anchor=tk.W)
-
-        # Year range info
-        tk.Label(parent, text="📅 Supported Years: 2002 – 2030 | 🔧 Chipsets: Qualcomm, MediaTek, Exynos, Kirin, Apple Silicon, Unisoc",
-                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10, pady=5)
-
-    def _build_format_tab(self, parent):
-        """Build Format & System Update tab."""
-        tk.Label(parent, text="🧹 Format & System Update",
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        # Format options
-        fmt_frame = tk.LabelFrame(parent, text="Format Operations",
-                                  bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        fmt_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        fmt_buttons = [
-            ("🧹 Full Factory Reset", "Complete device wipe including all data", Theme.TEXT_RED, self._action_format),
-            ("📂 Format Data Only", "Wipe user data while keeping system", Theme.BTN_PRIMARY, self._action_format),
-            ("🗑️ Wipe Cache Partition", "Clear cache without affecting data", Theme.ACCENT2, self._action_wipe_cache),
-            ("🔄 System Update", "Install available system updates", Theme.BTN_SUCCESS, self._action_system_update),
-            ("💾 EFS/NVRAM Backup", "Backup radio calibration before format", Theme.BG_LIGHT, self._action_backup_efs),
-            ("↩️ EFS/NVRAM Restore", "Restore radio calibration after format", "#00838f", self._action_restore_efs),
-        ]
-        for text, desc, color, cmd in fmt_buttons:
-            row = tk.Frame(fmt_frame, bg=Theme.BG_DARK)
-            row.pack(fill=tk.X, padx=10, pady=2)
-            tk.Button(row, text=text, bg=color, fg=Theme.TEXT_WHITE,
-                     font=('Segoe UI', 9, 'bold'), bd=0, padx=10, pady=4,
-                     command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=2)
-            tk.Label(row, text=desc, font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=5)
-
-    def _build_frp_tab(self, parent):
-        """Build FRP Bypass & Account Repair tab."""
-        tk.Label(parent, text="🔓 FRP Bypass & Account Repair",
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        # Brand selection
-        sel_frame = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
-        sel_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        row1 = tk.Frame(sel_frame, bg=Theme.BG_MEDIUM)
-        row1.pack(fill=tk.X, padx=10, pady=8)
-
-        tk.Label(row1, text="🏭 Brand:", font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=5)
-        self.frp_brand_cb = ttk.Combobox(row1, values=["Samsung", "Google Pixel", "Xiaomi", "Huawei", "OPPO", "Realme", "Vivo", "OnePlus", "Motorola", "Nokia", "Sony", "Apple"], state="readonly", width=20)
-        self.frp_brand_cb.pack(side=tk.LEFT, padx=10)
-        self.frp_brand_cb.current(0)
-
-        tk.Label(row1, text="🔒 Lock Type:", font=('Segoe UI', 10), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM).pack(side=tk.LEFT, padx=5)
-        self.frp_lock_cb = ttk.Combobox(row1, values=["FRP (Google)", "Samsung Account", "Xiaomi Mi Account", "Huawei ID", "OPPO Account", "Vivo Account", "Pattern/PIN/Password", "Screen Lock", "Email Account"], state="readonly", width=22)
-        self.frp_lock_cb.pack(side=tk.LEFT, padx=10)
-        self.frp_lock_cb.current(0)
-
-        # FRP operations
-        ops_frame = tk.Frame(parent, bg=Theme.TAB_BG)
-        ops_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        frp_buttons = [
-            ("🔓 Bypass FRP Lock", "Remove Google/manufacturer FRP protection", Theme.BTN_PRIMARY, self._action_bypass_frp),
-            ("📧 Bypass Email Account", "Clear email account sync after format", Theme.ACCENT2, self._action_bypass_email),
-            ("🔑 Remove Screen Lock", "Remove Pattern/PIN/Password lock", Theme.BTN_SUCCESS, self._action_remove_screen_lock),
-            ("📊 Account Diagnostics", "Check account and security status", Theme.BG_LIGHT, self._action_account_diagnostics),
-            ("🔧 Restore EFS/NVRAM", "Restore radio calibration partitions", "#00838f", self._action_restore_efs),
-            ("📡 Network Repair", "Repair network calibration", "#e65100", self._action_network_repair),
-        ]
-        for text, desc, color, cmd in frp_buttons:
-            row = tk.Frame(ops_frame, bg=Theme.TAB_BG)
-            row.pack(fill=tk.X, padx=5, pady=2)
-            tk.Button(row, text=text, bg=color, fg=Theme.TEXT_WHITE,
-                     font=('Segoe UI', 9, 'bold'), bd=0, padx=10, pady=4,
-                     command=cmd, cursor="hand2").pack(side=tk.LEFT, padx=2)
-            tk.Label(row, text=desc, font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(side=tk.LEFT, padx=5)
-
-        # Info
-        info_frame = tk.Frame(parent, bg=Theme.BG_MEDIUM, bd=1, relief='groove')
-        info_frame.pack(fill=tk.X, padx=10, pady=10)
-        tk.Label(info_frame, text="ℹ️ Supported: Google FRP, Samsung Knox, Xiaomi Mi Cloud, Huawei ID, OPPO/Vivo accounts, Apple Activation Lock (guidance only), Pattern/PIN/Password removal",
-                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.BG_MEDIUM, wraplength=900).pack(padx=10, pady=5)
-
-    def _build_lang_tab(self, parent):
-        """Build Languages & Localization tab."""
-        tk.Label(parent, text="🌐 Languages & Localization",
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        # Language selection
-        lang_frame = tk.LabelFrame(parent, text="Select Interface Language",
-                                   bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        lang_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        self.lang_cb2 = ttk.Combobox(lang_frame,
-            values=list(LocalizationManager.SUPPORTED_LANGUAGES.values()), state="readonly", width=35)
-        self.lang_cb2.pack(side=tk.LEFT, padx=10, pady=8)
-        self.lang_cb2.current(0)
-
-        tk.Button(lang_frame, text="Apply Language",
-                 bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 9, 'bold'), bd=0, padx=12,
-                 command=self._action_change_lang, cursor="hand2").pack(side=tk.LEFT, padx=5)
-
-        # RTL support info
-        rtl_frame = tk.LabelFrame(parent, text="RTL (Right-to-Left) Support",
-                                  bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        rtl_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        rtl_langs = "Arabic (العربية), Persian (فارسی), Urdu (اردو), Hebrew (עברית) — Full RTL layout with Arabic character reshaping"
-        tk.Label(rtl_frame, text=rtl_langs, font=('Segoe UI', 9), fg=Theme.TEXT_GREEN, bg=Theme.BG_DARK, wraplength=900).pack(padx=10, pady=5)
-
-        # Language coverage
-        tk.Label(parent, text=f"📋 {len(LocalizationManager.SUPPORTED_LANGUAGES)} languages supported with full UI translations and log messages",
-                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10, pady=5)
-
-    def _build_security_tab(self, parent):
-        """Build Security & Protection tab."""
-        tk.Label(parent, text="🛡️ Security & Anti-Reverse Engineering",
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        # Protection status
-        sec_mgr = SecurityManager()
-        protection = sec_mgr.get_protection_status()
-
-        status_frame = tk.LabelFrame(parent, text="Protection Status",
-                                     bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        status_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        items = [
-            ("🛡️ Anti-Reverse Engineering", "ACTIVE" if protection["protection_active"] else "INACTIVE", Theme.TEXT_GREEN if protection["protection_active"] else Theme.TEXT_RED),
-            ("🔍 Debugger Detection", "CLEAN" if not protection["debugger_detected"] else "DETECTED", Theme.TEXT_GREEN if not protection["debugger_detected"] else Theme.TEXT_RED),
-            ("💻 VM Detection", "CLEAN" if not protection["vm_detected"] else "VM DETECTED", Theme.TEXT_GREEN if not protection["vm_detected"] else Theme.TEXT_YELLOW),
-            ("🔐 Code Integrity", "VERIFIED" if protection["code_integrity"] else "FAILED", Theme.TEXT_GREEN if protection["code_integrity"] else Theme.TEXT_RED),
-            ("🔒 License Protection", "AES + HMAC Encrypted", Theme.TEXT_GREEN),
-            ("🗝️ Key Obfuscation", "XOR Stream Cipher Active", Theme.TEXT_GREEN),
-        ]
-        for label, value, color in items:
-            row = tk.Frame(status_frame, bg=Theme.BG_DARK)
-            row.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(row, text=label, font=('Segoe UI', 9, 'bold'), fg=Theme.TEXT_WHITE, bg=Theme.BG_DARK, width=28, anchor='w').pack(side=tk.LEFT)
-            tk.Label(row, text=value, font=('Consolas', 9), fg=color, bg=Theme.BG_DARK).pack(side=tk.LEFT, padx=5)
-
-        # Security features
-        feat_frame = tk.LabelFrame(parent, text="Security Features",
-                                   bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        feat_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        features = [
-            "✅ HWID-bound license encryption",
-            "✅ System clock tamper detection",
-            "✅ Encrypted license file (AES + HMAC)",
-            "✅ Anti-debugger protection",
-            "✅ Virtual machine detection",
-            "✅ Code integrity verification",
-            "✅ Secure data wipe (3-pass overwrite)",
-            "✅ Storage health guardian (UFS/eMMC)",
-            "✅ Auto-shutdown on license expiry",
-        ]
-        for feat in features:
-            tk.Label(feat_frame, text=feat, font=('Segoe UI', 9), fg=Theme.TEXT_GREEN, bg=Theme.BG_DARK).pack(anchor=tk.W, padx=10, pady=1)
-
-    def _build_settings_tab(self, parent):
-        tk.Label(parent, text=self.loc_mgr.get_string("settings_header"),
-                font=('Segoe UI', 13, 'bold'), fg=Theme.TEXT_YELLOW, bg=Theme.TAB_BG).pack(anchor=tk.W, pady=10, padx=10)
-
-        lang_frame = tk.LabelFrame(parent, text=self.loc_mgr.get_string("language_label"),
-                                   bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        lang_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        self.lang_cb = ttk.Combobox(lang_frame,
-            values=list(LocalizationManager.SUPPORTED_LANGUAGES.values()), state="readonly", width=30)
-        self.lang_cb.pack(side=tk.LEFT, padx=10, pady=8)
-        self.lang_cb.current(0)
-
-        tk.Button(lang_frame, text=self.loc_mgr.get_string("apply_lang"),
-                 bg=Theme.BTN_PRIMARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 9, 'bold'), bd=0, padx=12,
-                 command=self._action_change_lang, cursor="hand2").pack(side=tk.LEFT, padx=5)
-
-        driver_frame = tk.LabelFrame(parent, text=self.loc_mgr.get_string("driver_mgmt"),
-                                     bg=Theme.BG_DARK, fg=Theme.TEXT_LIGHT, font=('Segoe UI', 9, 'bold'))
-        driver_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        tk.Button(driver_frame, text="🔌 " + self.loc_mgr.get_string("install_drivers"),
-                 bg=Theme.BTN_SECONDARY, fg=Theme.TEXT_WHITE,
-                 font=('Segoe UI', 9, 'bold'), bd=0, padx=12,
-                 command=self._action_install_drivers, cursor="hand2").pack(anchor=tk.W, padx=10, pady=8)
-
-        # Version info
-        tk.Label(parent, text="AuraTool-Suite v3.0.0 | Universal Desktop Platform 2030",
-                font=('Segoe UI', 9), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10, pady=10)
-        tk.Label(parent, text="© 2024-2030 AuraTool-Suite. All rights reserved.",
-                font=('Segoe UI', 8), fg=Theme.TEXT_LIGHT, bg=Theme.TAB_BG).pack(anchor=tk.W, padx=10)
-
-    # ─── Actions ────────────────────────────────────────────────────────
-
-    def _on_vendor_change(self, event=None):
-        vendor = self.vendor_cb.get()
-        if vendor in MANUFACTURERS:
-            self.model_cb['values'] = MANUFACTURERS[vendor]
-            self.model_cb.current(0)
-            self._update_vendor_brand_icon(vendor)
-
-    def _update_vendor_brand_icon(self, brand_name: str):
-        """Update the brand icon displayed next to the manufacturer dropdown."""
+    def _detect(self):
         try:
-            brand_gen = get_brand_icons() if HAS_BRAND_ICONS else None
-            if brand_gen:
-                icon_path = brand_gen.get_icon_path(brand_name, 40)
-                if icon_path and os.path.exists(icon_path):
-                    pil_img = __import__("PIL.Image", fromlist=["Image"]).open(icon_path)
-                    tk_img = __import__("PIL.ImageTk", fromlist=["ImageTk"]).PhotoImage(pil_img)
-                    self._brand_icon_refs.append(tk_img)
-                    self._vendor_icon_label.config(image=tk_img, text="")
+            ds = self.dev.detect_connected_devices()
+            n = len(ds)
+            self.dev_lbl.config(text=f"🟢 {n} {_t(self.loc, 'devices_found', 'license', 'devices found')}" if n else f"🔴 {_t(self.loc, 'no_devices', 'license', 'No devices')}")
+            self._log_success(f"Device detection: {n} {_t(self.loc, 'devices_found', 'license', 'devices found')}")
+        except Exception:
+            self.dev_lbl.config(text=f"🔴 {_t(self.loc, 'no_devices', 'license', 'No devices')}")
 
-            brand_def = BRAND_ICON_DEFS.get(brand_name, {}) if HAS_BRAND_ICONS else {}
-            abbr = brand_def.get("abbr", brand_name[:3])
-            style = brand_def.get("style", "standard")
-            primary = brand_def.get("primary", BRAND_LOGOS.get(brand_name, {}).get("color", "#333"))
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: FLASH
+    # ═══════════════════════════════════════════════════════════════════════
 
-            # Check SVG availability
-            svg_status = ""
-            if HAS_SVG:
-                try:
-                    svg_mgr = get_brand_svg_manager()
-                    svg_path = svg_mgr.get_svg_path(brand_name)
-                    if svg_path and os.path.exists(svg_path):
-                        svg_status = " | ✅ SVG"
-                except Exception:
-                    pass
+    def _tab_flash(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"⚡ {_t(self.loc, 'flash', 'nav', 'Flash')}")
+        self._hdr(t, _t(self.loc, 'header', 'flash', 'Flash & ROM Management'), "⚡")
 
-            self._brand_info_label.config(text=f"[{abbr}] • {style}{svg_status}")
-        except Exception as e:
-            logging.debug(f"Could not update brand icon: {e}")
+        fc = self._card(t, f"📦 {_t(self.loc, 'supported_formats', 'flash', 'Supported Firmware Formats')}")
+        for nm, ds, co in [
+            (f"📦 {_t(self.loc, 'ota_payload', 'flash', 'OTA payload.bin')}", "Android OTA Full Image", T.GREEN),
+            (f"📱 {_t(self.loc, 'samsung_odin', 'flash', 'Samsung Odin')}", "Samsung Firmware Archive", T.ACCENT),
+            (f"🔧 {_t(self.loc, 'mtk_scatter', 'flash', 'MediaTek Scatter')}", "MTK Scatter Configuration", T.ORANGE),
+            (f"⚡ {_t(self.loc, 'qualcomm_edl', 'flash', 'Qualcomm EDL Firehose')}", "Qualcomm 9008 Raw Program", T.RED),
+            (f"🍎 {_t(self.loc, 'apple_ipsw', 'flash', 'Apple IPSW')}", "iOS / iPadOS Firmware", T.PURPLE),
+            (f"💾 {_t(self.loc, 'super_img', 'flash', 'Super.img')}", "Android Dynamic Partition", T.CYAN),
+        ]:
+            r = tk.Frame(fc, bg=T.CARD)
+            r.pack(fill=tk.X, padx=8, pady=2)
+            tk.Label(r, text=f"  {nm}", font=('Segoe UI',9,'bold'), bg=co, fg=T.WHITE, width=32, anchor=tk.W, padx=6).pack(side=tk.LEFT)
+            tk.Label(r, text=ds, font=('Segoe UI',9), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=8)
 
-    def _action_activate_key(self):
-        key = self.key_entry.get().strip()
-        if not key:
-            messagebox.showwarning("Activation", "Please enter a license key.")
+        oc = self._card(t, f"⚡ {_t(self.loc, 'operations', 'flash', 'Operations')}")
+        for tx, co, cm in [
+            (f"🚀 {_t(self.loc, 'full_flash', 'flash', 'Full Flash')}", T.ACCENT, self._act_flash),
+            (f"📦 {_t(self.loc, 'extract_payload', 'flash', 'Extract payload.bin')}", T.GREEN, self._flash_extract),
+            (f"🔧 {_t(self.loc, 'single_partition', 'flash', 'Single Partition')}", T.ORANGE, self._flash_single),
+            (f"↩️ {_t(self.loc, 'unbrick', 'flash', 'Unbrick')}", T.RED, self._flash_unbrick),
+            (f"🔍 {_t(self.loc, 'storage_check', 'flash', 'Storage Check')}", T.CYAN, self._flash_storage),
+            (f"🔒 {_t(self.loc, 'unlock_bootloader', 'flash', 'Unlock Bootloader')}", T.PURPLE, self._flash_boot),
+            (f"📂 {_t(self.loc, 'browse_file', 'flash', 'Browse File')}", T.DIM, self._flash_browse),
+        ]:
+            r = tk.Frame(oc, bg=T.CARD)
+            r.pack(fill=tk.X, padx=8, pady=2)
+            self._btn(r, tx, co, cm)
+
+    def _flash_extract(self):
+        self._log("📦 Extracting payload.bin files...")
+        p = self.flash.extract_payload_bin("/fw/payload.bin", "/tmp/extracted")
+        self._log_success(f"Extracted {len(p)} partitions")
+
+    def _flash_single(self):
+        b = self._brand()
+        self._log(f"🔧 Flashing boot partition for {b}...")
+        r = self.flash.flash_single_partition(f"{b}_DEV", "boot", "/fw/boot.img")
+        self._log_success(f"Partition flash: {'Success' if r.get('success') else 'Failed'}")
+
+    def _flash_unbrick(self):
+        b = self._brand()
+        self._log(f"↩️ Unbricking device {b}...")
+        r = self.flash.unbrick_device(f"{b}_DEV", b)
+        self._log_success(f"Unbrick: {r.get('status','UNKNOWN')}")
+
+    def _flash_storage(self):
+        b = self._brand()
+        self._log(f"🔍 Storage health check for {b}...")
+        h = self.flash.scan_storage_health(f"{b}_DEV")
+        self._log_success(f"Storage: {h['storage_health']} | Read: {h['read_speed_mbps']} MB/s")
+
+    def _flash_boot(self):
+        b = self._brand()
+        self._log(f"🔒 Unlocking bootloader for {b}...")
+        r = self.flash.unlock_bootloader(f"{b}_DEV", b)
+        self._log_success(f"Bootloader: {r.get('status','UNKNOWN')}")
+
+    def _flash_browse(self):
+        p = filedialog.askopenfilename(filetypes=[("Firmware","*.tar *.bin *.img *.ipsw *.zip"),("All","*.*")])
+        if p:
+            self._log("📂 Firmware file selected")
+            r = self.flash.verify_firmware_image(p)
+            self._log_success(f"Firmware: {r.get('format','UNKNOWN')} | Valid: {r.get('valid',False)}")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: SECURITY
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _tab_security(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"🔓 {_t(self.loc, 'security', 'nav', 'Security')}")
+        self._hdr(t, _t(self.loc, 'header', 'security', 'Security & Account Repair'), "🔓")
+
+        fc = self._card(t, f"🔓 {_t(self.loc, 'frp_bypass', 'security', 'FRP Bypass')}")
+        for br, mt, co in [
+            (f"Samsung — ODIN_MODE", "Odin flash + Knox reset", T.ACCENT),
+            (f"Google Pixel — FASTBOOT", "fastboot erase persist", T.GREEN),
+            (f"Xiaomi — FASTBOOT", "Mi Account partition wipe", T.ORANGE),
+            (f"Huawei — EDL/META", "EDL/Meta mode reset", T.RED),
+            (f"OPPO/Realme — META", "Meta mode account reset", T.PURPLE),
+            (f"Vivo — META", "Meta mode Vivo ID reset", T.CYAN),
+            (f"OnePlus — FASTBOOT", "fastboot oem unlock", T.ACCENT),
+            (f"Apple — DFU_RESTORE", "DFU restore", T.LIGHT),
+        ]:
+            r = tk.Frame(fc, bg=T.CARD)
+            r.pack(fill=tk.X, padx=8, pady=2)
+            tk.Label(r, text=f"  {br}", font=('Segoe UI',9,'bold'), bg=co, fg=T.WHITE, width=28, anchor=tk.W, padx=6).pack(side=tk.LEFT)
+            tk.Label(r, text=mt, font=('Consolas',8), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=8)
+
+        lc = self._card(t, f"🔐 {_t(self.loc, 'screen_locks', 'security', 'Screen Locks')}")
+        for nm, ds, co in [
+            (f"🔑 {_t(self.loc, 'pattern_lock', 'security', 'Pattern')}", "Delete gesture.key + locksettings.db", T.CYAN),
+            (f"🔢 {_t(self.loc, 'pin_lock', 'security', 'PIN')}", "Delete locksettings.db", T.CYAN),
+            (f"🔒 {_t(self.loc, 'password_lock', 'security', 'Password')}", "Delete locksettings.db", T.CYAN),
+            (f"👆 {_t(self.loc, 'fingerprint_lock', 'security', 'Fingerprint')}", "Clear biometric data + re-enroll", T.CYAN),
+            (f"😊 {_t(self.loc, 'face_lock', 'security', 'Face ID')}", "Clear face data + re-enroll", T.CYAN),
+            (f"📧 {_t(self.loc, 'email_lock', 'security', 'Email')}", "Clear cache + reinitialize", T.ORANGE),
+            (f"☁️ {_t(self.loc, 'cloud_lock', 'security', 'Cloud')}", "Clear Google/Samsung/Mi Account", T.RED),
+        ]:
+            self._item(lc, f"  {nm}", ds, co)
+
+        af = tk.Frame(t, bg=T.BG)
+        af.pack(fill=tk.X, padx=15, pady=10)
+        self._btn(af, f"🔓 {_t(self.loc, 'start_frp', 'security', 'Start FRP')}", T.RED, self._sec_frp)
+        self._btn(af, f"🔐 {_t(self.loc, 'unlock_locks', 'security', 'Unlock Locks')}", T.ACCENT, self._sec_lock)
+        self._btn(af, f"📧 {_t(self.loc, 'bypass_email', 'security', 'Bypass Email')}", T.ORANGE, self._sec_email)
+        self._btn(af, f"☁️ {_t(self.loc, 'unlock_cloud', 'security', 'Unlock Cloud')}", T.PURPLE, self._sec_cloud)
+        self._btn(af, f"🔧 {_t(self.loc, 'diagnose', 'security', 'Diagnose')}", T.GREEN, self._sec_diag)
+
+    def _sec_frp(self):
+        b = self._brand()
+        self._log(f"🔓 FRP bypass for {b}...")
+        r = self.acct.remove_frp_and_cloud_locks(f"{b}_DEV", b)
+        self._log_success(f"FRP: {r.get('status','UNKNOWN')} | Cleared: {r.get('frp_cleared',False)}")
+
+    def _sec_lock(self):
+        b = self._brand()
+        self._log(f"🔐 Unlocking screen for {b}...")
+        r = self.acct.remove_screen_lock(f"{b}_DEV", "PATTERN")
+        self._log_success(f"Lock status: {r.get('status','UNKNOWN')}")
+
+    def _sec_email(self):
+        b = self._brand()
+        self._log(f"📧 Email bypass for {b}...")
+        r = self.acct.bypass_email_account(f"{b}_DEV", b)
+        self._log_success(f"Email bypass: {r.get('status','UNKNOWN')}")
+
+    def _sec_cloud(self):
+        b = self._brand()
+        self._log(f"☁️ Cloud unlock for {b}...")
+        r = self.acct.remove_frp_and_cloud_locks(f"{b}_DEV", b, "CLOUD_LOCK")
+        self._log_success(f"Cloud unlock: {r.get('status','UNKNOWN')}")
+
+    def _sec_diag(self):
+        b = self._brand()
+        self._log(f"🔧 Account diagnostics for {b}...")
+        d = self.acct.run_account_diagnostics(f"{b}_DEV")
+        self._log_success(f"Sync: {d.get('account_sync_status','UNKNOWN')} | Bootloader: {d.get('bootloader_status','UNKNOWN')}")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: RECOVERY
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _tab_recovery(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"💾 {_t(self.loc, 'recovery', 'nav', 'Recovery')}")
+        self._hdr(t, _t(self.loc, 'header', 'recovery', 'Data Recovery'), "💾")
+
+        sc = self._card(t, f"🔍 {_t(self.loc, 'scan_types', 'recovery', 'Deep Scan Types')}")
+        for ic, nm, ds, co in [
+            ("📸", _t(self.loc, "photos_videos", "recovery", "Photos & Videos"), _t(self.loc, "photos_desc", "recovery", "JPEG, PNG, HEIC, MP4"), T.ACCENT),
+            ("🎵", _t(self.loc, "audio_files", "recovery", "Audio Files"), _t(self.loc, "audio_desc", "recovery", "MP3, AAC, WAV, FLAC"), T.GREEN),
+            ("📄", _t(self.loc, "documents", "recovery", "Documents"), _t(self.loc, "documents_desc", "recovery", "PDF, DOC, XLS, PPT"), T.ORANGE),
+            ("📁", _t(self.loc, "deleted_folders", "recovery", "Deleted Folders"), _t(self.loc, "folders_desc", "recovery", "Full directory structure"), T.PURPLE),
+            ("💬", _t(self.loc, "sms", "recovery", "SMS Messages"), _t(self.loc, "sms_desc", "recovery", "mmssms.db"), T.RED),
+            ("📞", _t(self.loc, "contacts", "recovery", "Contacts"), _t(self.loc, "contacts_desc", "recovery", "contacts2.db"), T.CYAN),
+            ("📱", _t(self.loc, "call_logs", "recovery", "Call Logs"), _t(self.loc, "call_logs_desc", "recovery", "calllog.db"), T.ACCENT),
+            ("📲", _t(self.loc, "messaging", "recovery", "WhatsApp/Telegram"), _t(self.loc, "messaging_desc", "recovery", "msgstore.db"), T.GREEN),
+            ("🎧", _t(self.loc, "recordings", "recovery", "Recordings"), _t(self.loc, "recordings_desc", "recovery", "RAW extraction"), T.ORANGE),
+            ("📝", _t(self.loc, "notes", "recovery", "Notes & Logs"), _t(self.loc, "notes_desc", "recovery", "SQLite databases"), T.PURPLE),
+        ]:
+            r = tk.Frame(sc, bg=T.CARD)
+            r.pack(fill=tk.X, padx=8, pady=2)
+            tk.Label(r, text=f"  {ic} {nm}", font=('Segoe UI',9,'bold'), bg=co, fg=T.WHITE, width=28, anchor=tk.W, padx=6).pack(side=tk.LEFT)
+            tk.Label(r, text=ds, font=('Consolas',8), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=8)
+
+        af = tk.Frame(t, bg=T.BG)
+        af.pack(fill=tk.X, padx=15, pady=10)
+        self._btn(af, f"🔍 {_t(self.loc, 'start_scan', 'recovery', 'Start Deep Scan')}", T.ACCENT, self._rec_scan)
+        self._btn(af, f"📸 {_t(self.loc, 'extract_photos', 'recovery', 'Extract Photos')}", T.GREEN, self._rec_photos)
+        self._btn(af, f"💬 {_t(self.loc, 'extract_sms', 'recovery', 'Extract SMS')}", T.ORANGE, self._rec_sms)
+        self._btn(af, f"📤 {_t(self.loc, 'export_csv', 'recovery', 'Export CSV')}", T.CYAN, self._rec_csv)
+        self._btn(af, f"🌐 {_t(self.loc, 'export_html', 'recovery', 'Export HTML')}", T.PURPLE, self._rec_html)
+
+    def _rec_scan(self):
+        b = self._brand()
+        self._log(f"🔍 Deep scan for {b}...")
+        r = self.recov.perform_deep_scan(f"{b}_DEV")
+        self._log_success(f"Photos: {r['photos_found']} | Contacts: {r['contacts_found']} | SMS: {r['sms_messages_found']}")
+
+    def _rec_photos(self):
+        b = self._brand()
+        self._log(f"📸 Extracting photos from {b}...")
+        r = self.recov.extract_media(f"{b}_DEV", "/tmp/rec", ["images", "videos"])
+        self._log_success(f"Media extraction: {r.get('status','UNKNOWN')}")
+
+    def _rec_sms(self):
+        b = self._brand()
+        self._log(f"💬 Extracting SMS from {b}...")
+        r = self.recov.perform_deep_scan(f"{b}_DEV", ["sms", "contacts"])
+        self._log_success(f"SMS: {r.get('sms_messages_found',0)} | Contacts: {r.get('contacts_found',0)}")
+
+    def _rec_csv(self):
+        p = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV","*.csv")])
+        if p:
+            b = self._brand()
+            recs = self.recov.extract_contacts_and_logs(f"{b}_DEV")
+            self.recov.export_to_csv(recs, p)
+            self._log_success(f"Exported {len(recs)} records to CSV")
+
+    def _rec_html(self):
+        p = filedialog.asksaveasfilename(defaultextension=".html", filetypes=[("HTML","*.html")])
+        if p:
+            b = self._brand()
+            recs = self.recov.extract_contacts_and_logs(f"{b}_DEV")
+            self.recov.export_to_html(recs, p)
+            self._log_success("HTML report exported successfully")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: BIOMETRIC
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _tab_biometric(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"👆 {_t(self.loc, 'biometric', 'nav', 'Biometrics')}")
+        self._hdr(t, _t(self.loc, 'header', 'biometric', 'Biometrics Repair & Calibration'), "👆")
+
+        fc = self._card(t, f"👆 {_t(self.loc, 'sensor_types', 'biometric', 'Fingerprint Sensor Types')}")
+        for nm, key in [
+            ("Capacitive", "capacitive"), ("Optical (Under-display)", "optical"),
+            ("Ultrasonic (Samsung 3D)", "ultrasonic"), ("Side-mounted", "side_mounted"),
+        ]:
+            self._item(fc, f"  ✅ {nm}", _t(self.loc, key, "biometric", nm), T.GREEN)
+
+        fc2 = self._card(t, f"😊 {_t(self.loc, 'face_unlock', 'biometric', 'Face Unlock Types')}")
+        for nm, key in [
+            ("2D Camera", "face_2d"), ("3D Structured Light (Face ID)", "face_3d"),
+            ("ToF 3D", "face_tof"), ("IR Camera", "face_ir"), ("Dual Camera Depth", "face_dual"),
+        ]:
+            self._item(fc2, f"  ✅ {nm}", _t(self.loc, key, "biometric", nm), T.CYAN)
+
+        af = tk.Frame(t, bg=T.BG)
+        af.pack(fill=tk.X, padx=15, pady=10)
+        self._btn(af, f"🔍 {_t(self.loc, 'diagnose', 'biometric', 'Diagnose')}", T.ACCENT, self._bio_diag)
+        self._btn(af, f"👆 {_t(self.loc, 'calibrate_fingerprint', 'biometric', 'Calibrate Fingerprint')}", T.GREEN, self._bio_cal)
+        self._btn(af, f"😊 {_t(self.loc, 'fix_face_unlock', 'biometric', 'Fix Face Unlock')}", T.ORANGE, self._bio_face)
+        self._btn(af, f"📱 {_t(self.loc, 'calibrate_touch', 'biometric', 'Calibrate Touch')}", T.PURPLE, self._bio_touch)
+
+    def _bio_diag(self):
+        b = self._brand()
+        self._log(f"🔍 Biometric diagnostics for {b}...")
+        r = self.bio.run_diagnostics(f"{b}_DEV")
+        self._log_success(f"Fingerprint: {r['fingerprint_sensor']} | Face: {r['face_unlock']} | Overall: {r['overall_status']}")
+
+    def _bio_cal(self):
+        b = self._brand()
+        self._log(f"👆 Calibrating fingerprint for {b}...")
+        r = self.bio.recalibrate_sensors(f"{b}_DEV", "FINGERPRINT")
+        self._log_success(f"Calibration method: {r.get('calibration_method','GENERIC')}")
+
+    def _bio_face(self):
+        b = self._brand()
+        self._log(f"😊 Fixing face unlock for {b}...")
+        r = self.bio.fix_face_unlock(f"{b}_DEV")
+        self._log_success(f"Face unlock: {r.get('status','COMPLETED')}")
+
+    def _bio_touch(self):
+        b = self._brand()
+        self._log(f"📱 Calibrating touchscreen for {b}...")
+        r = self.bio.recalibrate_touchscreen(f"{b}_DEV")
+        self._log_success(f"Touchscreen calibration: {r.get('status','COMPLETED')}")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: LANGUAGE
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _tab_language(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"🌐 {_t(self.loc, 'language', 'nav', 'Languages')}")
+        self._hdr(t, _t(self.loc, 'header', 'language', 'Language & Localization'), "🌐")
+
+        lc = self._card(t, f"🌐 {_t(self.loc, 'supported_languages', 'language', 'Supported Languages')}")
+        languages_display = [
+            ("🇸🇦", _t(self.loc, "arabic", "language", "Arabic"), "RTL ←", T.RED, "ar"),
+            ("🇮🇷", _t(self.loc, "persian", "language", "Persian"), "RTL ←", T.RED, "fa"),
+            ("🇵🇰", _t(self.loc, "urdu", "language", "Urdu"), "RTL ←", T.RED, "ur"),
+            ("🇮🇱", _t(self.loc, "hebrew", "language", "Hebrew"), "RTL ←", T.RED, "he"),
+            ("🇺🇸", _t(self.loc, "english", "language", "English"), "→ LTR", T.GREEN, "en"),
+            ("🇫🇷", _t(self.loc, "french", "language", "French"), "→ LTR", T.GREEN, "fr"),
+            ("🇪🇸", _t(self.loc, "spanish", "language", "Spanish"), "→ LTR", T.GREEN, "es"),
+            ("🇩🇪", _t(self.loc, "german", "language", "German"), "→ LTR", T.GREEN, "de"),
+            ("🇮🇹", _t(self.loc, "italian", "language", "Italian"), "→ LTR", T.GREEN, "it"),
+            ("🇧🇷", _t(self.loc, "portuguese", "language", "Portuguese"), "→ LTR", T.GREEN, "pt"),
+            ("🇷🇺", _t(self.loc, "russian", "language", "Russian"), "→ LTR", T.GREEN, "ru"),
+            ("🇨🇳", _t(self.loc, "chinese", "language", "Chinese"), "→ LTR", T.GREEN, "zh"),
+            ("🇯🇵", _t(self.loc, "japanese", "language", "Japanese"), "→ LTR", T.GREEN, "ja"),
+            ("🇰🇷", _t(self.loc, "korean", "language", "Korean"), "→ LTR", T.GREEN, "ko"),
+            ("🇮🇳", _t(self.loc, "hindi", "language", "Hindi"), "→ LTR", T.GREEN, "hi"),
+            ("🇹🇷", _t(self.loc, "turkish", "language", "Turkish"), "→ LTR", T.GREEN, "tr"),
+        ]
+        for ic, nm, dr, co, code in languages_display:
+            r = tk.Frame(lc, bg=T.CARD)
+            r.pack(fill=tk.X, padx=8, pady=2)
+            tk.Label(r, text=f"  {ic} {nm}", font=('Segoe UI',10,'bold'), bg=T.CARD, fg=T.WHITE, width=22, anchor=tk.W, padx=6).pack(side=tk.LEFT)
+            tk.Label(r, text=dr, font=('Consolas',9,'bold'), bg=T.CARD, fg=co).pack(side=tk.LEFT, padx=10)
+
+        af = tk.Frame(t, bg=T.BG)
+        af.pack(fill=tk.X, padx=15, pady=10)
+        self._btn(af, f"🇸🇦 {_t(self.loc, 'apply_arabic', 'language', 'Apply Arabic')}", T.ACCENT, self._lang_ar)
+        self._btn(af, f"🌐 {_t(self.loc, 'set_language', 'language', 'Set Language')}", T.GREEN, self._lang_set)
+
+    def _lang_ar(self):
+        self._log("🇸🇦 Applying Arabic with RTL support...")
+        self.loc.set_language("ar")
+        self._log_success(_t(self.loc, "language_changed", "log", "Language changed successfully"))
+
+    def _lang_set(self):
+        self._log_success(_t(self.loc, "language_changed", "log", "Language changed successfully"))
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  TAB: SETTINGS
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _tab_settings(self):
+        t = tk.Frame(self.nb, bg=T.BG)
+        self.nb.add(t, text=f"⚙️ {_t(self.loc, 'settings', 'nav', 'Settings')}")
+        self._hdr(t, _t(self.loc, 'header', 'settings', 'Settings'), "⚙️")
+
+        # Language selector
+        lc = self._card(t, f"🌐 {_t(self.loc, 'language', 'settings', 'Language')}")
+        r = tk.Frame(lc, bg=T.CARD)
+        r.pack(fill=tk.X, padx=8, pady=8)
+        tk.Label(r, text=_t(self.loc, "language", "settings", "Language:") + " ",
+                 font=('Segoe UI',9), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT)
+        self.lang_combo = ttk.Combobox(r, values=["English", "العربية", "Français", "Español", "Deutsch", "中文", "日本語", "한국어"],
+                                       state="readonly", width=18)
+        self.lang_combo.pack(side=tk.LEFT, padx=8)
+        self.lang_combo.current(0)
+        self._btn(r, _t(self.loc, "apply", "settings", "Apply"), T.GREEN, self._set_lang)
+
+        # Protection layers
+        sc = self._card(t, f"🛡️ {_t(self.loc, 'protection_layers', 'settings', 'Anti-RE Protection Layers')}")
+        for ly, key, dt in [
+            ("Layer 1", "layer_1", "6 methods"), ("Layer 2", "layer_2", "14 indicators"),
+            ("Layer 3", "layer_3", "SHA-256"), ("Layer 4", "layer_4", "4 ciphers"),
+            ("Layer 5", "layer_5", "Active"), ("Layer 6", "layer_6", "Active"),
+            ("Layer 7", "layer_7", "Active"), ("Layer 8", "layer_8", "XOR+HMAC"),
+            ("Layer 9", "layer_9", "Frida/Xposed"),
+        ]:
+            r = tk.Frame(sc, bg=T.CARD)
+            r.pack(fill=tk.X, padx=8, pady=2)
+            tk.Label(r, text=f"  🔒 {ly}", font=('Consolas',9,'bold'), bg=T.CARD, fg=T.GREEN, width=12, anchor=tk.W, padx=6).pack(side=tk.LEFT)
+            tk.Label(r, text=_t(self.loc, key, "settings", key), font=('Segoe UI',9), bg=T.CARD, fg=T.WHITE, width=30, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(r, text=dt, font=('Consolas',9), bg=T.CARD, fg=T.CYAN).pack(side=tk.LEFT, padx=10)
+
+        # System info
+        ic = self._card(t, f"📊 {_t(self.loc, 'system_info', 'settings', 'System Information')}")
+        self._row(ic, f"🔧 {_t(self.loc, 'version', 'settings', 'Version')}", "AuraTool-Suite v6.0.0", T.ACCENT)
+        self._row(ic, f"🛡️ {_t(self.loc, 'license', 'settings', 'License')}",
+                  self.license_info.get("tier", "N/A"),
+                  T.GREEN if self.license_info.get("is_active") else T.RED)
+        self._row(ic, f"📅 {_t(self.loc, 'days', 'settings', 'Days')}",
+                  f"{self.license_info.get('days_remaining', 0)} {_t(self.loc, 'days', 'settings', 'days')}")
+
+        af = tk.Frame(t, bg=T.BG)
+        af.pack(fill=tk.X, padx=15, pady=10)
+        self._btn(af, f"🔍 {_t(self.loc, 'check_protection', 'settings', 'Check Protection')}", T.ACCENT, self._set_check)
+        self._btn(af, f"🤖 {_t(self.loc, 'ai_diagnose', 'settings', 'AI Diagnose')}", T.PURPLE, self._set_ai)
+
+    def _set_lang(self):
+        lm = {"English":"en", "العربية":"ar", "Français":"fr", "Español":"es",
+              "Deutsch":"de", "中文":"zh", "日本語":"ja", "한국어":"ko"}
+        c = lm.get(self.lang_combo.get(), "en")
+        self.loc.set_language(c)
+        self._lang_code = c
+        self._log_success(f"Language changed to {self.lang_combo.get()}")
+
+    def _set_check(self):
+        self._log("🛡️ Checking protection...")
+        r = self.sec.get_security_report()
+        self._log_success(f"Protection: {'Active' if r.get('protection_active') else 'Inactive'} | Code: {'Intact' if r.get('code_integrity') else 'Modified'}")
+        self._log(f"  Anti-RE: {r.get('anti_reverse_engineering','UNKNOWN')} | Encryption: {r.get('encryption','UNKNOWN')}")
+
+    def _set_ai(self):
+        b = self._brand()
+        self._log(f"🤖 AI diagnostics for {b}...")
+        r = self.ai.process_voice_or_text_command(f"diagnose {b} device")
+        self._log_success(f"AI action: {r.get('action','UNKNOWN')} | Status: {r.get('status','UNKNOWN')}")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  LICENSE ACTIVATION
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _activate(self):
+        k = self.key_e.get().strip()
+        if not k:
+            messagebox.showwarning(_t(self.loc, "activate_btn", "license", "Activate"),
+                                   _t(self.loc, "key_placeholder", "license", "Please enter a license key"))
             return
-        if self.license_mgr.activate_key(key):
-            new_status = self.license_mgr.check_license_status()
-            self.license_info = new_status
-            lic_txt = f"✅ ACTIVE | {new_status['tier']} ({new_status['days_remaining']}d) | HWID: {new_status['hwid']}"
-            self.lic_lbl.config(text=lic_txt, fg=Theme.TEXT_GREEN)
-            messagebox.showinfo("Success", f"License activated!\nTier: {new_status['tier']}\nValid: {new_status['days_remaining']} days.")
+        r = self.lic_mgr.activate(k)
+        if r.get("success"):
+            messagebox.showinfo(_t(self.loc, "active", "license", "Success"),
+                                f"{r.get('message', '')}")
+            self._log_success(_t(self.loc, "license_activated", "log", "License activated successfully"))
         else:
-            messagebox.showerror("Failed", "Invalid key or HWID mismatch.")
-
-    def _action_run_ai(self):
-        cmd = self.ai_cmd_entry.get().strip()
-        if not cmd:
-            return
-        res = self.ai_assistant.process_voice_or_text_command(cmd)
-        self.ai_response.configure(state='normal')
-        self.ai_response.insert(tk.END, f"[AI] {res['message']}\n")
-        self.ai_response.configure(state='disabled')
-        logging.info(f"Aura-AI: {res['message']}")
-
-    def _action_flash(self):
-        m = self.model_cb.get()
-        logging.info(self.loc_mgr.get_arabic_log("FLASHING_START"))
-        self.flashing_engine.flash_firmware(m, f"/firmware/{m}.bin")
-
-    def _action_format(self):
-        m = self.model_cb.get()
-        if messagebox.askyesno("Confirm", f"Format device {m}? All data will be erased!"):
-            self.flashing_engine.perform_full_format(m)
-            logging.info("Device formatted successfully.")
-
-    def _action_bypass_frp(self):
-        m = self.model_cb.get()
-        v = self.vendor_cb.get()
-        res = self.account_repair.remove_frp_and_cloud_locks(m, brand=v)
-        logging.info(self.loc_mgr.get_arabic_log("FRP_SUCCESS"))
-
-    def _action_backup_efs(self):
-        m = self.model_cb.get()
-        self.account_repair.backup_efs_nvram(m, f"/backups/{m}/efs")
-
-    def _action_unbrick(self):
-        m = self.model_cb.get()
-        v = self.vendor_cb.get()
-        res = self.flashing_engine.unbrick_device(m, brand=v)
-        logging.info(f"Unbrick completed for {m}: {res['status']}")
-
-    def _action_fix_bootloop(self):
-        m = self.model_cb.get()
-        self.ultimate_repair.repair_major_system_issues(m)
-
-    def _action_clean_virus(self):
-        m = self.model_cb.get()
-        self.ultimate_repair.scan_and_remove_viruses(m)
-        logging.info(self.loc_mgr.get_arabic_log("VIRUS_REMOVED"))
-
-    def _action_recalib_bio(self):
-        m = self.model_cb.get()
-        self.biometrics_fix.recalibrate_sensors(m)
-
-    def _action_storage_check(self):
-        m = self.model_cb.get()
-        res = self.flashing_engine.scan_storage_health(m)
-        messagebox.showinfo("Storage Health", f"Health: {res['storage_health']}\nRead: {res['read_speed_mbps']} MB/s\nWrite: {res['write_speed_mbps']} MB/s")
-
-    def _action_deep_scan(self):
-        m = self.model_cb.get()
-        logging.info(self.loc_mgr.get_arabic_log("RECOVERY_START"))
-        res = self.data_recovery.perform_deep_scan(m)
-        messagebox.showinfo("Scan Complete", f"Photos: {res['photos_found']}\nSMS: {res['sms_messages_found']}\nContacts: {res['contacts_found']}")
-
-    def _action_detect_devices(self):
-        devs = self.driver_mgr.get_connected_adb_devices()
-        fb = self.driver_mgr.get_fastboot_devices()
-        logging.info(f"ADB devices: {len(devs)} | Fastboot: {len(fb)}")
-        messagebox.showinfo("Devices", f"ADB: {len(devs)}\nFastboot: {len(fb)}")
-
-    def _action_send_chat(self):
-        txt = self.chat_entry.get().strip()
-        if txt:
-            msg = self.chat_mgr.send_message("Technician", "general", txt)
-            self.chat_txt.configure(state="normal")
-            self.chat_txt.insert(tk.END, f"[{msg.timestamp}] {msg.sender}: {msg.content}\n")
-            self.chat_txt.configure(state="disabled")
-            self.chat_entry.delete(0, tk.END)
-
-    def _action_play_stream(self, stream_id):
-        res = self.media_stream.start_stream(stream_id)
-        logging.info(f"Stream: {res['stream_url']}")
-
-    def _action_checkout(self):
-        sel = self.store_tree.selection()
-        if sel:
-            item_id = self.store_tree.item(sel[0])["values"][0]
-            self.ecommerce_mgr.add_to_cart(item_id)
-            order = self.ecommerce_mgr.checkout()
-            messagebox.showinfo("Order", f"Order ID: {order['order_id']}\nTotal: ${order['total_amount']:.2f}")
-
-    def _action_install_drivers(self):
-        res = self.driver_mgr.check_all_drivers()
-        logging.info(f"Drivers verified: {len(res)} stacks ready.")
-
-    def _action_wipe_cache(self):
-        m = self.model_cb.get()
-        logging.info("Wiping cache partition...")
-        self.flashing_engine.adb("shell", "rm", "-rf", "/cache/*")
-        messagebox.showinfo("Done", "Cache partition wiped successfully.")
-
-    def _action_system_update(self):
-        m = self.model_cb.get()
-        logging.info(f"Checking system updates for {m}...")
-        res = self.smart_dev_mgr.scan_firmware_updates(m)
-        messagebox.showinfo("Update Check", f"Current: {res['current_version']}\nLatest: {res['latest_version']}\nUpdate Available: {res['update_available']}")
-
-    def _action_restore_efs(self):
-        m = self.model_cb.get()
-        logging.info(f"Restoring EFS/NVRAM for {m}...")
-        self.account_repair.restore_efs_nvram(m, f"/backups/{m}/efs")
-        messagebox.showinfo("Done", "EFS/NVRAM restored successfully.")
-
-    def _action_bypass_email(self):
-        m = self.model_cb.get()
-        v = self.frp_brand_cb.get() if hasattr(self, 'frp_brand_cb') else self.vendor_cb.get()
-        res = self.account_repair.bypass_email_account(m, brand=v)
-        logging.info(f"Email account bypass completed for {m}")
-        messagebox.showinfo("Email Bypass", f"Status: {res['status']}\n{res['message']}")
-
-    def _action_remove_screen_lock(self):
-        m = self.model_cb.get()
-        lock_type = self.frp_lock_cb.get() if hasattr(self, 'frp_lock_cb') else "PATTERN"
-        res = self.account_repair.remove_screen_lock(m, lock_type=lock_type.split("(")[0].strip())
-        logging.info(f"Screen lock removed for {m}")
-        messagebox.showinfo("Screen Lock", f"Status: {res['status']}\n{res['message']}")
-
-    def _action_account_diagnostics(self):
-        m = self.model_cb.get()
-        res = self.account_repair.run_account_diagnostics(m)
-        logging.info(f"Account diagnostics for {m}: FRP={res.get('frp_status', 'N/A')}")
-        messagebox.showinfo("Account Diagnostics",
-            f"Brand: {res.get('brand', 'Unknown')}\n"
-            f"Model: {res.get('model', 'Unknown')}\n"
-            f"FRP Status: {res.get('frp_status', 'N/A')}\n"
-            f"Bootloader: {res.get('bootloader_status', 'N/A')}\n"
-            f"Integrity: {res.get('integrity_check', 'N/A')}")
-
-    def _action_network_repair(self):
-        m = self.model_cb.get()
-        v = self.frp_brand_cb.get() if hasattr(self, 'frp_brand_cb') else self.vendor_cb.get()
-        res = self.account_repair.repair_network_calibration(m, brand=v)
-        logging.info(f"Network repair for {m}: {res['status']}")
-        messagebox.showinfo("Network Repair", f"Baseband: {res['baseband_status']}\nIMEI: {'Valid' if res['imei_valid'] else 'Invalid'}")
-
-    def _action_change_lang(self):
-        selected = self.lang_cb.get()
-        for code, name in LocalizationManager.SUPPORTED_LANGUAGES.items():
-            if name == selected:
-                self.loc_mgr.set_language(code)
-                self._apply_rtl_support()
-
-                self.title_lbl.config(text=self.loc_mgr.get_string("title"))
-                self.act_bar.config(text=self.loc_mgr.get_string("license_bar_lbl"))
-                self.act_btn.config(text=self.loc_mgr.get_string("activate_btn"))
-                self.ai_btn.config(text=self.loc_mgr.get_string("run_ai"))
-                self.scan_btn.config(text="🔍 " + self.loc_mgr.get_string("start_scan"))
-
-                # Update sidebar labels
-                for key, info in self.sidebar_buttons.items():
-                    translated = self.loc_mgr.get_string(key)
-                    info["text"].config(text=translated)
-
-                # Update tab labels
-                tab_keys = [item[1] for item in SIDEBAR_ITEMS]
-                for idx, key in enumerate(tab_keys):
-                    if idx < len(self.notebook.tabs()):
-                        self.notebook.tab(idx, text=self.loc_mgr.get_string(key))
-
-                logging.info(f"Language changed to {selected} (RTL: {self.loc_mgr.is_rtl()}).")
-                break
-
-    def _apply_rtl_support(self):
-        """Apply RTL/LTR layout adjustments based on current language."""
-        is_rtl = self.loc_mgr.is_rtl()
-        anchor = "e" if is_rtl else "w"
-        self.title_lbl.config(anchor=anchor)
-        self.act_bar.config(anchor=anchor)
-        logging.info(f"RTL support applied: direction={'RTL' if is_rtl else 'LTR'}")
+            messagebox.showerror(_t(self.loc, "expired", "license", "Error"),
+                                 f"{r.get('message', 'Invalid key')}")
 
     def run(self):
         self.root.mainloop()

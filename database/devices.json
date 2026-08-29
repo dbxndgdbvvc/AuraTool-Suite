@@ -1,0 +1,435 @@
+{
+  "meta": {
+    "version": "6.0.0",
+    "description": "AuraTool-Suite Global Device Database — Repair Hooks, Testpoints & Unlock Sequences",
+    "last_updated": "2025-01-15",
+    "total_brands": 35,
+    "categories": ["smartphone", "tablet", "ipad", "smartwatch", "smart_glasses", "ar_vr_headset"],
+    "coverage_years": "2000-2030"
+  },
+
+  "protocols": {
+    "ADB": {"name": "Android Debug Bridge", "connection": ["USB", "WiFi"], "speed": "High"},
+    "FASTBOOT": {"name": "Fastboot Protocol", "connection": ["USB"], "speed": "High"},
+    "EDL_9008": {"name": "Qualcomm Emergency Download", "connection": ["USB", "Testpoint"], "speed": "Medium"},
+    "BROM_MTK": {"name": "MediaTek Boot ROM", "connection": ["USB"], "speed": "Low"},
+    "META_MODE": {"name": "MediaTek Meta Mode", "connection": ["USB"], "speed": "Medium"},
+    "SAMSUNG_ODIN": {"name": "Samsung Download Mode", "connection": ["USB"], "speed": "High"},
+    "APPLE_DFU": {"name": "Apple DFU/Recovery", "connection": ["USB"], "speed": "High"},
+    "RECOVERY": {"name": "Android Recovery Sideload", "connection": ["USB"], "speed": "Medium"},
+    "TIZEN": {"name": "Samsung Tizen Wearable", "connection": ["USB"], "speed": "Medium"},
+    "WEAR_OS": {"name": "Google WearOS ADB", "connection": ["USB", "WiFi"], "speed": "High"}
+  },
+
+  "chipsets": {
+    "Qualcomm_Snapdragon": {
+      "vendor_id": "05c6",
+      "edl_product_id": "9008",
+      "protocols": ["EDL_9008", "FASTBOOT", "ADB"],
+      "variants": ["8 Gen 3", "8 Gen 2", "8 Gen 1", "888", "865", "855", "845", "835", "820",
+                    "7 Gen 3", "778G", "695", "680", "660", "480", "450"]
+    },
+    "MediaTek_Dimensity": {
+      "vendor_id": "0e8d",
+      "protocols": ["BROM_MTK", "META_MODE", "FASTBOOT", "ADB"],
+      "variants": ["9300", "9200", "9000", "8300", "8200", "8100", "7200", "7050",
+                    "Helio G99", "Helio G88", "Helio P90", "Helio P60"]
+    },
+    "Samsung_Exynos": {
+      "vendor_id": "04e8",
+      "protocols": ["SAMSUNG_ODIN", "FASTBOOT", "ADB"],
+      "variants": ["2400", "2200", "2100", "990", "9825", "9810", "W1000", "W930"]
+    },
+    "Apple_Silicon": {
+      "vendor_id": "05ac",
+      "protocols": ["APPLE_DFU"],
+      "variants": ["A17 Pro", "A16", "A15", "A14", "A13", "A12", "M4", "M3", "M2", "M1", "S9", "S8", "R1"]
+    },
+    "HiSilicon_Kirin": {
+      "vendor_id": "12d1",
+      "protocols": ["EDL_QUALCOMM", "FASTBOOT", "ADB"],
+      "variants": ["9100", "9010", "9000", "990", "980", "970", "710"]
+    },
+    "Google_Tensor": {
+      "vendor_id": "18d1",
+      "protocols": ["FASTBOOT", "ADB"],
+      "variants": ["G4", "G3", "G2", "G1"]
+    },
+    "Unisoc_Tiger": {
+      "vendor_id": "1782",
+      "protocols": ["FASTBOOT", "ADB"],
+      "variants": ["T820", "T770", "T618", "T612"]
+    }
+  },
+
+  "brands": {
+    "Samsung": {
+      "category": ["smartphone", "tablet", "smartwatch"],
+      "vendor_id": "04e8",
+      "primary_protocol": "SAMSUNG_ODIN",
+      "frp_method": "ODIN_MODE",
+      "frp_steps": [
+        "Enter Samsung Download Mode (Vol Down + Power from USB)",
+        "Flash FRP reset combination via Odin3/Heimdall",
+        "Wipe persist and cache partitions",
+        "Reboot to system"
+      ],
+      "testpoints": {
+        "download_mode": "Vol Down + Power + USB cable (from powered off state)",
+        "recovery_mode": "Vol Up + Power + USB cable",
+        "edl_mode": "Disconnect battery, short testpoint to ground, connect USB"
+      },
+      "bootloader_unlock": {
+        "method": "Developer Options → OEM Unlock toggle",
+        "warning": "Enables Knox warranty bit (0x1). Cannot be reversed.",
+        "command": "fastboot flashing unlock"
+      },
+      "repair_hooks": {
+        "flash": "SAMSUNG_ODIN",
+        "frp": "ODIN_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008",
+        "bootloader": "ODIN_MODE"
+      },
+      "models": {
+        "smartphone": ["Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23", "Galaxy S22", "Galaxy A54", "Galaxy A14", "Galaxy Z Fold5", "Galaxy Z Flip5"],
+        "tablet": ["Galaxy Tab S9 Ultra", "Galaxy Tab S9+", "Galaxy Tab S9", "Galaxy Tab A9+"],
+        "smartwatch": ["Galaxy Watch6 Classic", "Galaxy Watch6", "Galaxy Watch5 Pro", "Galaxy Watch4"]
+      }
+    },
+    "Xiaomi": {
+      "category": ["smartphone", "tablet", "smartwatch", "smart_glasses"],
+      "vendor_id": "2717",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode (Vol Down + Power)",
+        "fastboot oem unlock (if bootloader locked)",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "testpoints": {
+        "fastboot_mode": "Vol Down + Power + USB cable",
+        "edl_mode": "fastboot oem edl (for Qualcomm models)",
+        "brom_mode": "Vol Up + Vol Down + USB cable (MTK models)"
+      },
+      "bootloader_unlock": {
+        "method": "Mi Unlock Tool (requires Mi Account + 7-day wait)",
+        "url": "en.miui.com/unlock",
+        "command": "fastboot oem unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008",
+        "bootloader": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": ["Xiaomi 14 Ultra", "Xiaomi 14 Pro", "Xiaomi 14", "Redmi Note 13 Pro+", "POCO X6 Pro", "POCO F5"],
+        "tablet": ["Xiaomi Pad 6S Pro", "Xiaomi Pad 6 Pro", "Redmi Pad Pro"],
+        "smartwatch": ["Xiaomi Watch S3", "Redmi Watch 4", "Mi Band 8 Pro"]
+      }
+    },
+    "Apple": {
+      "category": ["smartphone", "tablet", "ipad", "smartwatch", "smart_glasses"],
+      "vendor_id": "05ac",
+      "primary_protocol": "APPLE_DFU",
+      "frp_method": "DFU_RESTORE",
+      "frp_steps": [
+        "Enter DFU mode (device-specific button combo)",
+        "Connect to iTunes/Finder on Mac/PC",
+        "Restore via IPSW firmware",
+        "Setup as new device (no Activation Lock bypass)"
+      ],
+      "note": "Apple Activation Lock requires original Apple ID. No software bypass exists without authorization.",
+      "testpoints": {
+        "dfu_mode": "iPhone: Vol Up → Vol Down → Hold Power 10s → Hold Power + Vol Down 5s → Release Power, keep Vol Down",
+        "recovery_mode": "iPhone: Vol Up → Vol Down → Hold Power until recovery screen",
+        "ipad_dfu": "Hold Power + Home 10s → Release Power, keep Home"
+      },
+      "bootloader_unlock": {
+        "method": "Not applicable — Apple uses signed boot chain",
+        "note": "Jailbreak possible via checkm8 (A5-A11) or Taurine/checkra1n"
+      },
+      "repair_hooks": {
+        "flash": "APPLE_DFU",
+        "frp": "DFU_RESTORE",
+        "format": "APPLE_DFU",
+        "unbrick": "DFU_RESTORE",
+        "bootloader": null
+      },
+      "models": {
+        "smartphone": ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15", "iPhone 14 Pro Max", "iPhone 14", "iPhone 13", "iPhone 12", "iPhone 11", "iPhone SE (2022)"],
+        "ipad": ["iPad Pro M4 (2024)", "iPad Pro M2", "iPad Air M2", "iPad 10th Gen", "iPad mini 6th Gen"],
+        "smartwatch": ["Apple Watch Ultra 2", "Apple Watch Series 9", "Apple Watch SE (2nd)"],
+        "smart_glasses": ["Apple Vision Pro"]
+      }
+    },
+    "Huawei": {
+      "category": ["smartphone", "tablet", "smartwatch"],
+      "vendor_id": "12d1",
+      "primary_protocol": "EDL_QUALCOMM",
+      "frp_method": "EDL_META",
+      "frp_steps": [
+        "Enter EDL/Meta mode (Vol Up + Vol Down + USB)",
+        "Send Huawei FRP reset payload via test tool",
+        "Clear FRP and Huawei ID partitions",
+        "Reboot and verify"
+      ],
+      "testpoints": {
+        "edl_mode": "Vol Up + Vol Down + USB (powered off)",
+        "meta_mode": "Vol Up + Power + USB (powered off)",
+        "fastboot_mode": "Vol Down + Power + USB"
+      },
+      "bootloader_unlock": {
+        "method": "DC-Unlocker service (paid) or Huawei unlock codes",
+        "command": "fastboot oem unlock <code>"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "EDL_META",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008",
+        "bootloader": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": ["P60 Pro", "Mate 60 Pro+", "Mate 50 Pro", "Nova 12 Pro", "P40 Pro+"],
+        "tablet": ["MatePad Pro 13.2\"", "MatePad 11.5\"", "MatePad T 11"],
+        "smartwatch": ["Watch 4 Pro", "Watch GT 4", "Band 8"]
+      }
+    },
+    "OPPO": {
+      "category": ["smartphone", "tablet"],
+      "vendor_id": "2a70",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode (Vol Up + Power + USB)",
+        "Send OPPO account reset payload",
+        "Clear FRP partition flags",
+        "Reboot device"
+      ],
+      "testpoints": {
+        "meta_mode": "Vol Up + Power + USB (powered off)",
+        "edl_mode": "Vol Up + Vol Down + USB (Qualcomm models)",
+        "fastboot_mode": "Vol Down + Power + USB"
+      },
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (some models supported)",
+        "note": "Many OPPO/Realme devices have locked fastboot. Use MSMDownloadTool for unbricking."
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE",
+        "bootloader": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": ["Find X7 Ultra", "Find X6 Pro", "Reno 11 Pro", "OPPO A78 5G"],
+        "tablet": ["OPPO Pad 2"]
+      }
+    },
+    "Vivo": {
+      "category": ["smartphone"],
+      "vendor_id": "2d95",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode",
+        "Send Vivo ID reset payload",
+        "Clear FRP and cloud partitions",
+        "Reboot to system"
+      ],
+      "testpoints": {
+        "meta_mode": "Vol Up + Power + USB",
+        "edl_mode": "Vol Up + Vol Down + USB (Qualcomm models)",
+        "fastboot_mode": "Vol Down + Power + USB"
+      },
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (limited models)",
+        "note": "Vivo generally does not support official bootloader unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE",
+        "bootloader": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": ["X100 Pro+", "X100 Pro", "V30 Pro", "iQOO 12 Pro"]
+      }
+    },
+    "OnePlus": {
+      "category": ["smartphone", "tablet", "smartwatch"],
+      "vendor_id": "2a70",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode (Vol Down + Power)",
+        "fastboot oem unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "testpoints": {
+        "fastboot_mode": "Vol Down + Power + USB",
+        "edl_mode": "fastboot oem edl"
+      },
+      "bootloader_unlock": {
+        "method": "fastboot oem unlock (official support)",
+        "command": "fastboot oem unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "FASTBOOT",
+        "bootloader": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": ["OnePlus 12", "OnePlus 11", "Nord 3", "Open"],
+        "smartwatch": ["OnePlus Watch 2"]
+      }
+    },
+    "Google_Pixel": {
+      "category": ["smartphone", "tablet"],
+      "vendor_id": "18d1",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": [
+        "Enter Fastboot mode (Vol Down + Power)",
+        "fastboot flashing unlock",
+        "fastboot erase persist",
+        "fastboot reboot"
+      ],
+      "testpoints": {
+        "fastboot_mode": "Vol Down + Power + USB",
+        "edl_mode": "fastboot oem edl (some models)"
+      },
+      "bootloader_unlock": {
+        "method": "fastboot flashing unlock (official support)",
+        "warning": "Enables Factory Reset Protection. Data will be wiped.",
+        "command": "fastboot flashing unlock"
+      },
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "FASTBOOT",
+        "format": "FASTBOOT",
+        "unbrick": "EDL_9008",
+        "bootloader": "FASTBOOT"
+      },
+      "models": {
+        "smartphone": ["Pixel 8 Pro", "Pixel 8", "Pixel 8a", "Pixel 7 Pro", "Pixel 6a"]
+      }
+    },
+    "Realme": {
+      "category": ["smartphone"],
+      "vendor_id": "2a70",
+      "primary_protocol": "META_MEDIATEK",
+      "frp_method": "META_MODE",
+      "frp_steps": [
+        "Enter Meta mode (Vol Up + Power + USB)",
+        "Send Realme account reset payload",
+        "Clear persist partition",
+        "Reboot device"
+      ],
+      "repair_hooks": {
+        "flash": "FASTBOOT",
+        "frp": "META_MODE",
+        "format": "FASTBOOT",
+        "unbrick": "META_MODE"
+      },
+      "models": {
+        "smartphone": ["GT 5 Pro", "12 Pro+", "C67", "Narzo 70 Pro"]
+      }
+    },
+    "Motorola": {
+      "category": ["smartphone"],
+      "vendor_id": "22b8",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": ["Enter Fastboot mode", "fastboot oem unlock", "fastboot erase frp", "fastboot reboot"],
+      "bootloader_unlock": {"method": "fastboot oem unlock (official Motorola bootloader unlock)"},
+      "repair_hooks": {"flash": "FASTBOOT", "frp": "FASTBOOT", "format": "FASTBOOT"},
+      "models": {"smartphone": ["Edge 40 Pro", "Moto G84", "Razr 40 Ultra"]}
+    },
+    "Nokia": {
+      "category": ["smartphone", "tablet"],
+      "vendor_id": "2e04",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": ["Enter Fastboot mode", "fastboot oem unlock", "fastboot erase persist", "fastboot reboot"],
+      "repair_hooks": {"flash": "FASTBOOT", "frp": "FASTBOOT", "format": "FASTBOOT"},
+      "models": {"smartphone": ["G60", "X30", "XR21"], "tablet": ["Nokia T21", "Nokia T20"]}
+    },
+    "Sony": {
+      "category": ["smartphone"],
+      "vendor_id": "0fce",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": ["Enter Flashmode (Vol Down + USB)", "fastboot oem unlock", "fastboot erase frp", "fastboot reboot"],
+      "bootloader_unlock": {"method": "fastboot oem unlock (official Sony unlock via developer portal)"},
+      "repair_hooks": {"flash": "FASTBOOT", "frp": "FASTBOOT"},
+      "models": {"smartphone": ["Xperia 1 VI", "Xperia 5 V", "Xperia PRO-I"]}
+    },
+    "Meta_Quest": {
+      "category": ["ar_vr_headset", "smart_glasses"],
+      "vendor_id": "2c7c",
+      "primary_protocol": "FASTBOOT",
+      "frp_method": "FASTBOOT",
+      "frp_steps": ["Enter Fastboot mode", "fastboot oem unlock", "fastboot reboot"],
+      "repair_hooks": {"flash": "FASTBOOT", "frp": "FASTBOOT"},
+      "models": {
+        "ar_vr_headset": ["Meta Quest 3", "Meta Quest 3S", "Meta Quest Pro", "Meta Quest 2"],
+        "smart_glasses": ["Ray-Ban Meta Smart Glasses (2024)", "Ray-Ban Stories"]
+      }
+    },
+    "Apple_Vision": {
+      "category": ["smart_glasses"],
+      "vendor_id": "05ac",
+      "primary_protocol": "APPLE_DFU",
+      "frp_method": "DFU_RESTORE",
+      "note": "Apple Vision Pro uses M2+R1 chip. DFU restore via Apple service tools only.",
+      "repair_hooks": {"flash": "APPLE_DFU", "frp": "DFU_RESTORE"},
+      "models": {"smart_glasses": ["Apple Vision Pro"]}
+    },
+    "XREAL": {
+      "category": ["smart_glasses"],
+      "vendor_id": "2c7c",
+      "primary_protocol": "FASTBOOT",
+      "repair_hooks": {"flash": "FASTBOOT"},
+      "models": {"smart_glasses": ["XREAL Air 2 Ultra", "XREAL Air 2 Pro", "XREAL Air 2"]}
+    },
+    "Pico": {
+      "category": ["ar_vr_headset"],
+      "vendor_id": "2c7c",
+      "primary_protocol": "FASTBOOT",
+      "repair_hooks": {"flash": "FASTBOOT"},
+      "models": {"ar_vr_headset": ["Pico 4 Ultra", "Pico 4 Pro", "Pico Neo 3 Pro"]}
+    },
+    "HTC_Vive": {
+      "category": ["ar_vr_headset"],
+      "vendor_id": "0bb4",
+      "primary_protocol": "FASTBOOT",
+      "repair_hooks": {"flash": "FASTBOOT"},
+      "models": {"ar_vr_headset": ["HTC Vive XR Elite", "HTC Vive Focus 3", "HTC Vive Pro 2"]}
+    },
+    "Amazfit": {
+      "category": ["smartwatch"],
+      "vendor_id": "2d95",
+      "primary_protocol": "FASTBOOT",
+      "repair_hooks": {"flash": "FASTBOOT"},
+      "models": {"smartwatch": ["GTR 4", "GTS 4", "T-Rex Ultra", "Bip 5"]}
+    },
+    "Garmin": {
+      "category": ["smartwatch"],
+      "vendor_id": "091e",
+      "primary_protocol": "Proprietary",
+      "note": "Garmin uses proprietary firmware update via Garmin Express. No standard flashing protocol.",
+      "repair_hooks": {"flash": "Proprietary"},
+      "models": {"smartwatch": ["Venu 3", "Forerunner 265", "Fenix 7X"]}
+    }
+  }
+}

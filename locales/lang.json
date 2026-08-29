@@ -1,0 +1,2506 @@
+{
+  "meta": {
+    "version": "6.0.0",
+    "description": "AuraTool-Suite Multi-Language UI Strings",
+    "supported_languages": [
+      "en",
+      "ar",
+      "fr",
+      "es",
+      "de",
+      "it",
+      "pt",
+      "ru",
+      "zh",
+      "ja",
+      "ko",
+      "hi",
+      "tr",
+      "fa",
+      "ur",
+      "he",
+      "th",
+      "vi",
+      "pl",
+      "nl",
+      "sv",
+      "fi",
+      "cs",
+      "ro",
+      "hu",
+      "id",
+      "ms",
+      "bn",
+      "ne",
+      "si",
+      "ta",
+      "te",
+      "kn",
+      "ml",
+      "pa",
+      "gu",
+      "mr",
+      "am",
+      "uk",
+      "bg",
+      "sr",
+      "hr",
+      "sk",
+      "sl",
+      "et",
+      "lv",
+      "lt",
+      "el",
+      "km",
+      "sw"
+    ]
+  },
+  "en": {
+    "app": {
+      "title": "AuraTool-Suite — Universal Device Maintenance Platform",
+      "version": "Version 6.0.0",
+      "copyright": "© 2024-2030 AuraTool. All rights reserved."
+    },
+    "license": {
+      "bar_label": "License",
+      "activate_btn": "Activate",
+      "key_placeholder": "Enter license key",
+      "trial": "Trial",
+      "active": "Active",
+      "expired": "Expired",
+      "days_remaining": "days remaining",
+      "no_devices": "No devices",
+      "devices_found": "devices found"
+    },
+    "nav": {
+      "devices": "Devices",
+      "flash": "Flash",
+      "security": "Security",
+      "recovery": "Recovery",
+      "biometric": "Biometrics",
+      "language": "Languages",
+      "settings": "Settings"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Format",
+      "update": "Update",
+      "unlock": "Unlock",
+      "biometric": "Biometric",
+      "recovery": "Recovery",
+      "repair": "Repair",
+      "security": "Security"
+    },
+    "devices": {
+      "header": "Device Explorer",
+      "smartphones": "Smartphones",
+      "tablets": "Tablets",
+      "ipads": "iPads",
+      "smartwatches": "Smartwatches",
+      "smart_glasses": "Smart Glasses",
+      "ar_vr": "AR/VR Headsets",
+      "brand_label": "Brand:",
+      "model_label": "Model:",
+      "brand_explorer": "Brand Explorer",
+      "operations": "Operations",
+      "protocols": "Supported Protocols"
+    },
+    "flash": {
+      "header": "Flash & ROM Management",
+      "supported_formats": "Supported Firmware Formats",
+      "ota_payload": "OTA payload.bin",
+      "samsung_odin": "Samsung Odin (.tar)",
+      "mtk_scatter": "MediaTek Scatter",
+      "qualcomm_edl": "Qualcomm EDL Firehose",
+      "apple_ipsw": "Apple IPSW",
+      "super_img": "Super.img",
+      "operations": "Operations",
+      "full_flash": "Full Flash",
+      "extract_payload": "Extract payload.bin",
+      "single_partition": "Single Partition",
+      "unbrick": "Unbrick",
+      "storage_check": "Storage Check",
+      "unlock_bootloader": "Unlock Bootloader",
+      "browse_file": "Browse File"
+    },
+    "security": {
+      "header": "Security & Account Repair",
+      "frp_bypass": "FRP Bypass",
+      "frp_methods": "FRP Bypass Methods",
+      "screen_locks": "Screen Locks",
+      "samsung_odin": "Samsung — ODIN_MODE",
+      "google_pixel": "Google Pixel — FASTBOOT",
+      "xiaomi": "Xiaomi — FASTBOOT",
+      "huawei": "Huawei — EDL/META",
+      "oppo_realme": "OPPO/Realme — META",
+      "vivo": "Vivo — META",
+      "oneplus": "OnePlus — FASTBOOT",
+      "apple": "Apple — DFU_RESTORE",
+      "pattern_lock": "Pattern",
+      "pin_lock": "PIN",
+      "password_lock": "Password",
+      "fingerprint_lock": "Fingerprint",
+      "face_lock": "Face ID",
+      "email_lock": "Email Account",
+      "cloud_lock": "Cloud Account",
+      "start_frp": "Start FRP",
+      "unlock_locks": "Unlock Locks",
+      "bypass_email": "Bypass Email",
+      "unlock_cloud": "Unlock Cloud",
+      "diagnose": "Diagnose"
+    },
+    "recovery": {
+      "header": "Data Recovery",
+      "scan_types": "Deep Scan Types",
+      "photos_videos": "Photos & Videos",
+      "photos_desc": "JPEG, PNG, HEIC, MP4",
+      "audio_files": "Audio Files",
+      "audio_desc": "MP3, AAC, WAV, FLAC",
+      "documents": "Documents",
+      "documents_desc": "PDF, DOC, XLS, PPT",
+      "deleted_folders": "Deleted Folders",
+      "folders_desc": "Full directory structure",
+      "sms": "SMS Messages",
+      "sms_desc": "mmssms.db",
+      "contacts": "Contacts",
+      "contacts_desc": "contacts2.db",
+      "call_logs": "Call Logs",
+      "call_logs_desc": "calllog.db",
+      "messaging": "WhatsApp/Telegram",
+      "messaging_desc": "msgstore.db",
+      "recordings": "Recordings",
+      "recordings_desc": "RAW extraction",
+      "notes": "Notes & Logs",
+      "notes_desc": "SQLite databases",
+      "start_scan": "Start Deep Scan",
+      "extract_photos": "Extract Photos",
+      "extract_sms": "Extract SMS",
+      "export_csv": "Export CSV",
+      "export_html": "Export HTML"
+    },
+    "biometric": {
+      "header": "Biometrics Repair & Calibration",
+      "sensor_types": "Fingerprint Sensor Types",
+      "capacitive": "Capacitive",
+      "optical": "Optical (Under-display)",
+      "ultrasonic": "Ultrasonic (Samsung 3D)",
+      "side_mounted": "Side-mounted",
+      "face_unlock": "Face Unlock Types",
+      "face_2d": "2D Camera",
+      "face_3d": "3D Structured Light (Face ID)",
+      "face_tof": "ToF 3D",
+      "face_ir": "IR Camera",
+      "face_dual": "Dual Camera Depth",
+      "diagnose": "Diagnose",
+      "calibrate_fingerprint": "Calibrate Fingerprint",
+      "fix_face_unlock": "Fix Face Unlock",
+      "calibrate_touch": "Calibrate Touch"
+    },
+    "language": {
+      "header": "Language & Localization",
+      "supported_languages": "Supported Languages",
+      "rtl_support": "RTL Support",
+      "ltr_support": "LTR Support",
+      "arabic": "Arabic",
+      "persian": "Persian",
+      "urdu": "Urdu",
+      "hebrew": "Hebrew",
+      "english": "English",
+      "french": "French",
+      "spanish": "Spanish",
+      "german": "German",
+      "italian": "Italian",
+      "portuguese": "Portuguese",
+      "russian": "Russian",
+      "chinese": "Chinese",
+      "japanese": "Japanese",
+      "korean": "Korean",
+      "hindi": "Hindi",
+      "turkish": "Turkish",
+      "apply_arabic": "Apply Arabic",
+      "set_language": "Set Language"
+    },
+    "settings": {
+      "header": "Settings",
+      "language": "Language",
+      "apply": "Apply",
+      "protection_layers": "Anti-RE Protection Layers",
+      "layer_1": "Debugger Detection",
+      "layer_2": "VM Detection",
+      "layer_3": "Code Integrity",
+      "layer_4": "String Obfuscation",
+      "layer_5": "Anti-Dump",
+      "layer_6": "Timing Detection",
+      "layer_7": "Memory Integrity",
+      "layer_8": "Bytecode Encryption",
+      "layer_9": "Anti-Hook",
+      "system_info": "System Information",
+      "version": "Version",
+      "license": "License",
+      "days": "Days",
+      "check_protection": "Check Protection",
+      "ai_diagnose": "AI Diagnose"
+    },
+    "console": {
+      "title": "Operation Log",
+      "clear": "Clear",
+      "export": "Export Log"
+    },
+    "status_bar": {
+      "brands": "Brands",
+      "models": "Models",
+      "protocols": "Protocols",
+      "anti_re": "Anti-RE",
+      "hwid_licensed": "HWID-Licensed | Encrypted"
+    },
+    "log": {
+      "success": "[SUCCESS]",
+      "error": "[ERROR]",
+      "warning": "[WARNING]",
+      "flash_start": "Flashing firmware started...",
+      "flash_done": "Flashing completed successfully",
+      "frp_start": "FRP bypass started...",
+      "frp_done": "FRP bypass completed successfully",
+      "format_start": "Device formatting started...",
+      "format_done": "Device formatted successfully",
+      "recovery_start": "Data recovery scan started...",
+      "recovery_done": "Data recovery completed successfully",
+      "biometric_start": "Biometric calibration started...",
+      "biometric_done": "Biometric calibration completed successfully",
+      "repair_start": "System repair started...",
+      "repair_done": "System repair completed successfully",
+      "security_check": "Security check completed",
+      "device_detected": "Device detected",
+      "no_devices": "No devices detected",
+      "language_changed": "Language changed successfully",
+      "license_activated": "License activated successfully"
+    }
+  },
+  "ar": {
+    "app": {
+      "title": "AuraTool-Suite — منصة صيانة وإصلاح الأجهزة الشاملة 2030",
+      "version": "الإصدار 6.0.0",
+      "copyright": "© 2024-2030 AuraTool. جميع الحقوق محفوظة."
+    },
+    "license": {
+      "bar_label": "الترخيص",
+      "activate_btn": "تفعيل",
+      "key_placeholder": "أدخل مفتاح الترخيص",
+      "trial": "تجريبي",
+      "active": "نشط",
+      "expired": "منتهي",
+      "days_remaining": "يوم متبقي",
+      "no_devices": "لا أجهزة",
+      "devices_found": "جهاز"
+    },
+    "nav": {
+      "devices": "الأجهزة",
+      "flash": "التفليش",
+      "security": "الأمان",
+      "recovery": "الاستعادة",
+      "biometric": "البصمات",
+      "language": "اللغات",
+      "settings": "الإعدادات"
+    },
+    "actions": {
+      "flash": "تفليش",
+      "frp": "تجاوز FRP",
+      "format": "تنسيق",
+      "update": "تحديث",
+      "unlock": "فك القفل",
+      "biometric": "البصمات",
+      "recovery": "استعادة",
+      "repair": "إصلاح",
+      "security": "أمان"
+    },
+    "devices": {
+      "header": "مستكشف الأجهزة",
+      "smartphones": "الهواتف الذكية",
+      "tablets": "الأجهزة اللوحية",
+      "ipads": "أجهزة الأيباد",
+      "smartwatches": "الساعات الذكية",
+      "smart_glasses": "النظارات الذكية",
+      "ar_vr": "خوذات AR/VR",
+      "brand_label": "الشركة:",
+      "model_label": "الطراز:",
+      "brand_explorer": "مستكشف الشركات",
+      "operations": "العمليات",
+      "protocols": "البروتوكولات المدعومة"
+    },
+    "flash": {
+      "header": "إدارة التفليش والرومات",
+      "supported_formats": "صيغ البرنامج الثابت المدعومة",
+      "ota_payload": "حزمة OTA payload.bin",
+      "samsung_odin": "Samsung Odin (.tar)",
+      "mtk_scatter": "MediaTek Scatter",
+      "qualcomm_edl": "Qualcomm EDL Firehose",
+      "apple_ipsw": "Apple IPSW",
+      "super_img": "Super.img",
+      "operations": "العمليات",
+      "full_flash": "تفليش كامل",
+      "extract_payload": "استخراج payload.bin",
+      "single_partition": "تفليش قسم واحد",
+      "unbrick": "إصلاح التعليق",
+      "storage_check": "فحص التخزين",
+      "unlock_bootloader": "فتح البوت 로ادر",
+      "browse_file": "اختيار ملف"
+    },
+    "security": {
+      "header": "أمان وإصلاح الحسابات",
+      "frp_bypass": "تجاوز FRP",
+      "frp_methods": "طرق تجاوز FRP",
+      "screen_locks": "أقفال الشاشة",
+      "samsung_odin": "Samsung — ODIN_MODE",
+      "google_pixel": "Google Pixel — FASTBOOT",
+      "xiaomi": "Xiaomi — FASTBOOT",
+      "huawei": "Huawei — EDL/META",
+      "oppo_realme": "OPPO/Realme — META",
+      "vivo": "Vivo — META",
+      "oneplus": "OnePlus — FASTBOOT",
+      "apple": "Apple — DFU_RESTORE",
+      "pattern_lock": "نمط",
+      "pin_lock": "رمز PIN",
+      "password_lock": "كلمة مرور",
+      "fingerprint_lock": "بصمة الإصبع",
+      "face_lock": "بصمة الوجه",
+      "email_lock": "حساب البريد",
+      "cloud_lock": "الحساب السحابي",
+      "start_frp": "بدء FRP",
+      "unlock_locks": "فك الأقفال",
+      "bypass_email": "تجاوز البريد",
+      "unlock_cloud": "فك السحابي",
+      "diagnose": "تشخيص"
+    },
+    "recovery": {
+      "header": "استعادة البيانات",
+      "scan_types": "أنواع الفحص العميق",
+      "photos_videos": "الصور والفيديو",
+      "photos_desc": "JPEG, PNG, HEIC, MP4",
+      "audio_files": "الملفات الصوتية",
+      "audio_desc": "MP3, AAC, WAV, FLAC",
+      "documents": "المستندات",
+      "documents_desc": "PDF, DOC, XLS, PPT",
+      "deleted_folders": "المجلدات المحذوفة",
+      "folders_desc": "هيكل المجلدات الكامل",
+      "sms": "الرسائل SMS",
+      "sms_desc": "mmssms.db",
+      "contacts": "جهات الاتصال",
+      "contacts_desc": "contacts2.db",
+      "call_logs": "سجلات المكالمات",
+      "call_logs_desc": "calllog.db",
+      "messaging": "WhatsApp/Telegram",
+      "messaging_desc": "msgstore.db",
+      "recordings": "التسجيلات",
+      "recordings_desc": "استخراج مباشر RAW",
+      "notes": "السجل والملاحظات",
+      "notes_desc": "قواعد بيانات SQLite",
+      "start_scan": "بدء الفحص العميق",
+      "extract_photos": "استخراج الصور",
+      "extract_sms": "استخراج الرسائل",
+      "export_csv": "تصدير CSV",
+      "export_html": "تصدير HTML"
+    },
+    "biometric": {
+      "header": "إصلاح ومعايرة البصمة والأجهزة البيومترية",
+      "sensor_types": "أنواع حساسات البصمة",
+      "capacitive": "الحساس الكهربائي",
+      "optical": "البصري تحت الشاشة",
+      "ultrasonic": "Samsung 3D Sonic",
+      "side_mounted": "الجانبي زر الطاقة",
+      "face_unlock": "أنواع فتح الوجه",
+      "face_2d": "الكاميرا 2D",
+      "face_3d": "الضوء المهيكل 3D (Face ID)",
+      "face_tof": "Time-of-Flight 3D",
+      "face_ir": "تحت الأحمر IR",
+      "face_dual": "المزدوجة العميقة",
+      "diagnose": "تشخيص",
+      "calibrate_fingerprint": "معايرة بصمة",
+      "fix_face_unlock": "إصلاح فتح الوجه",
+      "calibrate_touch": "معايرة اللمس"
+    },
+    "language": {
+      "header": "اللغات والتعريب",
+      "supported_languages": "اللغات المدعومة",
+      "rtl_support": "دعم RTL",
+      "ltr_support": "دعم LTR",
+      "arabic": "العربية",
+      "persian": "فارسی",
+      "urdu": "اردو",
+      "hebrew": "עברית",
+      "english": "English",
+      "french": "Français",
+      "spanish": "Español",
+      "german": "Deutsch",
+      "italian": "Italiano",
+      "portuguese": "Português",
+      "russian": "Русский",
+      "chinese": "中文",
+      "japanese": "日本語",
+      "korean": "한국어",
+      "hindi": "हिन्दी",
+      "turkish": "Türkçe",
+      "apply_arabic": "تطبيق العربية",
+      "set_language": "ضبط اللغة"
+    },
+    "settings": {
+      "header": "الإعدادات",
+      "language": "اللغة",
+      "apply": "تطبيق",
+      "protection_layers": "طبقات الحماية ضد الهندسة العكسية",
+      "layer_1": "كشف المصحح",
+      "layer_2": "كشف الآلة الافتراضية",
+      "layer_3": "سلامة الكود",
+      "layer_4": "تشفير النصوص",
+      "layer_5": "حماية ضد السحب",
+      "layer_6": "كشف التوقيت",
+      "layer_7": "سلامة الذاكرة",
+      "layer_8": "تشفير الكود",
+      "layer_9": "حماية ضد التعليق",
+      "system_info": "معلومات النظام",
+      "version": "الإصدار",
+      "license": "الترخيص",
+      "days": "أيام",
+      "check_protection": "فحص الحماية",
+      "ai_diagnose": "تشخيص AI"
+    },
+    "console": {
+      "title": "سجل العمليات",
+      "clear": "مسح",
+      "export": "تصدير السجل"
+    },
+    "status_bar": {
+      "brands": "شركة",
+      "models": "موديل",
+      "protocols": "بروتوكول",
+      "anti_re": "حماية عكسية",
+      "hwid_licensed": "مرخص HWID | مشفر"
+    },
+    "log": {
+      "success": "[نجح]",
+      "error": "[خطأ]",
+      "warning": "[تحذير]",
+      "flash_start": "بدء تفليش البرنامج الثابت...",
+      "flash_done": "اكتمل التفليش بنجاح",
+      "frp_start": "بدء تجاوز FRP...",
+      "frp_done": "اكتمل تجاوز FRP بنجاح",
+      "format_start": "بدء تنسيق الجهاز...",
+      "format_done": "اكتمل التنسيق بنجاح",
+      "recovery_start": "بدء فحص استعادة البيانات...",
+      "recovery_done": "اكتملت الاستعادة بنجاح",
+      "biometric_start": "بدء معايرة البصمة...",
+      "biometric_done": "اكتملت معايرة البصمة بنجاح",
+      "repair_start": "بدء إصلاح النظام...",
+      "repair_done": "اكتمل الإصلاح بنجاح",
+      "security_check": "اكتمل فحص الأمان",
+      "device_detected": "تم كشف الجهاز",
+      "no_devices": "لم يتم كشف أي جهاز",
+      "language_changed": "تم تغيير اللغة بنجاح",
+      "license_activated": "تم تفعيل الترخيص بنجاح"
+    }
+  },
+  "fr": {
+    "app": {
+      "title": "AuraTool-Suite — Plateforme universelle de maintenance",
+      "version": "Version 6.0.0"
+    },
+    "license": {
+      "bar_label": "Licence",
+      "activate_btn": "Activer",
+      "key_placeholder": "Clé de licence",
+      "trial": "Essai",
+      "active": "Actif",
+      "expired": "Expiré",
+      "days_remaining": "jours restants"
+    },
+    "nav": {
+      "devices": "Appareils",
+      "flash": "Flash",
+      "security": "Sécurité",
+      "recovery": "Récupération",
+      "biometric": "Biométrie",
+      "language": "Langues",
+      "settings": "Paramètres"
+    },
+    "log": {
+      "success": "[SUCCÈS]",
+      "error": "[ERREUR]",
+      "warning": "[AVERTISSEMENT]"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formater",
+      "update": "Mettre à jour",
+      "unlock": "Déverrouiller",
+      "biometric": "Biométrie",
+      "recovery": "Récupérer",
+      "repair": "Réparer",
+      "security": "Sécurité"
+    }
+  },
+  "es": {
+    "app": {
+      "title": "AuraTool-Suite — Plataforma universal de mantenimiento",
+      "version": "Versión 6.0.0"
+    },
+    "license": {
+      "bar_label": "Licencia",
+      "activate_btn": "Activar",
+      "key_placeholder": "Clave de licencia",
+      "trial": "Prueba",
+      "active": "Activo",
+      "expired": "Expirado",
+      "days_remaining": "días restantes"
+    },
+    "nav": {
+      "devices": "Dispositivos",
+      "flash": "Flash",
+      "security": "Seguridad",
+      "recovery": "Recuperación",
+      "biometric": "Biométrico",
+      "language": "Idiomas",
+      "settings": "Configuración"
+    },
+    "log": {
+      "success": "[ÉXITO]",
+      "error": "[ERROR]",
+      "warning": "[ADVERTENCIA]"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatear",
+      "update": "Actualizar",
+      "unlock": "Desbloquear",
+      "biometric": "Biométrico",
+      "recovery": "Recuperar",
+      "repair": "Reparar",
+      "security": "Seguridad"
+    }
+  },
+  "de": {
+    "app": {
+      "title": "AuraTool-Suite — Universelle Wartungsplattform",
+      "version": "Version 6.0.0"
+    },
+    "license": {
+      "bar_label": "Lizenz",
+      "activate_btn": "Aktivieren",
+      "key_placeholder": "Lizenzschlüssel",
+      "trial": "Testversion",
+      "active": "Aktiv",
+      "expired": "Abgelaufen",
+      "days_remaining": "Tage verbleibend"
+    },
+    "nav": {
+      "devices": "Geräte",
+      "flash": "Flash",
+      "security": "Sicherheit",
+      "recovery": "Wiederherstellung",
+      "biometric": "Biometrie",
+      "language": "Sprachen",
+      "settings": "Einstellungen"
+    },
+    "log": {
+      "success": "[ERFOLG]",
+      "error": "[FEHLER]",
+      "warning": "[WARNUNG]"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatieren",
+      "update": "Aktualisieren",
+      "unlock": "Entsperren",
+      "biometric": "Biometrie",
+      "recovery": "Wiederherstellen",
+      "repair": "Reparieren",
+      "security": "Sicherheit"
+    }
+  },
+  "zh": {
+    "app": {
+      "title": "AuraTool-Suite — 通用设备维护平台",
+      "version": "版本 6.0.0"
+    },
+    "license": {
+      "bar_label": "许可证",
+      "activate_btn": "激活",
+      "key_placeholder": "输入许可证密钥",
+      "trial": "试用版",
+      "active": "已激活",
+      "expired": "已过期",
+      "days_remaining": "天剩余"
+    },
+    "nav": {
+      "devices": "设备",
+      "flash": "刷机",
+      "security": "安全",
+      "recovery": "恢复",
+      "biometric": "生物识别",
+      "language": "语言",
+      "settings": "设置"
+    },
+    "log": {
+      "success": "[成功]",
+      "error": "[错误]",
+      "warning": "[警告]"
+    },
+    "actions": {
+      "flash": "刷机",
+      "frp": "FRP",
+      "format": "格式化",
+      "update": "更新",
+      "unlock": "解锁",
+      "biometric": "生物识别",
+      "recovery": "恢复",
+      "repair": "修复",
+      "security": "安全"
+    }
+  },
+  "ja": {
+    "app": {
+      "title": "AuraTool-Suite — ユニバーサルデバイスメンテナンスプラットフォーム",
+      "version": "バージョン 6.0.0"
+    },
+    "license": {
+      "bar_label": "ライセンス",
+      "activate_btn": "アクティブ化",
+      "key_placeholder": "ライセンスキーを入力",
+      "trial": "トライアル",
+      "active": "有効",
+      "expired": "期限切れ",
+      "days_remaining": "日残り"
+    },
+    "log": {
+      "success": "[成功]",
+      "error": "[エラー]",
+      "warning": "[警告]"
+    },
+    "nav": {
+      "devices": "デバイス",
+      "flash": "フラッシュ",
+      "security": "セキュリティ",
+      "recovery": "復元",
+      "biometric": "生体認証",
+      "language": "言語",
+      "settings": "設定"
+    },
+    "actions": {
+      "flash": "フラッシュ",
+      "frp": "FRP",
+      "format": "フォーマット",
+      "update": "更新",
+      "unlock": "ロック解除",
+      "biometric": "生体認証",
+      "recovery": "復元",
+      "repair": "修理",
+      "security": "セキュリティ"
+    }
+  },
+  "ko": {
+    "app": {
+      "title": "AuraTool-Suite — 범용 장치 유지보수 플랫폼",
+      "version": "버전 6.0.0"
+    },
+    "license": {
+      "bar_label": "라이선스",
+      "activate_btn": "활성화",
+      "key_placeholder": "라이선스 키 입력",
+      "trial": "체험판",
+      "active": "활성",
+      "expired": "만료",
+      "days_remaining": "일 남음"
+    },
+    "log": {
+      "success": "[성공]",
+      "error": "[오류]",
+      "warning": "[경고]"
+    },
+    "nav": {
+      "devices": "기기",
+      "flash": "플래시",
+      "security": "보안",
+      "recovery": "복구",
+      "biometric": "생체인식",
+      "language": "언어",
+      "settings": "설정"
+    },
+    "actions": {
+      "flash": "플래시",
+      "frp": "FRP",
+      "format": "포맷",
+      "update": "업데이트",
+      "unlock": "잠금 해제",
+      "biometric": "생체인식",
+      "recovery": "복구",
+      "repair": "수리",
+      "security": "보안"
+    }
+  },
+  "hi": {
+    "app": {
+      "title": "AuraTool-Suite — सार्वभौमिक डिवाइस रखरखाव प्लेटफ़ॉर्म",
+      "version": "संस्करण 6.0.0"
+    },
+    "log": {
+      "success": "[सफल]",
+      "error": "[त्रुटि]",
+      "warning": "[चेतावनी]"
+    },
+    "license": {
+      "bar_label": "लाइसेंस",
+      "activate_btn": "सक्रिय करें",
+      "key_placeholder": "लाइसेंस कुंजी दर्ज करें",
+      "trial": "परीक्षण",
+      "active": "सक्रिय",
+      "expired": "समाप्त",
+      "days_remaining": "दिन शेष",
+      "no_devices": "कोई डिवाइस नहीं",
+      "devices_found": "डिवाइस मिले"
+    },
+    "nav": {
+      "devices": "डिवाइस",
+      "flash": "फ्लैश",
+      "security": "सुरक्षा",
+      "recovery": "रिकवरी",
+      "biometric": "बायोमेट्रिक",
+      "language": "भाषाएँ",
+      "settings": "सेटिंग्स"
+    },
+    "actions": {
+      "flash": "फ्लैश",
+      "frp": "FRP",
+      "format": "फॉर्मेट",
+      "update": "अपडेट",
+      "unlock": "अनलॉक",
+      "biometric": "बायोमेट्रिक",
+      "recovery": "रिकवर",
+      "repair": "मरम्मत",
+      "security": "सुरक्षा"
+    }
+  },
+  "tr": {
+    "app": {
+      "title": "AuraTool-Suite — Evrensel Cihaz Bakım Platformu",
+      "version": "Sürüm 6.0.0"
+    },
+    "log": {
+      "success": "[BAŞARILI]",
+      "error": "[HATA]",
+      "warning": "[UYARI]"
+    },
+    "license": {
+      "bar_label": "Lisans",
+      "activate_btn": "Etkinleştir",
+      "key_placeholder": "Lisans anahtarını girin",
+      "trial": "Deneme",
+      "active": "Aktif",
+      "expired": "Süresi dolmuş",
+      "days_remaining": "gün kaldı",
+      "no_devices": "Cihaz yok",
+      "devices_found": "cihaz bulundu"
+    },
+    "nav": {
+      "devices": "Cihazlar",
+      "flash": "Flash",
+      "security": "Güvenlik",
+      "recovery": "Kurtarma",
+      "biometric": "Biyometri",
+      "language": "Diller",
+      "settings": "Ayarlar"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Biçimlendir",
+      "update": "Güncelle",
+      "unlock": "Kilidi Aç",
+      "biometric": "Biyometri",
+      "recovery": "Kurtar",
+      "repair": "Onar",
+      "security": "Güvenlik"
+    }
+  },
+  "ru": {
+    "app": {
+      "title": "AuraTool-Suite — Универсальная платформа обслуживания",
+      "version": "Версия 6.0.0"
+    },
+    "log": {
+      "success": "[УСПЕХ]",
+      "error": "[ОШИБКА]",
+      "warning": "[ПРЕДУПРЕЖДЕНИЕ]"
+    },
+    "license": {
+      "bar_label": "Лицензия",
+      "activate_btn": "Активировать",
+      "key_placeholder": "Введите лицензионный ключ",
+      "trial": "Пробная",
+      "active": "Активна",
+      "expired": "Истекла",
+      "days_remaining": "дней осталось",
+      "no_devices": "Нет устройств",
+      "devices_found": "устройств найдено"
+    },
+    "nav": {
+      "devices": "Устройства",
+      "flash": "Flash",
+      "security": "Безопасность",
+      "recovery": "Восстановление",
+      "biometric": "Биометрия",
+      "language": "Языки",
+      "settings": "Настройки"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Форматировать",
+      "update": "Обновить",
+      "unlock": "Разблокировать",
+      "biometric": "Биометрия",
+      "recovery": "Восстановить",
+      "repair": "Ремонт",
+      "security": "Безопасность"
+    }
+  },
+  "fa": {
+    "app": {
+      "title": "AuraTool-Suite — پلتفرم جهانی نگهداری دستگاه",
+      "version": "نسخه 6.0.0"
+    },
+    "log": {
+      "success": "[موفقیت]",
+      "error": "[خطا]",
+      "warning": "[هشدار]"
+    },
+    "license": {
+      "bar_label": "مجوز",
+      "activate_btn": "فعال کردن",
+      "key_placeholder": "کلید مجوز را وارد کنید",
+      "trial": "آزمایشی",
+      "active": "فعال",
+      "expired": "منقضی",
+      "days_remaining": "روز باقیمانده",
+      "no_devices": "بدون دستگاه",
+      "devices_found": "دستگاه یافت شد"
+    },
+    "nav": {
+      "devices": "دستگاه‌ها",
+      "flash": "فلش",
+      "security": "امنیت",
+      "recovery": "بازیابی",
+      "biometric": "بیومتریک",
+      "language": "زبان‌ها",
+      "settings": "تنظیمات"
+    },
+    "actions": {
+      "flash": "فلش",
+      "frp": "FRP",
+      "format": "فرمت",
+      "update": "بروزرسانی",
+      "unlock": "قفل‌گشایی",
+      "biometric": "بیومتریک",
+      "recovery": "بازیابی",
+      "repair": "تعمیر",
+      "security": "امنیت"
+    }
+  },
+  "ur": {
+    "app": {
+      "title": "AuraTool-Suite — عالمی ڈیوائس دیکھ بھال پلیٹ فارم",
+      "version": "ورژن 6.0.0"
+    },
+    "log": {
+      "success": "[کامیابی]",
+      "error": "[خرابی]",
+      "warning": "[انتباہ]"
+    },
+    "license": {
+      "bar_label": "لائسنس",
+      "activate_btn": "فعال کریں",
+      "key_placeholder": "لائسنس کلید درج کریں",
+      "trial": "تجرباتی",
+      "active": "فعال",
+      "expired": "ختم شدہ",
+      "days_remaining": "دن باقی",
+      "no_devices": "کوئی ڈیوائس نہیں",
+      "devices_found": "ڈیوائس ملے"
+    },
+    "nav": {
+      "devices": "ڈیوائس",
+      "flash": "فلیش",
+      "security": "سیکیورٹی",
+      "recovery": "ریکوری",
+      "biometric": "بائیومیٹرک",
+      "language": "زبانیں",
+      "settings": "ترتیبات"
+    },
+    "actions": {
+      "flash": "فلیش",
+      "frp": "FRP",
+      "format": "فارمیٹ",
+      "update": "اپ ڈیٹ",
+      "unlock": "انلاک",
+      "biometric": "بائیومیٹرک",
+      "recovery": "ریکور",
+      "repair": "مرمت",
+      "security": "سیکیورٹی"
+    }
+  },
+  "he": {
+    "app": {
+      "title": "AuraTool-Suite — פלטפורמת תחזוקה אוניברסלית",
+      "version": "גרסה 6.0.0"
+    },
+    "log": {
+      "success": "[הצלחה]",
+      "error": "[שגיאה]",
+      "warning": "[אזהרה]"
+    },
+    "license": {
+      "bar_label": "רישיון",
+      "activate_btn": "הפעל",
+      "key_placeholder": "הזן מפתח רישיון",
+      "trial": "ניסיון",
+      "active": "פעיל",
+      "expired": "פג תוקף",
+      "days_remaining": "ימים שנותרו",
+      "no_devices": "אין מכשירים",
+      "devices_found": "מכשירים נמצאו"
+    },
+    "nav": {
+      "devices": "מכשירים",
+      "flash": "פלאש",
+      "security": "אבטחה",
+      "recovery": "שחזור",
+      "biometric": "ביומטרי",
+      "language": "שפות",
+      "settings": "הגדרות"
+    },
+    "actions": {
+      "flash": "פלאש",
+      "frp": "FRP",
+      "format": "פורמט",
+      "update": "עדכן",
+      "unlock": "שחרר",
+      "biometric": "ביומטרי",
+      "recovery": "שחזר",
+      "repair": "תקן",
+      "security": "אבטחה"
+    }
+  },
+  "pt": {
+    "app": {
+      "title": "AuraTool-Suite — Plataforma universal de manutenção",
+      "version": "Versão 6.0.0"
+    },
+    "log": {
+      "success": "[SUCESSO]",
+      "error": "[ERRO]",
+      "warning": "[AVISO]"
+    },
+    "license": {
+      "bar_label": "Licença",
+      "activate_btn": "Ativar",
+      "key_placeholder": "Inserir chave de licença",
+      "trial": "Avaliação",
+      "active": "Ativo",
+      "expired": "Expirado",
+      "days_remaining": "dias restantes",
+      "no_devices": "Sem dispositivos",
+      "devices_found": "dispositivos encontrados"
+    },
+    "nav": {
+      "devices": "Dispositivos",
+      "flash": "Flash",
+      "security": "Segurança",
+      "recovery": "Recuperação",
+      "biometric": "Biométrico",
+      "language": "Idiomas",
+      "settings": "Configurações"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatar",
+      "update": "Atualizar",
+      "unlock": "Desbloquear",
+      "biometric": "Biométrico",
+      "recovery": "Recuperar",
+      "repair": "Reparar",
+      "security": "Segurança"
+    }
+  },
+  "it": {
+    "app": {
+      "title": "AuraTool-Suite — Piattaforma universale di manutenzione",
+      "version": "Versione 6.0.0"
+    },
+    "log": {
+      "success": "[SUCCESSO]",
+      "error": "[ERRORE]",
+      "warning": "[AVVISO]"
+    },
+    "license": {
+      "bar_label": "Licenza",
+      "activate_btn": "Attiva",
+      "key_placeholder": "Inserisci chiave licenza",
+      "trial": "Prova",
+      "active": "Attivo",
+      "expired": "Scaduto",
+      "days_remaining": "giorni rimanenti",
+      "no_devices": "Nessun dispositivo",
+      "devices_found": "dispositivi trovati"
+    },
+    "nav": {
+      "devices": "Dispositivi",
+      "flash": "Flash",
+      "security": "Sicurezza",
+      "recovery": "Ripristino",
+      "biometric": "Biometria",
+      "language": "Lingue",
+      "settings": "Impostazioni"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatta",
+      "update": "Aggiorna",
+      "unlock": "Sblocca",
+      "biometric": "Biometria",
+      "recovery": "Recupera",
+      "repair": "Ripara",
+      "security": "Sicurezza"
+    }
+  },
+  "th": {
+    "app": {
+      "title": "AuraTool-Suite — แพลตฟอร์มบำรุงรักษาอุปกรณ์สากล",
+      "version": "เวอร์ชัน 6.0.0"
+    },
+    "license": {
+      "bar_label": "ลิขสิทธิ์",
+      "activate_btn": "เปิดใช้งาน",
+      "key_placeholder": "กรอกคีย์ลิขสิทธิ์",
+      "trial": "ทดลองใช้",
+      "active": "ใช้งานอยู่",
+      "expired": "หมดอายุ",
+      "days_remaining": "วันที่เหลือ",
+      "no_devices": "ไม่มีอุปกรณ์",
+      "devices_found": "อุปกรณ์ที่พบ"
+    },
+    "nav": {
+      "devices": "อุปกรณ์",
+      "flash": "แฟลช",
+      "security": "ความปลอดภัย",
+      "recovery": "กู้คืน",
+      "biometric": "ไบโอเมตริกซ์",
+      "language": "ภาษา",
+      "settings": "ตั้งค่า"
+    },
+    "actions": {
+      "flash": "แฟลช",
+      "frp": "FRP",
+      "format": "ฟอร์แมต",
+      "update": "อัปเดต",
+      "unlock": "ปลดล็อก",
+      "biometric": "ไบโอเมตริกซ์",
+      "recovery": "กู้คืน",
+      "repair": "ซ่อม",
+      "security": "รักษาความปลอดภัย"
+    },
+    "log": {
+      "success": "[สำเร็จ]",
+      "error": "[ข้อผิดพลาด]",
+      "warning": "[คำเตือน]"
+    }
+  },
+  "vi": {
+    "app": {
+      "title": "AuraTool-Suite — Nền tảng bảo trì thiết bị toàn cầu",
+      "version": "Phiên bản 6.0.0"
+    },
+    "license": {
+      "bar_label": "Giấy phép",
+      "activate_btn": "Kích hoạt",
+      "key_placeholder": "Nhập khóa giấy phép",
+      "trial": "Dùng thử",
+      "active": "Đang hoạt động",
+      "expired": "Hết hạn",
+      "days_remaining": "ngày còn lại",
+      "no_devices": "Không có thiết bị",
+      "devices_found": "thiết bị tìm thấy"
+    },
+    "nav": {
+      "devices": "Thiết bị",
+      "flash": "Flash",
+      "security": "Bảo mật",
+      "recovery": "Khôi phục",
+      "biometric": "Sinh trắc học",
+      "language": "Ngôn ngữ",
+      "settings": "Cài đặt"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Định dạng",
+      "update": "Cập nhật",
+      "unlock": "Mở khóa",
+      "biometric": "Sinh trắc học",
+      "recovery": "Khôi phục",
+      "repair": "Sửa chữa",
+      "security": "Bảo mật"
+    },
+    "log": {
+      "success": "[THÀNH CÔNG]",
+      "error": "[LỖI]",
+      "warning": "[CẢNH BÁO]"
+    }
+  },
+  "pl": {
+    "app": {
+      "title": "AuraTool-Suite — Uniwersalna platforma obsługi urządzeń",
+      "version": "Wersja 6.0.0"
+    },
+    "license": {
+      "bar_label": "Licencja",
+      "activate_btn": "Aktywuj",
+      "key_placeholder": "Wprowadź klucz licencyjny",
+      "trial": "Próbna",
+      "active": "Aktywna",
+      "expired": "Wygasła",
+      "days_remaining": "pozostałych dni",
+      "no_devices": "Brak urządzeń",
+      "devices_found": "znalezionych urządzeń"
+    },
+    "nav": {
+      "devices": "Urządzenia",
+      "flash": "Flash",
+      "security": "Bezpieczeństwo",
+      "recovery": "Odzyskiwanie",
+      "biometric": "Biometria",
+      "language": "Języki",
+      "settings": "Ustawienia"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatuj",
+      "update": "Aktualizuj",
+      "unlock": "Odblokuj",
+      "biometric": "Biometria",
+      "recovery": "Odzyskaj",
+      "repair": "Napraw",
+      "security": "Bezpieczeństwo"
+    },
+    "log": {
+      "success": "[SUKCES]",
+      "error": "[BŁĄD]",
+      "warning": "[OSTRZEŻENIE]"
+    }
+  },
+  "nl": {
+    "app": {
+      "title": "AuraTool-Suite — Universeel platform voor apparaatonderhoud",
+      "version": "Versie 6.0.0"
+    },
+    "log": {
+      "success": "[SUCCES]",
+      "error": "[FOUT]",
+      "warning": "[WAARSCHUWING]"
+    },
+    "license": {
+      "bar_label": "Licentie",
+      "activate_btn": "Activeren",
+      "key_placeholder": "Voer licentiesleutel in",
+      "trial": "Proef",
+      "active": "Actief",
+      "expired": "Verlopen",
+      "days_remaining": "dagen resterend",
+      "no_devices": "Geen apparaten",
+      "devices_found": "apparaten gevonden"
+    },
+    "nav": {
+      "devices": "Apparaten",
+      "flash": "Flash",
+      "security": "Beveiliging",
+      "recovery": "Herstel",
+      "biometric": "Biometrie",
+      "language": "Talen",
+      "settings": "Instellingen"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatteren",
+      "update": "Bijwerken",
+      "unlock": "Ontgrendelen",
+      "biometric": "Biometrie",
+      "recovery": "Herstellen",
+      "repair": "Repareren",
+      "security": "Beveiliging"
+    }
+  },
+  "sv": {
+    "app": {
+      "title": "AuraTool-Suite — Universell plattform för enhetsunderhåll",
+      "version": "Version 6.0.0"
+    },
+    "log": {
+      "success": "[FRAMGÅNG]",
+      "error": "[FEL]",
+      "warning": "[VARNING]"
+    },
+    "license": {
+      "bar_label": "Licens",
+      "activate_btn": "Aktivera",
+      "key_placeholder": "Ange licensnyckel",
+      "trial": "Prov",
+      "active": "Aktiv",
+      "expired": "Utgången",
+      "days_remaining": "dagar återstående",
+      "no_devices": "Inga enheter",
+      "devices_found": "enheter hittade"
+    },
+    "nav": {
+      "devices": "Enheter",
+      "flash": "Flash",
+      "security": "Säkerhet",
+      "recovery": "Återställning",
+      "biometric": "Biometri",
+      "language": "Språk",
+      "settings": "Inställningar"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatera",
+      "update": "Uppdatera",
+      "unlock": "Lås upp",
+      "biometric": "Biometri",
+      "recovery": "Återställ",
+      "repair": "Reparera",
+      "security": "Säkerhet"
+    }
+  },
+  "fi": {
+    "app": {
+      "title": "AuraTool-Suite — Yleinen laitehuoltoalusta",
+      "version": "Versio 6.0.0"
+    },
+    "log": {
+      "success": "[ONNISTUI]",
+      "error": "[VIRHE]",
+      "warning": "[VAROITUS]"
+    },
+    "license": {
+      "bar_label": "Lisenssi",
+      "activate_btn": "Aktivoi",
+      "key_placeholder": "Syötä lisenssien avain",
+      "trial": "Kokeilu",
+      "active": "Aktiivinen",
+      "expired": "Vanhentunut",
+      "days_remaining": "päivää jäljellä",
+      "no_devices": "Ei laitteita",
+      "devices_found": "laitetta löytyi"
+    },
+    "nav": {
+      "devices": "Laitteet",
+      "flash": "Flash",
+      "security": "Turvallisuus",
+      "recovery": "Palautus",
+      "biometric": "Biometria",
+      "language": "Kielet",
+      "settings": "Asetukset"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Muotoile",
+      "update": "Päivitä",
+      "unlock": "Avaa lukko",
+      "biometric": "Biometria",
+      "recovery": "Palauta",
+      "repair": "Korjaa",
+      "security": "Turvallisuus"
+    }
+  },
+  "cs": {
+    "app": {
+      "title": "AuraTool-Suite — Univerzální platforma pro údržbu zařízení",
+      "version": "Verze 6.0.0"
+    },
+    "log": {
+      "success": "[ÚSPĚCH]",
+      "error": "[CHYBA]",
+      "warning": "[VAROVÁNÍ]"
+    },
+    "license": {
+      "bar_label": "Licence",
+      "activate_btn": "Aktivovat",
+      "key_placeholder": "Zadejte licenční klíč",
+      "trial": "Zkušební",
+      "active": "Aktivní",
+      "expired": "Vypršela",
+      "days_remaining": "dní zbývajících",
+      "no_devices": "Žádná zařízení",
+      "devices_found": "zařízení nalezeno"
+    },
+    "nav": {
+      "devices": "Zařízení",
+      "flash": "Flash",
+      "security": "Bezpečnost",
+      "recovery": "Obnovení",
+      "biometric": "Biometrie",
+      "language": "Jazyky",
+      "settings": "Nastavení"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formátovat",
+      "update": "Aktualizovat",
+      "unlock": "Odemknout",
+      "biometric": "Biometrie",
+      "recovery": "Obnovit",
+      "repair": "Opravit",
+      "security": "Bezpečnost"
+    }
+  },
+  "ro": {
+    "app": {
+      "title": "AuraTool-Suite — Platformă universală de întreținere dispozitive",
+      "version": "Versiunea 6.0.0"
+    },
+    "log": {
+      "success": "[REUȘIT]",
+      "error": "[EROARE]",
+      "warning": "[AVERTIZARE]"
+    },
+    "license": {
+      "bar_label": "Licență",
+      "activate_btn": "Activează",
+      "key_placeholder": "Introduceți cheia de licență",
+      "trial": "Probă",
+      "active": "Activă",
+      "expired": "Expirată",
+      "days_remaining": "zile rămase",
+      "no_devices": "Fără dispozitive",
+      "devices_found": "dispozitive găsite"
+    },
+    "nav": {
+      "devices": "Dispozitive",
+      "flash": "Flash",
+      "security": "Securitate",
+      "recovery": "Recuperare",
+      "biometric": "Biometrie",
+      "language": "Limbi",
+      "settings": "Setări"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatează",
+      "update": "Actualizează",
+      "unlock": "Deblocare",
+      "biometric": "Biometrie",
+      "recovery": "Recuperează",
+      "repair": "Repară",
+      "security": "Securitate"
+    }
+  },
+  "hu": {
+    "app": {
+      "title": "AuraTool-Suite — Univerzális eszközkarbantartási platform",
+      "version": "Verzió 6.0.0"
+    },
+    "log": {
+      "success": "[SIKERES]",
+      "error": "[HIBA]",
+      "warning": "[FIGYELMEZTETÉS]"
+    },
+    "license": {
+      "bar_label": "Licenc",
+      "activate_btn": "Aktiválás",
+      "key_placeholder": "Licenc kulcs megadása",
+      "trial": "Próba",
+      "active": "Aktív",
+      "expired": "Lejárt",
+      "days_remaining": "nap hátralévő",
+      "no_devices": "Nincsenek eszközök",
+      "devices_found": "eszköz találva"
+    },
+    "nav": {
+      "devices": "Eszközök",
+      "flash": "Flash",
+      "security": "Biztonság",
+      "recovery": "Visszaállítás",
+      "biometric": "Biometria",
+      "language": "Nyelvek",
+      "settings": "Beállítások"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formázás",
+      "update": "Frissítés",
+      "unlock": "Feloldás",
+      "biometric": "Biometria",
+      "recovery": "Visszaállítás",
+      "repair": "Javítás",
+      "security": "Biztonság"
+    }
+  },
+  "id": {
+    "app": {
+      "title": "AuraTool-Suite — Platform Pemeliharaan Perangkat Universal",
+      "version": "Versi 6.0.0"
+    },
+    "log": {
+      "success": "[BERHASIL]",
+      "error": "[KESALAHAN]",
+      "warning": "[PERINGATAN]"
+    },
+    "license": {
+      "bar_label": "Lisensi",
+      "activate_btn": "Aktifkan",
+      "key_placeholder": "Masukkan kunci lisensi",
+      "trial": "Uji Coba",
+      "active": "Aktif",
+      "expired": "Kedaluwarsa",
+      "days_remaining": "hari tersisa",
+      "no_devices": "Tidak ada perangkat",
+      "devices_found": "perangkat ditemukan"
+    },
+    "nav": {
+      "devices": "Perangkat",
+      "flash": "Flash",
+      "security": "Keamanan",
+      "recovery": "Pemulihan",
+      "biometric": "Biometrik",
+      "language": "Bahasa",
+      "settings": "Pengaturan"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Format",
+      "update": "Perbarui",
+      "unlock": "Buka Kunci",
+      "biometric": "Biometrik",
+      "recovery": "Pulihkan",
+      "repair": "Perbaiki",
+      "security": "Keamanan"
+    }
+  },
+  "ms": {
+    "app": {
+      "title": "AuraTool-Suite — Platform Penyelenggaraan Peranti Sejagat",
+      "version": "Versi 6.0.0"
+    },
+    "log": {
+      "success": "[BERJAYA]",
+      "error": "[RALAT]",
+      "warning": "[AMARAN]"
+    },
+    "license": {
+      "bar_label": "Lesen",
+      "activate_btn": "Aktifkan",
+      "key_placeholder": "Masukkan kunci lesen",
+      "trial": "Cubaan",
+      "active": "Aktif",
+      "expired": "Tamat tempoh",
+      "days_remaining": "hari berbaki",
+      "no_devices": "Tiada peranti",
+      "devices_found": "peranti dijumpai"
+    },
+    "nav": {
+      "devices": "Peranti",
+      "flash": "Flash",
+      "security": "Keselamatan",
+      "recovery": "Pemulihan",
+      "biometric": "Biometrik",
+      "language": "Bahasa",
+      "settings": "Tetapan"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Format",
+      "update": "Kemaskini",
+      "unlock": "Buka Kunci",
+      "biometric": "Biometrik",
+      "recovery": "Pulihkan",
+      "repair": "Baiki",
+      "security": "Keselamatan"
+    }
+  },
+  "bn": {
+    "app": {
+      "title": "AuraTool-Suite — সার্বজনীন ডিভাইস রক্ষণাবেক্ষণ প্ল্যাটফর্ম",
+      "version": "সংস্করণ 6.0.0"
+    },
+    "log": {
+      "success": "[সফল]",
+      "error": "[ত্রুটি]",
+      "warning": "[সতর্কতা]"
+    },
+    "license": {
+      "bar_label": "লাইসেন্স",
+      "activate_btn": "সক্রিয় করুন",
+      "key_placeholder": "লাইসেন্স কী প্রবেশ করুন",
+      "trial": "ট্রায়াল",
+      "active": "সক্রিয়",
+      "expired": "মেয়াদ শেষ",
+      "days_remaining": "দিন বাকি",
+      "no_devices": "কোনো ডিভাইস নেই",
+      "devices_found": "ডিভাইস পাওয়া গেছে"
+    },
+    "nav": {
+      "devices": "ডিভাইস",
+      "flash": "ফ্ল্যাশ",
+      "security": "নিরাপত্তা",
+      "recovery": "পুনরুদ্ধার",
+      "biometric": "বায়োমেট্রিক",
+      "language": "ভাষা",
+      "settings": "সেটিংস"
+    },
+    "actions": {
+      "flash": "ফ্ল্যাশ",
+      "frp": "FRP",
+      "format": "ফর্ম্যাট",
+      "update": "আপডেট",
+      "unlock": "আনলক",
+      "biometric": "বায়োমেট্রিক",
+      "recovery": "পুনরুদ্ধার",
+      "repair": "মেরামত",
+      "security": "নিরাপত্তা"
+    }
+  },
+  "ne": {
+    "app": {
+      "title": "AuraTool-Suite — विश्वव्यापी उपकरण मर्मत प्लेटफर्म",
+      "version": "संस्करण 6.0.0"
+    },
+    "log": {
+      "success": "[सफल]",
+      "error": "[त्रुटि]",
+      "warning": "[चेतावनी]"
+    },
+    "license": {
+      "bar_label": "लाइसेन्स",
+      "activate_btn": "सक्रिय गर्नुहोस्",
+      "key_placeholder": "लाइसेन्स कुञ्जी प्रविष्ट गर्नुहोस्",
+      "trial": "परीक्षण",
+      "active": "सक्रिय",
+      "expired": "म्याद सकियो",
+      "days_remaining": "दिन बाँकी",
+      "no_devices": "कुनै उपकरण छैन",
+      "devices_found": "उपकरण भेटियो"
+    },
+    "nav": {
+      "devices": "उपकरण",
+      "flash": "फ्ल्याश",
+      "security": "सुरक्षा",
+      "recovery": "पुनर्प्राप्ति",
+      "biometric": "बायोमेट्रिक",
+      "language": "भाषा",
+      "settings": "सेटिङ्स"
+    },
+    "actions": {
+      "flash": "फ्ल्याश",
+      "frp": "FRP",
+      "format": "फर्म्याट",
+      "update": "अपडेट",
+      "unlock": "अनलक",
+      "biometric": "बायोमेट्रिक",
+      "recovery": "पुनर्प्राप्ति",
+      "repair": "मर्मत",
+      "security": "सुरक्षा"
+    }
+  },
+  "si": {
+    "app": {
+      "title": "AuraTool-Suite — සාර්ව උපාංග නඩත්තු වේදිකාව",
+      "version": "සංස්කරණය 6.0.0"
+    },
+    "log": {
+      "success": "[සාර්ථකයි]",
+      "error": "[දෝෂයකි]",
+      "warning": "[අවවාදයකි]"
+    },
+    "license": {
+      "bar_label": "බලපත්‍රය",
+      "activate_btn": "සක්‍රිය කරන්න",
+      "key_placeholder": "බලපත්‍ර යතුර ඇතුළත් කරන්න",
+      "trial": "පරීක්ෂණ",
+      "active": "සක්‍රිය",
+      "expired": "කල් ඉකුත්",
+      "days_remaining": "දින ඉතිරිය",
+      "no_devices": "උපාංග නැත",
+      "devices_found": "උපාංග හමු විය"
+    },
+    "nav": {
+      "devices": "උපාංග",
+      "flash": "ෆ්ලෑෂ්",
+      "security": "ආරක්ෂාව",
+      "recovery": "ප්‍රතිසාධනය",
+      "biometric": "ජීව මිනුම්",
+      "language": "භාෂා",
+      "settings": "සැකසුම්"
+    },
+    "actions": {
+      "flash": "ෆ්ලෑෂ්",
+      "frp": "FRP",
+      "format": "ෆෝමැට්",
+      "update": "යාවත්කාලීන",
+      "unlock": "අගුළු විවෘත",
+      "biometric": "ජීව මිනුම්",
+      "recovery": "ප්‍රතිසාධනය",
+      "repair": "අලුත්වැඩියාව",
+      "security": "ආරක්ෂාව"
+    }
+  },
+  "ta": {
+    "app": {
+      "title": "AuraTool-Suite — உலகளாவிய சாதன பராமரிப்பு தளம்",
+      "version": "பதிப்பு 6.0.0"
+    },
+    "log": {
+      "success": "[வெற்றி]",
+      "error": "[பிழை]",
+      "warning": "[எச்சரிக்கை]"
+    },
+    "license": {
+      "bar_label": "உரிமம்",
+      "activate_btn": "செயல்படுத்து",
+      "key_placeholder": "உரிம விசையை உள்ளிடவும்",
+      "trial": "சோதனை",
+      "active": "செயலில்",
+      "expired": "காலாவதியானது",
+      "days_remaining": "நாட்கள் மீதம்",
+      "no_devices": "சாதனங்கள் இல்லை",
+      "devices_found": "சாதனங்கள் கண்டறியப்பட்டன"
+    },
+    "nav": {
+      "devices": "சாதனங்கள்",
+      "flash": "ஃப்ளாஷ்",
+      "security": "பாதுகாப்பு",
+      "recovery": "மீட்பு",
+      "biometric": "உயிரியல்",
+      "language": "மொழிகள்",
+      "settings": "அமைப்புகள்"
+    },
+    "actions": {
+      "flash": "ஃப்ளாஷ்",
+      "frp": "FRP",
+      "format": "வடிவமை",
+      "update": "புதுப்பி",
+      "unlock": "திற",
+      "biometric": "உயிரியல்",
+      "recovery": "மீட்டெடு",
+      "repair": "பழுதுபார்",
+      "security": "பாதுகாப்பு"
+    }
+  },
+  "te": {
+    "app": {
+      "title": "AuraTool-Suite — యూనివర్సల్ డివైస్ మెయింటెనెన్స్ ప్లాట్‌ఫారం",
+      "version": "వెర్షన్ 6.0.0"
+    },
+    "log": {
+      "success": "[విజయం]",
+      "error": "[లోపం]",
+      "warning": "[హెచ్చరిక]"
+    },
+    "license": {
+      "bar_label": "లైసెన్స్",
+      "activate_btn": "సక్రియం చేయండి",
+      "key_placeholder": "లైసెన్స్ కీ నమోదు చేయండి",
+      "trial": "ట్రయల్",
+      "active": "సక్రియం",
+      "expired": "గడువు ముగిసింది",
+      "days_remaining": "రోజులు మిగిలి ఉన్నాయి",
+      "no_devices": "పరికరాలు లేవు",
+      "devices_found": "పరికరాలు కనుగొనబడ్డాయి"
+    },
+    "nav": {
+      "devices": "పరికరాలు",
+      "flash": "ఫ్లాష్",
+      "security": "భద్రత",
+      "recovery": "రికవరీ",
+      "biometric": "బయోమెట్రిక్",
+      "language": "భాషలు",
+      "settings": "సెట్టింగ్‌లు"
+    },
+    "actions": {
+      "flash": "ఫ్లాష్",
+      "frp": "FRP",
+      "format": "ఫార్మాట్",
+      "update": "అప్‌డేట్",
+      "unlock": "అన్‌లాక్",
+      "biometric": "బయోమెట్రిక్",
+      "recovery": "రికవర్",
+      "repair": "మరమ్మతు",
+      "security": "భద్రత"
+    }
+  },
+  "kn": {
+    "app": {
+      "title": "AuraTool-Suite — ಸಾರ್ವತ್ರಿಕ ಸಾಧನ ನಿರ್ವಹಣಾ ವೇದಿಕೆ",
+      "version": "ಆವೃತ್ತಿ 6.0.0"
+    },
+    "log": {
+      "success": "[ಯಶಸ್ವಿ]",
+      "error": "[ದೋಷ]",
+      "warning": "[ಎಚ್ಚರಿಕೆ]"
+    },
+    "license": {
+      "bar_label": "ಪರವಾನಗಿ",
+      "activate_btn": "ಸಕ್ರಿಯಗೊಳಿಸಿ",
+      "key_placeholder": "ಪರವಾನಗಿ ಕೀ ನಮೂದಿಸಿ",
+      "trial": "ಪ್ರಯೋಗ",
+      "active": "ಸಕ್ರಿಯ",
+      "expired": "ಅವಧಿ ಮುಗಿದಿದೆ",
+      "days_remaining": "ದಿನಗಳು ಉಳಿದಿವೆ",
+      "no_devices": "ಯಾವುದೇ ಸಾಧನಗಳಿಲ್ಲ",
+      "devices_found": "ಸಾಧನಗಳು ಪತ್ತೆಯಾಗಿವೆ"
+    },
+    "nav": {
+      "devices": "ಸಾಧನಗಳು",
+      "flash": "ಫ್ಲ್ಯಾಶ್",
+      "security": "ಭದ್ರತೆ",
+      "recovery": "ಮರುಪಡೆಯುವಿಕೆ",
+      "biometric": "ಜೈವಿಕ",
+      "language": "ಭಾಷೆಗಳು",
+      "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
+    },
+    "actions": {
+      "flash": "ಫ್ಲ್ಯಾಶ್",
+      "frp": "FRP",
+      "format": "ಫಾರ್ಮ್ಯಾಟ್",
+      "update": "ನವೀಕರಿಸಿ",
+      "unlock": "ಅನ್‌ಲಾಕ್",
+      "biometric": "ಜೈವಿಕ",
+      "recovery": "ಮರುಪಡೆಯಿರಿ",
+      "repair": "ದುರಸ್ತಿ",
+      "security": "ಭದ್ರತೆ"
+    }
+  },
+  "ml": {
+    "app": {
+      "title": "AuraTool-Suite — സാർവത്രിക ഉപകരണ പരിപാലന പ്ലാറ്റ്‌ഫോം",
+      "version": "പതിപ്പ് 6.0.0"
+    },
+    "log": {
+      "success": "[വിജയം]",
+      "error": "[പിശക്]",
+      "warning": "[മുന്നറിയിപ്പ്]"
+    },
+    "license": {
+      "bar_label": "ലൈസൻസ്",
+      "activate_btn": "സജീവമാക്കുക",
+      "key_placeholder": "ലൈസൻസ് കീ നൽകുക",
+      "trial": "ട്രയൽ",
+      "active": "സജീവം",
+      "expired": "കാലഹരണപ്പെട്ടു",
+      "days_remaining": "ദിവസങ്ങൾ ശേഷിക്കുന്നു",
+      "no_devices": "ഉപകരണങ്ങൾ ഇല്ല",
+      "devices_found": "ഉപകരണങ്ങൾ കണ്ടെത്തി"
+    },
+    "nav": {
+      "devices": "ഉപകരണങ്ങൾ",
+      "flash": "ഫ്ലാഷ്",
+      "security": "സുരക്ഷ",
+      "recovery": "വീണ്ടെടുക്കൽ",
+      "biometric": "ബയോമെട്രിക്",
+      "language": "ഭാഷകൾ",
+      "settings": "ക്രമീകരണങ്ങൾ"
+    },
+    "actions": {
+      "flash": "ഫ്ലാഷ്",
+      "frp": "FRP",
+      "format": "ഫോർമാറ്റ്",
+      "update": "അപ്ഡേറ്റ്",
+      "unlock": "അൺലോക്ക്",
+      "biometric": "ബയോമെട്രിക്",
+      "recovery": "വീണ്ടെടുക്കുക",
+      "repair": "നന്നാക്കുക",
+      "security": "സുരക്ഷ"
+    }
+  },
+  "pa": {
+    "app": {
+      "title": "AuraTool-Suite — ਯੂਨੀਵਰਸਲ ਡਿਵਾਈਸ ਮੇਨੇਨਸ ਪਲੇਟਫਾਰਮ",
+      "version": "ਸੰਸਕਰਣ 6.0.0"
+    },
+    "log": {
+      "success": "[ਸਫ਼ਲ]",
+      "error": "[ਗਲਤੀ]",
+      "warning": "[ਸਾਵਧਾਨ]"
+    },
+    "license": {
+      "bar_label": "ਲਾਇਸੈਂਸ",
+      "activate_btn": "ਸਰਗਰਮ ਕਰੋ",
+      "key_placeholder": "ਲਾਇਸੈਂਸ ਕੁੰਜੀ ਦਰਜ ਕਰੋ",
+      "trial": "ਟ੍ਰਾਇਲ",
+      "active": "ਸਰਗਰਮ",
+      "expired": "ਮਿਆਦ ਪੁੱਗ ਗਈ",
+      "days_remaining": "ਦਿਨ ਬਾਕੀ",
+      "no_devices": "ਕੋਈ ਡਿਵਾਈਸ ਨਹੀਂ",
+      "devices_found": "ਡਿਵਾਈਸ ਮਿਲੇ"
+    },
+    "nav": {
+      "devices": "ਡਿਵਾਈਸ",
+      "flash": "ਫਲੈਸ਼",
+      "security": "ਸੁਰੱਖਿਆ",
+      "recovery": "ਰਿਕਵਰੀ",
+      "biometric": "ਬਾਇਓਮੈਟ੍ਰਿਕ",
+      "language": "ਭਾਸ਼ਾਵਾਂ",
+      "settings": "ਸੈਟਿੰਗਾਂ"
+    },
+    "actions": {
+      "flash": "ਫਲੈਸ਼",
+      "frp": "FRP",
+      "format": "ਫਾਰਮੈਟ",
+      "update": "ਅੱਪਡੇਟ",
+      "unlock": "ਅਨਲੌਕ",
+      "biometric": "ਬਾਇਓਮੈਟ੍ਰਿਕ",
+      "recovery": "ਰਿਕਵਰ",
+      "repair": "ਮੁਰੰਮਤ",
+      "security": "ਸੁਰੱਖਿਆ"
+    }
+  },
+  "gu": {
+    "app": {
+      "title": "AuraTool-Suite — યુનિવર્સલ ડિવાઈસ મેન્ટેનન્સ પ્લેટફોર્મ",
+      "version": "વર્ઝન 6.0.0"
+    },
+    "log": {
+      "success": "[સફળ]",
+      "error": "[ભૂલ]",
+      "warning": "[ચેતવણી]"
+    },
+    "license": {
+      "bar_label": "લાઇસન્સ",
+      "activate_btn": "સક્રિય કરો",
+      "key_placeholder": "લાઇસન્સ કી દાખલ કરો",
+      "trial": "ટ્રાયલ",
+      "active": "સક્રિય",
+      "expired": "સમય સમાપ્ત",
+      "days_remaining": "દિવસ બાકી",
+      "no_devices": "કોઈ ઉપકરણો નથી",
+      "devices_found": "ઉપકરણો મળ્યા"
+    },
+    "nav": {
+      "devices": "ઉપકરણો",
+      "flash": "ફ્લેશ",
+      "security": "સુરક્ષા",
+      "recovery": "પુનઃપ્રાપ્તિ",
+      "biometric": "બાયોમેટ્રિક",
+      "language": "ભાષાઓ",
+      "settings": "સેટિંગ્સ"
+    },
+    "actions": {
+      "flash": "ફ્લેશ",
+      "frp": "FRP",
+      "format": "ફોર્મેટ",
+      "update": "અપડેટ",
+      "unlock": "અનલૉક",
+      "biometric": "બાયોમેટ્રિક",
+      "recovery": "પુનઃપ્રાપ્તિ",
+      "repair": "સમારોહ",
+      "security": "સુરક્ષા"
+    }
+  },
+  "mr": {
+    "app": {
+      "title": "AuraTool-Suite — सार्वत्रिक उपकरण देखभाल प्लॅटफॉर्म",
+      "version": "आवृत्ती 6.0.0"
+    },
+    "log": {
+      "success": "[यशस्वी]",
+      "error": "[त्रुटी]",
+      "warning": "[सूचना]"
+    },
+    "license": {
+      "bar_label": "परवाना",
+      "activate_btn": "सक्रिय करा",
+      "key_placeholder": "परवाना की प्रविष्ट करा",
+      "trial": "चाचणी",
+      "active": "सक्रिय",
+      "expired": "कालबाह्य",
+      "days_remaining": "दिवस शिल्लक",
+      "no_devices": "कोणतीही उपकरणे नाहीत",
+      "devices_found": "उपकरणे सापडली"
+    },
+    "nav": {
+      "devices": "उपकरणे",
+      "flash": "फ्लॅश",
+      "security": "सुरक्षा",
+      "recovery": "पुनर्प्राप्ती",
+      "biometric": "बायोमेट्रिक",
+      "language": "भाषा",
+      "settings": "सेटिंग्ज"
+    },
+    "actions": {
+      "flash": "फ्लॅश",
+      "frp": "FRP",
+      "format": "फॉरमॅट",
+      "update": "अपडेट",
+      "unlock": "अनलॉक",
+      "biometric": "बायोमेट्रिक",
+      "recovery": "पुनर्प्राप्ती",
+      "repair": "दुरुस्ती",
+      "security": "सुरक्षा"
+    }
+  },
+  "am": {
+    "app": {
+      "title": "AuraTool-Suite — አለም አቀፍ መሣሪያ እንክብካቤ መድረክ",
+      "version": "ስርጭት 6.0.0"
+    },
+    "log": {
+      "success": "[ተሳክቷል]",
+      "error": "[ስህተት]",
+      "warning": "[ማንቂያ]"
+    },
+    "license": {
+      "bar_label": "ፍቃድ",
+      "activate_btn": "ነቅ работы",
+      "key_placeholder": "የፍቃድ ቁልፍ ያስገቡ",
+      "trial": "የፅ試み",
+      "active": "ንቁ",
+      "expired": "ጊዜው ያለፈ",
+      "days_remaining": "ቀን ቀርተዋል",
+      "no_devices": "ምንም መሣሪያ የለም",
+      "devices_found": "መሣሪያዎች ተገኝተዋል"
+    },
+    "nav": {
+      "devices": "መሣሪያዎች",
+      "flash": "ፍላሽ",
+      "security": "ደህንነት",
+      "recovery": "ማገገም",
+      "biometric": "ባዮሜትሪክ",
+      "language": "ቋንቋዎች",
+      "settings": "ማሰittings"
+    },
+    "actions": {
+      "flash": "ፍላሽ",
+      "frp": "FRP",
+      "format": "ቅርጽ",
+      "update": "ማዘመን",
+      "unlock": "መክፈት",
+      "biometric": "ባዮሜትሪክ",
+      "recovery": "ማገገም",
+      "repair": "ማስተካከያ",
+      "security": "ደህንነት"
+    }
+  },
+  "uk": {
+    "app": {
+      "title": "AuraTool-Suite — Універсальна платформа обслуговування пристроїв",
+      "version": "Версія 6.0.0"
+    },
+    "log": {
+      "success": "[УСПІХ]",
+      "error": "[ПОМИЛКА]",
+      "warning": "[ПОПЕРЕДЖЕННЯ]"
+    },
+    "license": {
+      "bar_label": "Ліцензія",
+      "activate_btn": "Активувати",
+      "key_placeholder": "Введіть ключ ліцензії",
+      "trial": "Пробна",
+      "active": "Активна",
+      "expired": "Закінчилась",
+      "days_remaining": "днів залишилось",
+      "no_devices": "Немає пристроїв",
+      "devices_found": "пристроїв знайдено"
+    },
+    "nav": {
+      "devices": "Пристрої",
+      "flash": "Flash",
+      "security": "Безпека",
+      "recovery": "Відновлення",
+      "biometric": "Біометрія",
+      "language": "Мови",
+      "settings": "Налаштування"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Форматувати",
+      "update": "Оновити",
+      "unlock": "Розблокувати",
+      "biometric": "Біометрія",
+      "recovery": "Відновити",
+      "repair": "Ремонт",
+      "security": "Безпека"
+    }
+  },
+  "bg": {
+    "app": {
+      "title": "AuraTool-Suite — Универсална платформа за обслужване на устройства",
+      "version": "Версия 6.0.0"
+    },
+    "log": {
+      "success": "[УСПЕХ]",
+      "error": "[ГРЕШКА]",
+      "warning": "[ПРЕДУПРЕЖДЕНИЕ]"
+    },
+    "license": {
+      "bar_label": "Лиценз",
+      "activate_btn": "Активирай",
+      "key_placeholder": "Въведете лицензен ключ",
+      "trial": "Пробен",
+      "active": "Активен",
+      "expired": "Изтекъл",
+      "days_remaining": "дни оставащи",
+      "no_devices": "Няма устройства",
+      "devices_found": "устройства намерени"
+    },
+    "nav": {
+      "devices": "Устройства",
+      "flash": "Flash",
+      "security": "Сигурност",
+      "recovery": "Възстановяване",
+      "biometric": "Биометрия",
+      "language": "Езици",
+      "settings": "Настройки"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Форматиране",
+      "update": "Обновяване",
+      "unlock": "Отключване",
+      "biometric": "Биометрия",
+      "recovery": "Възстановяване",
+      "repair": "Ремонт",
+      "security": "Сигурност"
+    }
+  },
+  "sr": {
+    "app": {
+      "title": "AuraTool-Suite — Универзална платформа за одржавање уређаја",
+      "version": "Верзија 6.0.0"
+    },
+    "log": {
+      "success": "[УСПЕХ]",
+      "error": "[ГРЕШКА]",
+      "warning": "[УПОЗОРЕЊЕ]"
+    },
+    "license": {
+      "bar_label": "Лиценца",
+      "activate_btn": "Активирај",
+      "key_placeholder": "Унесите лиценцу кључ",
+      "trial": "Пробна",
+      "active": "Активна",
+      "expired": "Истекла",
+      "days_remaining": "дана преостало",
+      "no_devices": "Нема уређаја",
+      "devices_found": "уређаја пронађено"
+    },
+    "nav": {
+      "devices": "Уређаји",
+      "flash": "Flash",
+      "security": "Сигурност",
+      "recovery": "Опоравак",
+      "biometric": "Биометрија",
+      "language": "Језици",
+      "settings": "Подешавања"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Форматирај",
+      "update": "Ажурирај",
+      "unlock": "Откључај",
+      "biometric": "Биометрија",
+      "recovery": "Опорави",
+      "repair": "Поправи",
+      "security": "Сигурност"
+    }
+  },
+  "hr": {
+    "app": {
+      "title": "AuraTool-Suite — Univerzalna platforma za održavanje uređaja",
+      "version": "Verzija 6.0.0"
+    },
+    "log": {
+      "success": "[USPJEŠNO]",
+      "error": "[GREŠKA]",
+      "warning": "[UPOZORENJE]"
+    },
+    "license": {
+      "bar_label": "Licenca",
+      "activate_btn": "Aktiviraj",
+      "key_placeholder": "Unesite licencni ključ",
+      "trial": "Probna",
+      "active": "Aktivna",
+      "expired": "Istekla",
+      "days_remaining": "dana preostalo",
+      "no_devices": "Nema uređaja",
+      "devices_found": "uređaja pronađeno"
+    },
+    "nav": {
+      "devices": "Uređaji",
+      "flash": "Flash",
+      "security": "Sigurnost",
+      "recovery": "Oporavak",
+      "biometric": "Biometrija",
+      "language": "Jezici",
+      "settings": "Postavke"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatiraj",
+      "update": "Ažuriraj",
+      "unlock": "Otključaj",
+      "biometric": "Biometrija",
+      "recovery": "Oporavi",
+      "repair": "Popravi",
+      "security": "Sigurnost"
+    }
+  },
+  "sk": {
+    "app": {
+      "title": "AuraTool-Suite — Univerzálna platforma pre údržbu zariadení",
+      "version": "Verzia 6.0.0"
+    },
+    "log": {
+      "success": "[ÚSPECH]",
+      "error": "[CHYBA]",
+      "warning": "[VAROVANIE]"
+    },
+    "license": {
+      "bar_label": "Licencia",
+      "activate_btn": "Aktivovať",
+      "key_placeholder": "Zadajte licenčný kľúč",
+      "trial": "Skúšobná",
+      "active": "Aktívna",
+      "expired": "Vypršala",
+      "days_remaining": "dní zostávajúcich",
+      "no_devices": "Žiadne zariadenia",
+      "devices_found": "zariadení nájdených"
+    },
+    "nav": {
+      "devices": "Zariadenia",
+      "flash": "Flash",
+      "security": "Bezpečnosť",
+      "recovery": "Obnovenie",
+      "biometric": "Biometria",
+      "language": "Jazyky",
+      "settings": "Nastavenia"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formátovať",
+      "update": "Aktualizovať",
+      "unlock": "Odomknúť",
+      "biometric": "Biometria",
+      "recovery": "Obnoviť",
+      "repair": "Opraviť",
+      "security": "Bezpečnosť"
+    }
+  },
+  "sl": {
+    "app": {
+      "title": "AuraTool-Suite — Univerzalna platforma za vzdrževanje naprav",
+      "version": "Različica 6.0.0"
+    },
+    "log": {
+      "success": "[USPEŠNO]",
+      "error": "[NAPAKA]",
+      "warning": "[OPOZORILO]"
+    },
+    "license": {
+      "bar_label": "Licenca",
+      "activate_btn": "Aktiviraj",
+      "key_placeholder": "Vnesite licenčni ključ",
+      "trial": "Poskusna",
+      "active": "Aktivna",
+      "expired": "Potekla",
+      "days_remaining": "dni preostalih",
+      "no_devices": "Ni naprav",
+      "devices_found": "naprav najdenih"
+    },
+    "nav": {
+      "devices": "Naprave",
+      "flash": "Flash",
+      "security": "Varnost",
+      "recovery": "Obnovitev",
+      "biometric": "Biometrija",
+      "language": "Jeziki",
+      "settings": "Nastavitve"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatiraj",
+      "update": "Posodobi",
+      "unlock": "Odkleni",
+      "biometric": "Biometrija",
+      "recovery": "Obnovi",
+      "repair": "Popravi",
+      "security": "Varnost"
+    }
+  },
+  "et": {
+    "app": {
+      "title": "AuraTool-Suite — Universaalne seadmete hooldusplatvorm",
+      "version": "Versioon 6.0.0"
+    },
+    "log": {
+      "success": "[ÕNNESTUS]",
+      "error": "[VIGA]",
+      "warning": "[HOIATUS]"
+    },
+    "license": {
+      "bar_label": "Litsents",
+      "activate_btn": "Aktiveeri",
+      "key_placeholder": "Sisestage litsentsivõti",
+      "trial": "Proov",
+      "active": "Aktiivne",
+      "expired": "Aegunud",
+      "days_remaining": "päeva järele",
+      "no_devices": "Seadmeid pole",
+      "devices_found": "seadet leitud"
+    },
+    "nav": {
+      "devices": "Seadmed",
+      "flash": "Flash",
+      "security": "Turvalisus",
+      "recovery": "Taastamine",
+      "biometric": "Biomeetria",
+      "language": "Keeled",
+      "settings": "Seaded"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Vorminda",
+      "update": "Uuenda",
+      "unlock": "Ava lukk",
+      "biometric": "Biomeetria",
+      "recovery": "Taasta",
+      "repair": "Paranda",
+      "security": "Turvalisus"
+    }
+  },
+  "lv": {
+    "app": {
+      "title": "AuraTool-Suite — Universāla ierīču apkopes platforma",
+      "version": "Versija 6.0.0"
+    },
+    "log": {
+      "success": "[VEIKSMĪGI]",
+      "error": "[KĻŪDA]",
+      "warning": "[BRĪDINĀJUMS]"
+    },
+    "license": {
+      "bar_label": "Licence",
+      "activate_btn": "Aktivēt",
+      "key_placeholder": "Ievadiet licences atslēgu",
+      "trial": "Izmēģinājuma",
+      "active": "Aktīva",
+      "expired": "Beidzies",
+      "days_remaining": "dienas atlikušas",
+      "no_devices": "Nav ierīču",
+      "devices_found": "ierīces atrastas"
+    },
+    "nav": {
+      "devices": "Ierīces",
+      "flash": "Flash",
+      "security": "Drošība",
+      "recovery": "Atjaunošana",
+      "biometric": "Biometrija",
+      "language": "Valodas",
+      "settings": "Iestatījumi"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatēt",
+      "update": "Atjaunināt",
+      "unlock": "Atslēgt",
+      "biometric": "Biometrija",
+      "recovery": "Atjaunot",
+      "repair": "Salabot",
+      "security": "Drošība"
+    }
+  },
+  "lt": {
+    "app": {
+      "title": "AuraTool-Suite — Universali įrenginių priežiūros platforma",
+      "version": "Versija 6.0.0"
+    },
+    "log": {
+      "success": "[SĖKMINGAI]",
+      "error": "[KLAIDA]",
+      "warning": "[ĮSPĖJIMAS]"
+    },
+    "license": {
+      "bar_label": "Licencija",
+      "activate_btn": "Aktyvuoti",
+      "key_placeholder": "Įveskite licencijos raktą",
+      "trial": "Bandomoji",
+      "active": "Aktyvi",
+      "expired": "Pasibaigusi",
+      "days_remaining": "dienų liko",
+      "no_devices": "Nėra įrenginių",
+      "devices_found": "įrenginių rasta"
+    },
+    "nav": {
+      "devices": "Įrenginiai",
+      "flash": "Flash",
+      "security": "Saugumas",
+      "recovery": "Atkūrimas",
+      "biometric": "Biometrija",
+      "language": "Kalbos",
+      "settings": "Nustatymai"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Formatuoti",
+      "update": "Atnaujinti",
+      "unlock": "Atrakinti",
+      "biometric": "Biometrija",
+      "recovery": "Atkurti",
+      "repair": "Taisyti",
+      "security": "Saugumas"
+    }
+  },
+  "el": {
+    "app": {
+      "title": "AuraTool-Suite — Καθολική πλατφόρμα συντήρησης συσκευών",
+      "version": "Έκδοση 6.0.0"
+    },
+    "log": {
+      "success": "[ΕΠΙΤΥΧΙΑ]",
+      "error": "[ΣΦΑΛΜΑ]",
+      "warning": "[ΠΡΟΕΙΔΟΠΟΙΗΣΗ]"
+    },
+    "license": {
+      "bar_label": "Άδεια",
+      "activate_btn": "Ενεργοποίηση",
+      "key_placeholder": "Εισάγετε κλειδί άδειας",
+      "trial": "Δοκιμαστική",
+      "active": "Ενεργή",
+      "expired": "Ληγμένη",
+      "days_remaining": "ημέρες υπολοίπου",
+      "no_devices": "Καμία συσκευή",
+      "devices_found": "συσκευές βρέθηκαν"
+    },
+    "nav": {
+      "devices": "Συσκευές",
+      "flash": "Flash",
+      "security": "Ασφάλεια",
+      "recovery": "Αποκατάσταση",
+      "biometric": "Βιομετρία",
+      "language": "Γλώσσες",
+      "settings": "Ρυθμίσεις"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Μορφοποίηση",
+      "update": "Ενημέρωση",
+      "unlock": "Ξεκλείδωμα",
+      "biometric": "Βιομετρία",
+      "recovery": "Αποκατάσταση",
+      "repair": "Επισκευή",
+      "security": "Ασφάλεια"
+    }
+  },
+  "km": {
+    "app": {
+      "title": "AuraTool-Suite — វេទិកាថែទាំឧបករណ៍សកល",
+      "version": "កំណែ 6.0.0"
+    },
+    "log": {
+      "success": "[ជោគជ័យ]",
+      "error": "[កំហុស]",
+      "warning": "[ការព្រមាន]"
+    },
+    "license": {
+      "bar_label": "អាជ្ញាប័ណ្ណ",
+      "activate_btn": "ធ្វើឱ្យសកម្ម",
+      "key_placeholder": "បញ្ចូលកូនអាជ្ញាប័ណ្ណ",
+      "trial": "សាកល្បង",
+      "active": "សកម្ម",
+      "expired": "ផុតកំណត់",
+      "days_remaining": "ថ្ងៃនៅសល់",
+      "no_devices": "គ្មានឧបករណ៍",
+      "devices_found": "ឧបករណ៍រកឃើញ"
+    },
+    "nav": {
+      "devices": "ឧបករណ៍",
+      "flash": "ផ្សាយ",
+      "security": "សុវត្ថិភាព",
+      "recovery": "ស្ដារឡើងវិញ",
+      "biometric": "ជីវមាត្រ",
+      "language": "ភាសា",
+      "settings": "ការកំណត់"
+    },
+    "actions": {
+      "flash": "ផ្សាយ",
+      "frp": "FRP",
+      "format": "ទម្រង់",
+      "update": "ធ្វើបច្ចុប្បន្នភាព",
+      "unlock": "ដោះសោ",
+      "biometric": "ជីវមាត្រ",
+      "recovery": "ស្ដារ",
+      "repair": "ជួសជុល",
+      "security": "សុវត្ថិភាព"
+    }
+  },
+  "sw": {
+    "app": {
+      "title": "AuraTool-Suite — Jukwaa la Uendeshaji wa Vifaa vya Ulimwengu",
+      "version": "Toleo 6.0.0"
+    },
+    "log": {
+      "success": "[IMEFANIKIWA]",
+      "error": "[Hitilafu]",
+      "warning": "[Tahadhari]"
+    },
+    "license": {
+      "bar_label": "Leseni",
+      "activate_btn": "Washa",
+      "key_placeholder": "Weka ufunguo wa leseni",
+      "trial": "Jaribio",
+      "active": "Hai",
+      "expired": "Imeisha",
+      "days_remaining": "siku zimebaki",
+      "no_devices": "Hakuna vifaa",
+      "devices_found": "vifaa vilipatikana"
+    },
+    "nav": {
+      "devices": "Vifaa",
+      "flash": "Flash",
+      "security": "Ulinzi",
+      "recovery": "Kurejesha",
+      "biometric": "Baiometriki",
+      "language": "Lugha",
+      "settings": "Mipangilio"
+    },
+    "actions": {
+      "flash": "Flash",
+      "frp": "FRP",
+      "format": "Umbizo",
+      "update": "Sasisha",
+      "unlock": "Fungua",
+      "biometric": "Baiometriki",
+      "recovery": "Rejesha",
+      "repair": "Sahihisha",
+      "security": "Ulinzi"
+    }
+  }
+}
