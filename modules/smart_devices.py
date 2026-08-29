@@ -1277,7 +1277,79 @@ ECOSYSTEM_CATALOGUE = {
         "Apple_CarPlay": [
             "Apple CarPlay (aftermarket)", "Wireless CarPlay",
         ],
-    },
+    
+        "Stellantis": [
+            "Uconnect 5 (Ram, Jeep, Chrysler)", "Uconnect 4 (Dodge, Fiat)",
+            "Uconnect 3", "My Uconnect",
+        ],
+        "Geely": [
+            "Galaxy OS (Zeekr, Polestar, Lynk & Co)", "吉时互联 (Geometry)",
+        ],
+        "Changan": [
+            "梧桐车联 (UNI-V, UNI-K, CS75 Plus)", "InCall",
+        ],
+        "GWM_Haval": [
+            "Coffee OS (Tank 500, Haval Jolion)", "Hi-Life",
+        ],
+        "MG_Motors": [
+            "i-Smart (MG4, MG5, MG ZS EV)", "MG Pilot",
+        ],
+        "Fiat": [
+            "Uconnect 5 (500, Tipo, Panda)", "Uconnect 4",
+        ],
+        "Peugeot": [
+            "i-Connect (308, 3008, 508)", "i-Cockpit",
+        ],
+        "Renault": [
+            "OpenR Link (Megane E-Tech, Austral)", "Easy Link",
+            "R-Link",
+        ],
+        "Citroen": [
+            "My Citroen Connect (C5 X, C4, Ami)", "Connected CAM",
+        ],
+        "Skoda": [
+            "Canton (Octavia, Superb, Kodiaq)", "Bolero",
+        ],
+        "Seat": [
+            "Canton (Ibiza, Leon, Ateca)", "Navi System",
+        ],
+        "Alfa_Romeo": [
+            "Uconnect 5 (Giulia, Stelvio, Tonale)", "Uconnect 4",
+        ],
+        "Genesis": [
+            "ccNC (GV60, GV70, G80)", "ccIC",
+        ],
+        "Lexus": [
+            "Lexus Interface (RX, NX, IS)", "Enform",
+        ],
+        "Infiniti": [
+            "InTouch (QX60, QX55, Q50)", "Infiniti Connection",
+        ],
+        "Maserati": [
+            "Maserati Connect (Grecale, MC20, Levante)", "MIA",
+        ],
+        "Bentley": [
+            "My Bentley (Continental GT, Bentayga, Flying Spur)",
+        ],
+        "Rolls_Royce": [
+            "Spirited (Spectre, Ghost, Phantom)", "Connected Drive",
+        ],
+        "Lamborghini": [
+            "LDVI (Revuelto, Urus, Huracan)", "Lamborghini Connect",
+        ],
+        "Jaguar": [
+            "Pivi Pro (F-Pace, I-PACE, XF)", "InControl",
+        ],
+        "Land_Rover": [
+            "Pivi Pro (Range Rover, Defender, Discovery)", "InControl",
+        ],
+        "Lucid_Air": [
+            "Lucid Air Infotainment", "Lucid DreamDrive",
+        ],
+        "Polestar": [
+            "Polestar infotainment (Polestar 2, 3, 4)", "Google Built-In",
+        ],
+},
 
     # ─── Smart Home ────────────────────────────────────────────────────
     "smart_home": {
@@ -1374,7 +1446,98 @@ ECOSYSTEM_CATALOGUE = {
             "Eufy Security Cam", "Eufy Doorbell", "Eufy Robot Vacuum",
             "Eufy Smart Scale",
         ],
-    },
+    
+        "Yale": [
+            "Yale Assure Lock 2", "Yale Linus Smart Lock",
+            "Yale Smart Safe", "Yale Connect Bridge",
+        ],
+        "Schlage": [
+            "Schlage Encode Plus", "Schlage Connect Smart Deadbolt",
+            "Schlage Sense", "Schlage Smart WiFi Deadbolt",
+        ],
+        "August": [
+            "August Wi-Fi Smart Lock", "August Smart Lock Pro",
+            "August Smart Lock", "August Doorbell Cam",
+        ],
+        "Kasa_Smart": [
+            "Kasa Smart Wi-Fi Plug Mini", "Kasa Smart Light Switch",
+            "Kasa Smart WiFi Dimmer", "Kasa Smart Camera",
+        ],
+        "Nanoleaf": [
+            "Nanoleaf Shapes", "Nanoleaf Lines", "Nanoleaf Essentials",
+            "Nanoleaf Canvas", "Nanoleaf Elements",
+        ],
+        "LIFX": [
+            "LIFX Color A19", "LIFX White 800", "LIFX Beam",
+            "LIFX Tile", "LIFX Z Strip",
+        ],
+        "Wemo": [
+            "Wemo Smart Plug", "Wemo Smart Light Switch",
+            "Wemo Dimmer", "Wemo Motion Sensor",
+        ],
+        "Inkbird": [
+            "Inkbird WiFi Thermometer", "Inkbird Smart Plug",
+            "Inkbird Humidity Controller",
+        ],
+        "Govee": [
+            "Govee LED Strip Lights", "Govee Smart Bulb",
+            "Govee TV Backlight", "Govee DreamView",
+        ],
+        "LIFX_Par38": [
+            "LIFX Par38 Outdoor", "LIFX BR30",
+        ],
+        "Tuya_Smart": [
+            "Tuya Zigbee Gateway", "Tuya WiFi Plug",
+            "Tuya RGB Bulb", "Tuya Temperature Sensor",
+        ],
+        "Zemismart": [
+            "Zemismart Roller Shade", "Zemismart Light Switch",
+            "Zemismart Curtain Motor",
+        ],
+        "ThirdReality": [
+            "ThirdReality Smart Blinds", "ThirdReality Smart Plug",
+            "ThirdReality Motion Sensor",
+        ],
+        "Sengled": [
+            "Sengled Smart Bulb", "Sengled Smart Hub",
+            "Sengled Motion Sensor",
+        ],
+        "C by GE": [
+            "C by GE Smart Bulb", "C by GE Smart Switch",
+            "C by GE Smart Dimmer",
+        ],
+        "Sylvania": [
+            "Sylvania Smart+ Bulb", "Sylvania Smart+ Plug",
+        ],
+        "IKEA_Tradfri": [
+            "TRADFRI Gateway", "TRADFRI LED Bulb",
+            "TRADFRI Shortcut Button", "TRADFRI Motion Sensor",
+        ],
+        "Xiaomi_Aqara": [
+            "Aqara Hub M3", "Aqara FP2 Motion Sensor",
+            "Aqara Roller Shade Driver", "Aqara Smart Valve",
+        ],
+        "Tibber": [
+            "Tibber Pulse", "Tibber Energy Monitor",
+        ],
+        "Shelly": [
+            "Shelly Plus 1", "Shelly Plus 2PM", "Shelly H&T",
+            "Shelly Plug S", "Shelly RGBW2",
+        ],
+        "Tasmota": [
+            "Tasmota Smart Plug", "Tasmota Smart Switch",
+        ],
+        "Home_Assistant": [
+            "Home Assistant Green", "Home Assistant Yellow",
+            "Home Assistant Blue",
+        ],
+        "Hubitat": [
+            "Hubitat Elevation C-8", "Hubitat Elevation C-7",
+        ],
+        "SmartThings": [
+            "SmartThings Hub v3", "SmartThings Station",
+        ],
+},
 
     # ─── Gaming Handhelds ──────────────────────────────────────────────
     "gaming_handhelds": {
@@ -1434,7 +1597,69 @@ ECOSYSTEM_CATALOGUE = {
         "Nvidia": [
             "Nvidia Shield Portable", "Nvidia Shield Tablet",
         ],
-    },
+    
+        "Steam": [
+            "Steam Controller", "Steam Link",
+        ],
+        "OnexPlayer": [
+            "OnexPlayer 2 Pro", "OnexPlayer Mini Pro",
+            "OnexPlayer Fly", "OnexPlayer X1",
+        ],
+        "AOKZOE": [
+            "AOKZOE A1 Pro", "AOKZOE A2",
+        ],
+        "GPD_2": [
+            "GPD XP Plus 2", "GPD Pocket 3",
+        ],
+        "Status": [
+            "Status Neo", "Status Pro",
+        ],
+        "Gameforce": [
+            "Gameforce Chi", "Gameforce ACE",
+        ],
+        "HyperStone": [
+            "HyperStone K1", "HyperStone R1",
+        ],
+        "Thundervolt": [
+            "Thundervolt Turbo", "Thundervolt Ultra",
+        ],
+        "ZPG": [
+            "ZPG A1 Unicorn", "ZPG D1",
+        ],
+        "Retroid_2": [
+            "Retroid Pocket Flip", "Retroid Pocket 2S Plus",
+        ],
+        "MechDude": [
+            "MechDude Handheld", "MechDude Lite",
+        ],
+        "Pixel": [
+            "Pixel Kick", "Pixel Play",
+        ],
+        "JustPhotos": [
+            "JustPhotos Retro", "JustPhotos Pro",
+        ],
+        "Lutro": [
+            "Lutro Retro Console", "Lutro Mini",
+        ],
+        "GameMT": [
+            "GameMT E20", "GameMT E55",
+        ],
+        "Anbernic_2": [
+            "Anbernic RG Cube", "Anbernic RG CUBEXX",
+        ],
+        "Miyoo_2": [
+            "Miyoo A30", "Miyoo Flip",
+        ],
+        "PowKiddy_2": [
+            "PowKiddy A20", "PowKiddy X37",
+        ],
+        "Trimui": [
+            "Trimui Smart Pro", "Trimui Brick",
+        ],
+        "Logic_Supply": [
+            "Open Source Handheld",
+        ],
+},
 
 }
 
