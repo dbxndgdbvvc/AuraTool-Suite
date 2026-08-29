@@ -1190,6 +1190,252 @@ ECOSYSTEM_CATALOGUE = {
         ],
 
     },
+
+    # ─── Car Infotainment ──────────────────────────────────────────────
+    "car_infotainment": {
+        "Tesla": [
+            "Model S MCU2", "Model 3 MCU2", "Model X MCU2", "Model Y MCU2",
+            "Model S MCU1", "Model 3 MCU1", "Roadster 2",
+        ],
+        "BMW": [
+            "iDrive 8 (iX, i4, i7)", "iDrive 7 (X5, X7, 5 Series)",
+            "iDrive 6 (X3, X5, 7 Series)", "iDrive 5 (F-series)",
+        ],
+        "Mercedes-Benz": [
+            "MBUX Hyperscreen (EQS, EQE)", "MBUX (S-Class, C-Class, E-Class)",
+            "COMAND NTG 6.0", "COMAND NTG 5.0", "COMAND NTG 4.0",
+        ],
+        "Audi": [
+            "MMI 3D Premium (Q8 e-tron, A8)", "MMI 2.0 (Q7, A6, A7)",
+            "MMI 1.0 (A3, Q3)", "Audi Virtual Cockpit",
+        ],
+        "Porsche": [
+            "PCM 6.0 (Taycan, Cayenne, Panamera)", "PCM 5.0 (911, Macan)",
+            "PCM 4.0", "PCM 3.0",
+        ],
+        "Ford": [
+            "SYNC 4 (F-150, Bronco, Mach-E)", "SYNC 3 (Escape, Edge, Explorer)",
+            "SYNC 2", "SYNC",
+        ],
+        "GM_Chevrolet": [
+            "Infotainment 3 (Silverado, Tahoe, Equinox)",
+            "Infotainment 2 (Malibu, Impala)", "MyLink",
+        ],
+        "Toyota": [
+            "Toyota Audio Multimedia (Tundra, Camry, RAV4)",
+            "Entune 3.0", "Entune 2.0", "Display Audio",
+        ],
+        "Honda": [
+            "Honda Connect (Civic, Accord, CR-V)", "Display Audio",
+            "Honda Link", "Honda Connect 2.0",
+        ],
+        "Hyundai": [
+            "ccNC (Ioniq 5, Ioniq 6, Kona)", "ccIC (Tucson, Sonata)",
+            "ccNC Navigation", "ccIC Navigation",
+        ],
+        "Kia": [
+            "ccNC (EV6, EV9, Sportage)", "ccIC (Sorento, Telluride)",
+            "UVO Link",
+        ],
+        "Nissan": [
+            "NissanConnect 3.0 (Ariya, Pathfinder)", "NissanConnect 2.0",
+            "NissanConnect", "Nissan Intelligent Mobility",
+        ],
+        "Volkswagen": [
+            "MIB3 (ID.4, Golf, Tiguan)", "MIB2 (Passat, Touareg)",
+            "MIB1", "Discover Media",
+        ],
+        "Volvo": [
+            "Google Built-In (EX90, EX30, C40)", "Sensus Connect (XC90, XC60)",
+            "Sensus", "Volvo On Call",
+        ],
+        "Subaru": [
+            "STARLINK 11.6 (Outback, Forester, WRX)", "STARLINK 8.0",
+            "STARLINK 6.5", "STARLINK",
+        ],
+        "Mazda": [
+            "Mazda Connect (CX-50, CX-90, Mazda3)", "MZD Connect",
+        ],
+        "Rivian": [
+            "Rivian Infotainment (R1T, R1S)", "Rivian Connect",
+        ],
+        "Lucid": [
+            "Lucid Infotainment (Air, Gravity)", "Lucid Connect",
+        ],
+        "BYD": [
+            "DiLink 4.0 (Seal, Atto 3, Han)", "DiLink 3.0", "DiLink",
+        ],
+        "NIO": [
+            "NOMI (ES8, ES6, ET7, ET5)", "NIO Connect",
+        ],
+        "Xiaomi_Auto": [
+            "Xiaomi SU7 Infotainment", "HyperOS Auto",
+        ],
+        "Android_Auto": [
+            "Android Auto (aftermarket)", "Android Automotive OS",
+        ],
+        "Apple_CarPlay": [
+            "Apple CarPlay (aftermarket)", "Wireless CarPlay",
+        ],
+    },
+
+    # ─── Smart Home ────────────────────────────────────────────────────
+    "smart_home": {
+        "Amazon": [
+            "Echo Show 15", "Echo Show 10", "Echo Show 8", "Echo Show 5",
+            "Echo Dot 5th Gen", "Echo Dot 4th Gen", "Echo Dot 3rd Gen",
+            "Echo 4th Gen", "Echo 3rd Gen", "Echo Studio",
+            "Echo Pop", "Echo Auto", "Echo Buds", "Echo Frames",
+            "Fire TV Stick 4K Max", "Fire TV Stick 4K", "Fire TV Stick Lite",
+            "Fire TV Cube", "Fire TV Omni QLED", "Fire TV Omni",
+            "Ring Doorbell Pro 2", "Ring Doorbell 4", "Ring Floodlight Cam",
+            "Ring Stick Up Cam", "Blink Mini", "Blink Outdoor",
+            "Eero Pro 6E", "Eero Pro 6", "Eero 6+", "Eero 6",
+            "Kindle Paperwhite", "Kindle Scribe", "Kindle Oasis",
+        ],
+        "Google": [
+            "Nest Hub Max", "Nest Hub 2nd Gen", "Nest Hub",
+            "Nest Wifi Pro", "Nest Wifi", "Nest Mini",
+            "Nest Audio", "Nest Cam (battery)", "Nest Cam Indoor",
+            "Nest Doorbell (battery)", "Nest Thermostat", "Nest Protect",
+            "Chromecast with Google TV", "Chromecast HD",
+            "Pixel Tablet (Hub Mode)", "Google TV",
+        ],
+        "Apple": [
+            "HomePod 2nd Gen", "HomePod Mini",
+            "Apple TV 4K", "Apple TV HD",
+            "AirTag", "AirPods Max",
+        ],
+        "Samsung_SmartThings": [
+            "SmartThings Hub v3", "SmartThings Station",
+            "SmartThings Wifi", "SmartThings Sensor",
+        ],
+        "Philips_Hue": [
+            "Hue Bridge v2", "Hue Play", "Hue Go", "Hue Lightstrip",
+            "Hue White Bulb", "Hue Color Bulb", "Hue Dimmer Switch",
+            "Hue Motion Sensor",
+        ],
+        "TP_Link_Kasa": [
+            "Kasa Smart Plug", "Kasa Smart Switch", "Kasa Smart Bulb",
+            "Kasa Camera", "Kasa Doorbell",
+        ],
+        "Ring": [
+            "Ring Video Doorbell Pro 2", "Ring Video Doorbell 4",
+            "Ring Floodlight Cam Pro", "Ring Stick Up Cam",
+            "Ring Alarm Pro", "Ring Chime",
+        ],
+        "Arlo": [
+            "Arlo Ultra 2", "Arlo Pro 4", "Arlo Essential",
+            "Arlo Go 2", "Arlo Floodlight",
+        ],
+        "Wyze": [
+            "Wyze Cam v3 Pro", "Wyze Cam v3", "Wyze Cam Pan",
+            "Wyze Doorbell", "Wyze Bulb", "Wyze Plug",
+            "Wyze Lock", "Wyze Scale",
+        ],
+        "Lutron": [
+            "Caseta Smart Bridge", "Caseta Dimmer", "Caseta Switch",
+            "RadioRA 3", "HomeWorks QSX",
+        ],
+        "Eve": [
+            "Eve Energy", "Eve Door & Window", "Eve Motion",
+            "Eve Cam", "Eve Light Strip",
+        ],
+        "Aqara": [
+            "Aqara Hub M2", "Aqara Hub E1", "Aqara Door Sensor",
+            "Aqara Motion Sensor", "Aqara Smart Plug", "Aqara Camera Hub G3",
+        ],
+        "Tuya": [
+            "Tuya Smart Hub", "Tuya Smart Plug", "Tuya Smart Bulb",
+            "Tuya Camera", "Tuya Sensor",
+        ],
+        "Sonos": [
+            "Sonos Era 300", "Sonos Era 100", "Sonos One",
+            "Sonos Beam", "Sonos Arc", "Sonos Sub",
+            "Sonos Move 2", "Sonos Roam",
+        ],
+        "Dyson": [
+            "Dyson Purifier Hot+Cool", "Dyson V15 Detect",
+            "Dyson Airwrap", "Dyson Pure Cool",
+        ],
+        "iRobot": [
+            "Roomba j7+", "Roomba i7+", "Roomba s9+",
+            "Braava Jet m6", "Roomba Combo",
+        ],
+        "Switch_Bot": [
+            "SwitchBot Hub Mini", "SwitchBot Bot", "SwitchBot Curtain",
+            "SwitchBot Motion Sensor", "SwitchBot Contact Sensor",
+        ],
+        "Meross": [
+            "Meross Smart Plug", "Meross Smart Bulb",
+            "Meross Smart Switch", "Meross Garage Door",
+        ],
+        "Eufy": [
+            "Eufy Security Cam", "Eufy Doorbell", "Eufy Robot Vacuum",
+            "Eufy Smart Scale",
+        ],
+    },
+
+    # ─── Gaming Handhelds ──────────────────────────────────────────────
+    "gaming_handhelds": {
+        "Nintendo": [
+            "Switch OLED", "Switch (2021)", "Switch Lite",
+            "Switch V2", "Switch V1",
+        ],
+        "Valve": [
+            "Steam Deck OLED", "Steam Deck LCD",
+            "Steam Deck 512GB", "Steam Deck 256GB", "Steam Deck 64GB",
+        ],
+        "ASUS_ROG": [
+            "ROG Ally X", "ROG Ally",
+        ],
+        "Lenovo_Legion": [
+            "Legion Go", "Legion Go S",
+        ],
+        "Ayaneo": [
+            "Ayaneo Kun", "Ayaneo 2S", "Ayaneo Geek 1S",
+            "Ayaneo Flip", "Ayaneo Air Plus",
+        ],
+        "GPD": [
+            "GPD Win 4 (2024)", "GPD Win Max 2", "GPD Win 3",
+            "GPD XP Plus",
+        ],
+        "Retroid": [
+            "Retroid Pocket 4 Pro", "Retroid Pocket 4",
+            "Retroid Pocket 3+", "Retroid Pocket 2S",
+        ],
+        "Anbernic": [
+            "RG556", "RG405M", "RG353M", "RG35XX Plus",
+            "RG28XX", "RG503",
+        ],
+        "Playdate": [
+            "Playdate", "Playdate (Cranks)",
+        ],
+        "Analogue": [
+            "Analogue Pocket", "Analogue Duo", "Analogue NT Mini",
+        ],
+        "Miyoo": [
+            "Miyoo Mini+", "Miyoo Mini V4", "Miyoo Mini",
+        ],
+        "PowKiddy": [
+            "PowKiddy X28", "PowKiddy X55", "PowKiddy RGB30",
+            "PowKiddy V10",
+        ],
+        "Odin": [
+            "Ayn Odin 2 Max", "Ayn Odin 2 Pro", "Ayn Odin 2",
+            "Ayn Odin Lite", "Ayn Odin Base",
+        ],
+        "Logitech": [
+            "Logitech G Cloud", "Logitech Revue",
+        ],
+        "Sony": [
+            "PlayStation Portal", "PS Vita", "PSP",
+        ],
+        "Nvidia": [
+            "Nvidia Shield Portable", "Nvidia Shield Tablet",
+        ],
+    },
+
 }
 
 # ─── Supported Communication Protocols ─────────────────────────────────────────
