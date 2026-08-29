@@ -429,7 +429,7 @@ class TestCategoryCoverageVerification(unittest.TestCase):
 
     def test_tablets_have_major_brands(self):
         brands = ECOSYSTEM_CATALOGUE["tablets"]
-        for brand in ["Samsung", "Apple", "Xiaomi_Pad", "Lenovo_Tab"]:
+        for brand in ["Samsung", "Apple iPads", "Xiaomi_Pad", "Lenovo_Tab"]:
             self.assertIn(brand, brands)
 
     def test_smartwatches_have_major_brands(self):

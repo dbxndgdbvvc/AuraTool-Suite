@@ -489,56 +489,9 @@ ECOSYSTEM_CATALOGUE = {
         ],
 "Google_Pixel": [
             "Pixel Tablet", "Pixel 9 Pro Fold",
-        ],
-"BlackBerry": [
-            "smartphone",
-        ],
-"Nokia_HMD": [
-            "smartphone", "tablet",
-        ],
-"Nubia": [
-            "smartphone",
-        ],
-        "Redmi": [
-            "smartphone", "tablet",
-        ],
-        "Umidigi": [
-            "smartphone",
-        ],
-        "Wileyfox": [
-            "smartphone",
-        ],
-        "Blackview": [
-            "smartphone", "tablet",
-        ],
-        "Oukitel": [
-            "smartphone",
-        ],
-        "Hisense": [
-            "smartphone", "tablet",
-        ],
-"QMobile": [
-            "smartphone",
-        ],
-        "Gionee": [
-            "smartphone",
-        ],
-        "Vertu": [
-            "smartphone",
-        ],
-        "BQ": [
+        ],        "BQ": [
             "BQ Aquaris X2 Pro", "BQ Aquaris X2", "BQ Aquaris C", "BQ Samsung Tab 10",
         ],
-"Xiaomi_India": [
-            "smartphone",
-        ],
-        "ZTE_Nubia": [
-            "smartphone",
-        ],
-        "Realme_India": [
-            "smartphone",
-        ],
-
     },
 
     # ─── Tablets (Android) ────────────────────────────────────────────────────
@@ -618,96 +571,24 @@ ECOSYSTEM_CATALOGUE = {
         ],
         "Ulefone": [
             "Ulefone Tab A8", "Ulefone Tab 10",
-            "Ulefone Armor Pad",
+                    "Ulefone Armor Pad",
+        ],
+        "Amazon_Fire": [
+            "Fire Max 11", "Fire HD 10", "Fire HD 8", "Fire 7",
+        ],
+        "Microsoft_Surface": [
+            "Surface Pro 10", "Surface Pro 9", "Surface Go 3",
+            "Surface Pro X", "Surface 3",
         ],
         "Samsung Chromebook": [
             "Chromebook Plus V2", "Chromebook 4",
             "Galaxy Chromebook 2",
         ],
-        "Samsung": [
-            "Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23 FE", 
-            "Galaxy Z Fold5", "Galaxy Z Flip5", "Galaxy A55", "Galaxy A35", "Galaxy A15", 
-            "Galaxy Tab S9 Ultra", "Galaxy Tab S9", "Galaxy Tab S9 FE", "Galaxy Watch6 Classic", 
-            "Galaxy Watch6", "Galaxy Watch FE", "Galaxy Watch5 Pro", "Galaxy Watch5", 
-            "Galaxy Watch4 Classic", "Galaxy Buds FE",
-        ],
-        "Xiaomi": [
-            "smartphone", "tablet", "smartwatch",
-        ],
-        "Apple": [
-            "smartphone", "ipad", "smartwatch", "smart_glasses",
-        ],
-        "Huawei": [
-            "smartphone", "tablet", "smartwatch",
-        ],
-        "OPPO": [
-            "smartphone", "tablet",
-        ],
-        "OnePlus": [
-            "smartphone", "smartwatch",
-        ],
         "Google_Pixel": [
             "Pixel Tablet", "Pixel 9 Pro Fold",
         ],
-        "Nokia": [
-            "smartphone", "tablet",
-        ],
-        "TCL": [
-            "smartphone", "tablet",
-        ],
-        "Sharp": [
-            "smartphone", "tablet",
-        ],
         "Asus": [
             "ROG Phone 8 Pro", "Zenfone 11 Ultra", "ZenPad 10", "ROG Flow Z13",
-        ],
-        "LG": [
-            "smartphone", "tablet",
-        ],
-        "Lenovo": [
-            "smartphone", "tablet",
-        ],
-        "Honor": [
-            "smartphone", "tablet", "smartwatch",
-        ],
-        "ZTE": [
-            "smartphone", "tablet",
-        ],
-        "Infinix": [
-            "smartphone", "tablet",
-        ],
-        "Tecno": [
-            "smartphone", "tablet",
-        ],
-        "Doogee": [
-            "smartphone",
-        ],
-        "Ulefone": [
-            "smartphone",
-        ],
-        "Nokia_HMD": [
-            "smartphone", "tablet",
-        ],
-        "Microsoft_Surface": [
-            "tablet",
-        ],
-        "Amazon_Fire": [
-            "tablet", "smartwatch",
-        ],
-        "Wiko": [
-            "smartphone",
-        ],
-        "Alcatel": [
-            "smartphone",
-        ],
-        "Redmi": [
-            "smartphone", "tablet",
-        ],
-        "Blackview": [
-            "smartphone", "tablet",
-        ],
-        "Hisense": [
-            "smartphone", "tablet",
         ],
         "BQ": [
             "BQ Aquaris X2 Pro", "BQ Aquaris X2", "BQ Aquaris C", "BQ Samsung Tab 10",
@@ -768,9 +649,6 @@ ECOSYSTEM_CATALOGUE = {
             "iPad 7th Gen", "iPad 6th Gen", "iPad 5th Gen",
             "iPad Air 3rd Gen", "iPad Air 2",
             "iPad mini 4", "iPad mini 3", "iPad mini 2",
-        ],
-        "Apple": [
-            "smartphone", "ipad", "smartwatch", "smart_glasses",
         ],
         "iPad_Mini": [
             "iPad Mini (6th Gen)", "iPad Mini (5th Gen)",
@@ -885,27 +763,9 @@ ECOSYSTEM_CATALOGUE = {
             "Galaxy Watch6", "Galaxy Watch FE", "Galaxy Watch5 Pro", "Galaxy Watch5", 
             "Galaxy Watch4 Classic", "Galaxy Buds FE",
         ],
-        "Xiaomi": [
-            "smartphone", "tablet", "smartwatch",
-        ],
-        "Apple": [
-            "smartphone", "ipad", "smartwatch", "smart_glasses",
-        ],
-        "Huawei": [
-            "smartphone", "tablet", "smartwatch",
-        ],
-        "OnePlus": [
-            "smartphone", "smartwatch",
-        ],
         "Amazfit": [
             "Amazfit GTR 4", "Amazfit GTS 4", "Amazfit T-Rex Ultra", "Amazfit Active", 
             "Amazfit Bip 5", "Amazfit Falcon", "Amazfit Bip U Pro", "Amazfit GTR 3 Pro",
-        ],
-        "Garmin": [
-            "smartwatch",
-        ],
-        "Honor": [
-            "smartphone", "tablet", "smartwatch",
         ],
         "Garmin_Wearables": [
             "Garmin Venu 3", "Garmin Fenix 7X", "Garmin Forerunner 265", "Garmin Forerunner 965", 
@@ -915,9 +775,6 @@ ECOSYSTEM_CATALOGUE = {
         "Fitbit": [
             "Fitbit Sense 2", "Fitbit Versa 4", "Fitbit Charge 6", "Fitbit Inspire 3", 
             "Fitbit Luxe", "Fitbit Versa 3", "Fitbit Sense", "Fitbit Ace 3",
-        ],
-        "Amazon_Fire": [
-            "tablet", "smartwatch",
         ],
         "TicWatch": [
             "TicWatch Pro 5", "TicWatch Pro 3 Ultra", "TicWatch E3", "TicWatch GTX",
@@ -1066,12 +923,6 @@ ECOSYSTEM_CATALOGUE = {
         ],
         "Even Realities": [
             "Even G1 Smart Glasses",
-        ],
-        "Xiaomi": [
-            "smartphone", "tablet", "smartwatch",
-        ],
-        "Apple": [
-            "smartphone", "ipad", "smartwatch", "smart_glasses",
         ],
         "Meta_Quest": [
             "Meta Quest 3S", "Meta Quest 3", "Meta Quest Pro", "Meta Quest 2", "Meta Ray-Ban Smart Glasses",
