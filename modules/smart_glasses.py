@@ -92,19 +92,19 @@ class SmartGlassesEngine:
 
         # Check sensors
         r = self.adb("-s", device_id, "shell", "dumpsys", "sensorservice")
-        info["sensors_available"] = "6DOF" in r.stdout if r.success else False
-        info["sensor_count"] = r.stdout.count("Sensor:") if r.success else 0
+        info["sensors_available"] = "6DOF" in r.get("stdout", "") if r.get("success") else False
+        info["sensor_count"] = r.get("stdout", "").count("Sensor:") if r.get("success") else 0
 
         # Display info
         r = self.adb("-s", device_id, "shell", "wm", "size")
-        info["display_resolution"] = r.stdout if r.success else "unknown"
+        info["display_resolution"] = r.get("stdout", "unknown") if r.get("success") else "unknown"
         r = self.adb("-s", device_id, "shell", "dumpsys", "display")
-        info["refresh_rate"] = "120" if r.success and "120" in r.stdout else "90"
+        info["refresh_rate"] = "120" if r.get("success") and "120" in r.get("stdout", "") else "90"
 
         # IMU/Gyroscope check
         r = self.adb("-s", device_id, "shell", "dumpsys", "sensorservice")
-        info["gyroscope"] = "gyroscope" in r.stdout.lower() if r.success else False
-        info["accelerometer"] = "accelerometer" in r.stdout.lower() if r.success else False
+        info["gyroscope"] = "gyroscope" in r.get("stdout", "").lower() if r.get("success") else False
+        info["accelerometer"] = "accelerometer" in r.get("stdout", "").lower() if r.get("success") else False
 
         return {"device_id": device_id, "brand": brand, "platform": "AR/VR",
                 "info": info, "status": "COMPLETED"}

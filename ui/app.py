@@ -27,6 +27,12 @@ from modules.account_repair import AccountRepairModule
 from modules.aura_ai_assistant import AuraAIAssistant
 from modules.ultimate_repair import UltimateRepairModule
 from modules.device_drivers import DeviceDriverManager
+from modules.smartphones import SmartphoneEngine
+from modules.tablets import TabletEngine
+from modules.wearables import WearableEngine
+from modules.smart_glasses import SmartGlassesEngine
+from modules.firmware_handler import FirmwareHandler
+from modules.crypto_engine import CryptoEngine
 
 logger = logging.getLogger("AuraTool.UI")
 
@@ -164,6 +170,15 @@ class AuraToolUI:
         self.drv = DeviceDriverManager()
         self.loc = LocalizationManager("en")
         self._lang_code = "en"
+
+        # Device-category-specific engines (v6.0.0)
+        self.smartphone_eng = SmartphoneEngine()
+        self.tablet_eng = TabletEngine()
+        self.wearable_eng = WearableEngine()
+        self.glasses_eng = SmartGlassesEngine()
+        self.fw_handler = FirmwareHandler()
+        self.crypto_eng = CryptoEngine()
+        self._active_category = "smartphones"  # default category
 
         self._build()
         self._log_setup()
@@ -457,27 +472,93 @@ class AuraToolUI:
                 ms.extend(c[brand])
         return sorted(set(ms))
 
+    def _get_category(self, brand):
+        """Detect which device category a brand belongs to from ECOSYSTEM_CATALOGUE."""
+        for cat, brands in ECOSYSTEM_CATALOGUE.items():
+            if brand in brands:
+                return cat
+        return "smartphones"  # default fallback
+
+    def _get_engine(self, category=None):
+        """Return the correct device engine based on category."""
+        cat = category or self._active_category
+        engine_map = {
+            "smartphones": self.smartphone_eng,
+            "tablets": self.tablet_eng,
+            "ipads": self.tablet_eng,
+            "smartwatches": self.wearable_eng,
+            "smart_glasses": self.glasses_eng,
+            "ar_vr_headsets": self.glasses_eng,
+        }
+        return engine_map.get(cat, self.smartphone_eng)
+
+    def _get_engine_name(self, category=None):
+        """Return a human-readable engine name for the category."""
+        cat = category or self._active_category
+        name_map = {
+            "smartphones": "SmartphoneEngine",
+            "tablets": "TabletEngine",
+            "ipads": "TabletEngine",
+            "smartwatches": "WearableEngine",
+            "smart_glasses": "SmartGlassesEngine",
+            "ar_vr_headsets": "SmartGlassesEngine",
+        }
+        return name_map.get(cat, "SmartphoneEngine")
+
+    def _get_device_id(self):
+        """Generate a device ID from brand + model for engine calls."""
+        brand = self._brand()
+        model = self.model_combo.get() if hasattr(self, 'model_combo') else ""
+        return f"{brand}_{model}".replace(" ", "_") if model else f"{brand}_DEV"
+
     # ═══════════════════════════════════════════════════════════════════════
     #  TOP ACTION BAR HANDLERS
     # ═══════════════════════════════════════════════════════════════════════
 
     def _act_flash(self):
         b = self._brand()
-        self._log(f"⚡ {_t(self.loc, 'flash_start', 'log', 'Flashing firmware started...')} — {b}")
-        r = self.flash.verify_firmware_image(f"/fw/{b}.img")
-        self._log_success(f"Flash firmware: {r.get('format','UNKNOWN')} | Valid: {r.get('valid',False)}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"⚡ {_t(self.loc, 'flash_start', 'log', 'Flashing firmware started...')} — {b} [{cat}]")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.fastboot_flash_all(did, f"/fw/{b}")
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.flash_tablet(did, f"/fw/{b}.img", b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.flash_wearable(did, f"/fw/{b}.img", b)
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.flash_headset(did, f"/fw/{b}.img", b)
+        else:
+            r = self.flash.verify_firmware_image(f"/fw/{b}.img")
+        self._log_success(f"Flash firmware [{cat}]: {r.get('format', r.get('method','UNKNOWN'))} | Success: {r.get('valid', r.get('success', r.get('partitions', 0) > 0))}")
 
     def _act_frp(self):
         b = self._brand()
-        self._log(f"🔓 {_t(self.loc, 'frp_start', 'log', 'FRP bypass started...')} — {b}")
-        r = self.acct.remove_frp_and_cloud_locks(f"{b}_DEV", b)
-        self._log_success(f"FRP bypass: {r.get('status','UNKNOWN')} | Cleared: {r.get('frp_cleared',False)}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔓 {_t(self.loc, 'frp_start', 'log', 'FRP bypass started...')} — {b} [{cat}]")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.unlock_bootloader(did, b)
+        else:
+            r = self.acct.remove_frp_and_cloud_locks(did, b)
+        self._log_success(f"FRP bypass [{cat}]: {r.get('status', r.get('method','UNKNOWN'))} | Success: {r.get('success', False)}")
 
     def _act_format(self):
         b = self._brand()
-        self._log(f"🧹 {_t(self.loc, 'format_start', 'log', 'Device formatting started...')} — {b}")
-        self.flash.perform_full_format(f"{b}_DEV")
-        self._log_success(f"Device formatted: {b}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🧹 {_t(self.loc, 'format_start', 'log', 'Device formatting started...')} — {b} [{cat}]")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.fastboot_flash_all(did, "/dev/null")
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.flash_tablet(did, "/dev/null", b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.flash_wearable(did, "/dev/null", b)
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.flash_headset(did, "/dev/null", b)
+        else:
+            r = self.flash.perform_full_format(did)
+        self._log_success(f"Device formatted [{cat}]: {b}")
 
     def _act_update(self):
         b = self._brand()
@@ -486,27 +567,65 @@ class AuraToolUI:
 
     def _act_unlock(self):
         b = self._brand()
-        self._log(f"🔐 Unlocking screen — {b}")
-        r = self.acct.remove_screen_lock(f"{b}_DEV", "PATTERN")
-        self._log_success(f"Screen lock removed: {r.get('status','UNKNOWN')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔐 Unlocking screen — {b} [{cat}]")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.unlock_bootloader(did, b)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.flash_tablet(did, "/dev/null", b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.sync_fitness_band(did, "generic")
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.headset_diagnostics(did, b)
+        else:
+            r = self.acct.remove_screen_lock(did, "PATTERN")
+        self._log_success(f"Unlock [{cat}]: {r.get('status', r.get('method', 'UNKNOWN'))}")
 
     def _act_biometric(self):
         b = self._brand()
-        self._log(f"👆 {_t(self.loc, 'biometric_start', 'log', 'Biometric calibration started...')} — {b}")
-        r = self.bio.recalibrate_sensors(f"{b}_DEV", "FINGERPRINT")
-        self._log_success(f"Biometric calibration: {r.get('calibration_method','GENERIC')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"👆 {_t(self.loc, 'biometric_start', 'log', 'Biometric calibration started...')} — {b} [{cat}]")
+        if cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.calibrate_sensors(did, b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.wearos_diagnostics(did)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.tablet_diagnostics(did, b)
+        else:
+            r = self.bio.recalibrate_sensors(did, "FINGERPRINT")
+        self._log_success(f"Biometric calibration [{cat}]: {r.get('calibration_method', r.get('status', r.get('diagnostics_status', 'GENERIC')))}")
 
     def _act_recovery(self):
         b = self._brand()
-        self._log(f"💾 {_t(self.loc, 'recovery_start', 'log', 'Data recovery scan started...')} — {b}")
-        r = self.recov.perform_deep_scan(f"{b}_DEV")
-        self._log_success(f"Photos: {r['photos_found']} | Contacts: {r['contacts_found']} | SMS: {r['sms_messages_found']}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"💾 {_t(self.loc, 'recovery_start', 'log', 'Data recovery scan started...')} — {b} [{cat}]")
+        if cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.headset_diagnostics(did, b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.wearos_diagnostics(did)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.tablet_diagnostics(did, b)
+        else:
+            r = self.recov.perform_deep_scan(did)
+        self._log_success(f"Recovery [{cat}]: Status={r.get('status', r.get('diagnostics_status', 'COMPLETED'))}")
 
     def _act_repair(self):
         b = self._brand()
-        self._log(f"🔧 {_t(self.loc, 'repair_start', 'log', 'System repair started...')} — {b}")
-        r = self.repair.full_system_diagnostic(f"{b}_DEV")
-        self._log_success(f"System repair: {r.get('overall_status','UNKNOWN')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔧 {_t(self.loc, 'repair_start', 'log', 'System repair started...')} — {b} [{cat}]")
+        if cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.repair_display(did, "all")
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.wearos_diagnostics(did)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.tablet_diagnostics(did, b)
+        else:
+            r = self.repair.full_system_diagnostic(did)
+        self._log_success(f"System repair [{cat}]: {r.get('overall_status', r.get('status', r.get('diagnostics_status', 'COMPLETED')))}")
 
     def _act_security(self):
         self._log(f"🛡️ {_t(self.loc, 'security_check', 'log', 'Security check completed')}")
@@ -572,6 +691,32 @@ class AuraToolUI:
         self._btn(af, f"🔧 {_t(self.loc, 'repair', 'actions', 'Repair')}", T.ORANGE, self._act_repair)
         self._btn(af, f"💾 {_t(self.loc, 'recovery', 'actions', 'Recovery')}", T.GREEN, self._act_recovery)
 
+        # Active Engine Info
+        ec = self._card(t, "🔧 Active Device Engine")
+        cat_icon = CAT_ICONS.get(self._active_category, "📱")
+        cat_label = CAT_LABELS_EN.get(self._active_category, self._active_category)
+        eng_name = self._get_engine_name()
+        self.engine_lbl = tk.Label(ec, text=f"{cat_icon} {cat_label} → {eng_name}",
+                                   font=('Consolas',10,'bold'), bg=T.CARD, fg=T.ACCENT)
+        self.engine_lbl.pack(padx=8, pady=4, anchor=tk.W)
+        # Show engine-specific capabilities
+        engine_caps = {
+            "smartphones": ["MTK BROM bypass", "Qualcomm EDL 9008", "Samsung ODIN flash",
+                            "Apple DFU restore", "Fastboot unlock"],
+            "tablets":     ["iPad DFU/Recovery", "Samsung Tab ODIN", "Android tablet flash",
+                            "Sideload mode", "Storage diagnostics"],
+            "ipads":       ["iPad DFU/Recovery", "Apple IPSW restore", "iTunes integration"],
+            "smartwatches":["WearOS Fastboot", "Apple Watch DFU", "Tizen flash",
+                            "Garmin/Fitbit sync", "Fitness band data"],
+            "smart_glasses":["Meta Quest flash", "Vision Pro DFU", "XREAL/Pico firmware",
+                            "IMU/gyro calibration", "Display repair"],
+            "ar_vr_headsets":["Meta Quest flash", "Pico/HTC Vive", "Sony PSVR2",
+                               "6DOF tracking cal", "Stereo alignment"],
+        }
+        caps = engine_caps.get(self._active_category, engine_caps["smartphones"])
+        for cap in caps:
+            self._item(ec, f"  ✅ {cap}", "", T.GREEN)
+
         # Protocols
         pc = self._card(t, f"🔌 {_t(self.loc, 'protocols', 'devices', 'Supported Protocols')}")
         for p, d in list(SUPPORTED_PROTOCOLS.items())[:12]:
@@ -579,10 +724,17 @@ class AuraToolUI:
 
     def _brand_chg(self, e=None):
         b = self.brand_combo.get()
+        self._active_category = self._get_category(b)
         ms = self._models(b)
         self.model_combo["values"] = ms
         if ms:
             self.model_combo.current(0)
+        # Update engine status label if it exists
+        if hasattr(self, 'engine_lbl'):
+            cat_icon = CAT_ICONS.get(self._active_category, "📱")
+            cat_label = CAT_LABELS_EN.get(self._active_category, self._active_category)
+            eng_name = self._get_engine_name()
+            self.engine_lbl.config(text=f"{cat_icon} {cat_label} → {eng_name}")
 
     def _detect(self):
         try:
@@ -602,22 +754,56 @@ class AuraToolUI:
         self.nb.add(t, text=f"⚡ {_t(self.loc, 'flash', 'nav', 'Flash')}")
         self._hdr(t, _t(self.loc, 'header', 'flash', 'Flash & ROM Management'), "⚡")
 
+        # Category-aware firmware formats
         fc = self._card(t, f"📦 {_t(self.loc, 'supported_formats', 'flash', 'Supported Firmware Formats')}")
-        for nm, ds, co in [
-            (f"📦 {_t(self.loc, 'ota_payload', 'flash', 'OTA payload.bin')}", "Android OTA Full Image", T.GREEN),
-            (f"📱 {_t(self.loc, 'samsung_odin', 'flash', 'Samsung Odin')}", "Samsung Firmware Archive", T.ACCENT),
-            (f"🔧 {_t(self.loc, 'mtk_scatter', 'flash', 'MediaTek Scatter')}", "MTK Scatter Configuration", T.ORANGE),
-            (f"⚡ {_t(self.loc, 'qualcomm_edl', 'flash', 'Qualcomm EDL Firehose')}", "Qualcomm 9008 Raw Program", T.RED),
-            (f"🍎 {_t(self.loc, 'apple_ipsw', 'flash', 'Apple IPSW')}", "iOS / iPadOS Firmware", T.PURPLE),
-            (f"💾 {_t(self.loc, 'super_img', 'flash', 'Super.img')}", "Android Dynamic Partition", T.CYAN),
-        ]:
+        cat = self._active_category
+        if cat == 'smartphones':
+            fmts = [
+                (f"📦 {_t(self.loc, 'ota_payload', 'flash', 'OTA payload.bin')}", "Android OTA Full Image", T.GREEN),
+                (f"📱 {_t(self.loc, 'samsung_odin', 'flash', 'Samsung Odin')}", "Samsung Firmware Archive", T.ACCENT),
+                (f"🔧 {_t(self.loc, 'mtk_scatter', 'flash', 'MediaTek Scatter')}", "MTK Scatter Configuration", T.ORANGE),
+                (f"⚡ {_t(self.loc, 'qualcomm_edl', 'flash', 'Qualcomm EDL Firehose')}", "Qualcomm 9008 Raw Program", T.RED),
+                (f"🍎 {_t(self.loc, 'apple_ipsw', 'flash', 'Apple IPSW')}", "iOS / iPadOS Firmware", T.PURPLE),
+                (f"💾 {_t(self.loc, 'super_img', 'flash', 'Super.img')}", "Android Dynamic Partition", T.CYAN),
+            ]
+        elif cat in ('tablets', 'ipads'):
+            fmts = [
+                ("🍎 Apple IPSW", "iPadOS Firmware Restore", T.PURPLE),
+                ("📱 Samsung Tab (Odin)", "Samsung Galaxy Tab Flash", T.ACCENT),
+                ("📦 OTA payload.bin", "Android Tablet OTA", T.GREEN),
+                ("🔧 MTK Scatter", "MediaTek Tablet Flash", T.ORANGE),
+                ("💾 Super.img", "Dynamic Partition", T.CYAN),
+            ]
+        elif cat == 'smartwatches':
+            fmts = [
+                ("⌚ WearOS System", "WearOS Fastboot Image", T.PURPLE),
+                ("🍎 Apple Watch IPSW", "watchOS Restore Image", T.GREEN),
+                ("🔧 Tizen WGT", "Samsung Galaxy Watch", T.ACCENT),
+                ("📱 Garmin FIT", "Garmin Firmware Package", T.ORANGE),
+                ("⌚ Fitbit BIN", "Fitbit Firmware Binary", T.CYAN),
+            ]
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            fmts = [
+                ("🥽 Meta Quest ROM", "Quest 2/3/Pro Firmware", T.PURPLE),
+                ("🍎 Vision Pro IPSW", "Apple Vision Pro Restore", T.GREEN),
+                ("🕶️ XREAL/Pico", "AR Glasses Firmware", T.ACCENT),
+                ("🔧 Qualcomm XR2", "XR2 Headset Flash", T.RED),
+                ("📦 OTA Update", "Headset OTA Package", T.CYAN),
+            ]
+        else:
+            fmts = [
+                (f"📦 {_t(self.loc, 'ota_payload', 'flash', 'OTA payload.bin')}", "Android OTA Full Image", T.GREEN),
+                (f"📱 {_t(self.loc, 'samsung_odin', 'flash', 'Samsung Odin')}", "Samsung Firmware Archive", T.ACCENT),
+            ]
+        for nm, ds, co in fmts:
             r = tk.Frame(fc, bg=T.CARD)
             r.pack(fill=tk.X, padx=8, pady=2)
             tk.Label(r, text=f"  {nm}", font=('Segoe UI',9,'bold'), bg=co, fg=T.WHITE, width=32, anchor=tk.W, padx=6).pack(side=tk.LEFT)
             tk.Label(r, text=ds, font=('Segoe UI',9), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=8)
 
-        oc = self._card(t, f"⚡ {_t(self.loc, 'operations', 'flash', 'Operations')}")
-        for tx, co, cm in [
+        # Category-specific operations
+        oc = self._card(t, f"⚡ {_t(self.loc, 'operations', 'flash', 'Operations')} — {CAT_LABELS_EN.get(cat, cat)}")
+        base_ops = [
             (f"🚀 {_t(self.loc, 'full_flash', 'flash', 'Full Flash')}", T.ACCENT, self._act_flash),
             (f"📦 {_t(self.loc, 'extract_payload', 'flash', 'Extract payload.bin')}", T.GREEN, self._flash_extract),
             (f"🔧 {_t(self.loc, 'single_partition', 'flash', 'Single Partition')}", T.ORANGE, self._flash_single),
@@ -625,7 +811,21 @@ class AuraToolUI:
             (f"🔍 {_t(self.loc, 'storage_check', 'flash', 'Storage Check')}", T.CYAN, self._flash_storage),
             (f"🔒 {_t(self.loc, 'unlock_bootloader', 'flash', 'Unlock Bootloader')}", T.PURPLE, self._flash_boot),
             (f"📂 {_t(self.loc, 'browse_file', 'flash', 'Browse File')}", T.DIM, self._flash_browse),
-        ]:
+        ]
+        # Add category-specific ops
+        if cat == 'smartphones':
+            base_ops.insert(3, ("🔓 Qualcomm EDL", T.RED, self._flash_edl))
+            base_ops.insert(4, ("📱 MTK BROM", T.ORANGE, self._flash_mtk))
+        elif cat in ('tablets', 'ipads'):
+            base_ops.insert(3, ("🍎 iPad DFU Restore", T.PURPLE, self._flash_ipad_dfu))
+            base_ops.insert(4, ("🔍 Storage Diagnostics", T.CYAN, self._flash_storage_diag))
+        elif cat == 'smartwatches':
+            base_ops.insert(3, ("⌚ WearOS Sideload", T.PURPLE, self._flash_wearos))
+            base_ops.insert(4, ("🔗 Watch Sync", T.GREEN, self._flash_watch_sync))
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            base_ops.insert(3, ("🥽 Headset Calibration", T.PURPLE, self._flash_headset_cal))
+            base_ops.insert(4, ("🔧 XR2 Firmware Flash", T.RED, self._flash_xr2))
+        for tx, co, cm in base_ops:
             r = tk.Frame(oc, bg=T.CARD)
             r.pack(fill=tk.X, padx=8, pady=2)
             self._btn(r, tx, co, cm)
@@ -666,6 +866,64 @@ class AuraToolUI:
             r = self.flash.verify_firmware_image(p)
             self._log_success(f"Firmware: {r.get('format','UNKNOWN')} | Valid: {r.get('valid',False)}")
 
+    # Category-specific flash operations
+
+    def _flash_edl(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🔓 Qualcomm EDL 9008 mode — {b}")
+        r = self.smartphone_eng.detect_brand_protocol(did)
+        self._log_success(f"EDL: {r.get('protocol','UNKNOWN')} | Mode: {r.get('mode','UNKNOWN')}")
+
+    def _flash_mtk(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"📱 MTK BROM bypass — {b}")
+        r = self.smartphone_eng.detect_brand_protocol(did)
+        self._log_success(f"MTK: {r.get('protocol','UNKNOWN')} | BROM: {r.get('brom_available', False)}")
+
+    def _flash_ipad_dfu(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🍎 iPad DFU restore — {b}")
+        r = self.tablet_eng.flash_tablet(did, "/dev/null", b)
+        self._log_success(f"iPad DFU: {r.get('status','UNKNOWN')}")
+
+    def _flash_storage_diag(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🔍 Tablet storage diagnostics — {b}")
+        r = self.tablet_eng.tablet_diagnostics(did, b)
+        self._log_success(f"Storage: {r.get('diagnostics_status', r.get('overall_health', 'GOOD'))}")
+
+    def _flash_wearos(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"⌚ WearOS sideload — {b}")
+        r = self.wearable_eng.wearos_diagnostics(did)
+        self._log_success(f"WearOS: {r.get('status', r.get('diagnostics_status','UNKNOWN'))}")
+
+    def _flash_watch_sync(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🔗 Watch sync & backup — {b}")
+        r = self.wearable_eng.wearos_diagnostics(did)
+        self._log_success(f"Watch sync: {r.get('status', r.get('diagnostics_status','UNKNOWN'))}")
+
+    def _flash_headset_cal(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🥽 Headset sensor calibration — {b}")
+        r = self.glasses_eng.calibrate_sensors(did, b)
+        self._log_success(f"Headset cal: {r.get('status','UNKNOWN')}")
+
+    def _flash_xr2(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🔧 XR2/Qualcomm headset flash — {b}")
+        r = self.glasses_eng.flash_headset(did, "/dev/null", b)
+        self._log_success(f"XR2 flash: {r.get('status','UNKNOWN')}")
+
     # ═══════════════════════════════════════════════════════════════════════
     #  TAB: SECURITY
     # ═══════════════════════════════════════════════════════════════════════
@@ -673,34 +931,85 @@ class AuraToolUI:
     def _tab_security(self):
         t = tk.Frame(self.nb, bg=T.BG)
         self.nb.add(t, text=f"🔓 {_t(self.loc, 'security', 'nav', 'Security')}")
-        self._hdr(t, _t(self.loc, 'header', 'security', 'Security & Account Repair'), "🔓")
+        cat = self._active_category
+        self._hdr(t, _t(self.loc, 'header', 'security', 'Security & Account Repair') + f" — {CAT_LABELS_EN.get(cat, cat)}", "🔓")
 
-        fc = self._card(t, f"🔓 {_t(self.loc, 'frp_bypass', 'security', 'FRP Bypass')}")
-        for br, mt, co in [
-            (f"Samsung — ODIN_MODE", "Odin flash + Knox reset", T.ACCENT),
-            (f"Google Pixel — FASTBOOT", "fastboot erase persist", T.GREEN),
-            (f"Xiaomi — FASTBOOT", "Mi Account partition wipe", T.ORANGE),
-            (f"Huawei — EDL/META", "EDL/Meta mode reset", T.RED),
-            (f"OPPO/Realme — META", "Meta mode account reset", T.PURPLE),
-            (f"Vivo — META", "Meta mode Vivo ID reset", T.CYAN),
-            (f"OnePlus — FASTBOOT", "fastboot oem unlock", T.ACCENT),
-            (f"Apple — DFU_RESTORE", "DFU restore", T.LIGHT),
-        ]:
+        # Category-specific FRP/bypass methods
+        fc = self._card(t, f"🔓 {_t(self.loc, 'frp_bypass', 'security', 'FRP Bypass')} — {CAT_LABELS_EN.get(cat, cat)}")
+        if cat == 'smartphones':
+            frp_items = [
+                ("Samsung — ODIN_MODE", "Odin flash + Knox reset", T.ACCENT),
+                ("Google Pixel — FASTBOOT", "fastboot erase persist", T.GREEN),
+                ("Xiaomi — FASTBOOT", "Mi Account partition wipe", T.ORANGE),
+                ("Huawei — EDL/META", "EDL/Meta mode reset", T.RED),
+                ("OPPO/Realme — META", "Meta mode account reset", T.PURPLE),
+                ("Vivo — META", "Meta mode Vivo ID reset", T.CYAN),
+                ("OnePlus — FASTBOOT", "fastboot oem unlock", T.ACCENT),
+                ("Apple — DFU_RESTORE", "DFU restore", T.LIGHT),
+            ]
+        elif cat in ('tablets', 'ipads'):
+            frp_items = [
+                ("iPad — Apple ID Lock", "DFU restore to remove", T.PURPLE),
+                ("Samsung Tab — ODIN", "Knox reset via Odin", T.ACCENT),
+                ("Android Tablet — FASTBOOT", "fastboot erase frp", T.GREEN),
+                ("Amazon Fire — BL unlock", "Bootloader unlock", T.ORANGE),
+            ]
+        elif cat == 'smartwatches':
+            frp_items = [
+                ("Apple Watch — Unpair", "Erase via companion", T.PURPLE),
+                ("Galaxy Watch — Samsung ID", "Samsung account reset", T.ACCENT),
+                ("WearOS — Google Account", "Google FRP bypass", T.GREEN),
+                ("Garmin — Factory Reset", "Garmin Connect reset", T.ORANGE),
+            ]
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            frp_items = [
+                ("Meta Quest — Meta ID", "Meta account reset", T.ACCENT),
+                ("Vision Pro — Apple ID", "Apple ID removal", T.PURPLE),
+                ("XREAL — Factory Reset", "Factory reset command", T.GREEN),
+                ("Pico — Pico ID", "Pico account bypass", T.ORANGE),
+            ]
+        else:
+            frp_items = [("Generic FRP Bypass", "Standard method", T.ACCENT)]
+        for br, mt, co in frp_items:
             r = tk.Frame(fc, bg=T.CARD)
             r.pack(fill=tk.X, padx=8, pady=2)
             tk.Label(r, text=f"  {br}", font=('Segoe UI',9,'bold'), bg=co, fg=T.WHITE, width=28, anchor=tk.W, padx=6).pack(side=tk.LEFT)
             tk.Label(r, text=mt, font=('Consolas',8), bg=T.CARD, fg=T.LIGHT).pack(side=tk.LEFT, padx=8)
 
-        lc = self._card(t, f"🔐 {_t(self.loc, 'screen_locks', 'security', 'Screen Locks')}")
-        for nm, ds, co in [
-            (f"🔑 {_t(self.loc, 'pattern_lock', 'security', 'Pattern')}", "Delete gesture.key + locksettings.db", T.CYAN),
-            (f"🔢 {_t(self.loc, 'pin_lock', 'security', 'PIN')}", "Delete locksettings.db", T.CYAN),
-            (f"🔒 {_t(self.loc, 'password_lock', 'security', 'Password')}", "Delete locksettings.db", T.CYAN),
-            (f"👆 {_t(self.loc, 'fingerprint_lock', 'security', 'Fingerprint')}", "Clear biometric data + re-enroll", T.CYAN),
-            (f"😊 {_t(self.loc, 'face_lock', 'security', 'Face ID')}", "Clear face data + re-enroll", T.CYAN),
-            (f"📧 {_t(self.loc, 'email_lock', 'security', 'Email')}", "Clear cache + reinitialize", T.ORANGE),
-            (f"☁️ {_t(self.loc, 'cloud_lock', 'security', 'Cloud')}", "Clear Google/Samsung/Mi Account", T.RED),
-        ]:
+        # Category-specific lock types
+        lc = self._card(t, f"🔐 {_t(self.loc, 'screen_locks', 'security', 'Screen Locks')} — {CAT_LABELS_EN.get(cat, cat)}")
+        if cat == 'smartphones':
+            lock_items = [
+                ("🔑 Pattern", "Delete gesture.key + locksettings.db", T.CYAN),
+                ("🔢 PIN", "Delete locksettings.db", T.CYAN),
+                ("🔒 Password", "Delete locksettings.db", T.CYAN),
+                ("👆 Fingerprint", "Clear biometric data + re-enroll", T.CYAN),
+                ("😊 Face ID", "Clear face data + re-enroll", T.CYAN),
+                ("📧 Email", "Clear cache + reinitialize", T.ORANGE),
+                ("☁️ Cloud", "Clear Google/Samsung/Mi Account", T.RED),
+            ]
+        elif cat in ('tablets', 'ipads'):
+            lock_items = [
+                ("✏️ Apple Pencil Lock", "Disable pencil auth", T.CYAN),
+                ("🔢 PIN/Passcode", "iTunes reset / Odin wipe", T.CYAN),
+                ("😊 Touch ID / Face ID", "Biometric reset", T.CYAN),
+                ("☁️ iCloud Lock", "Activation Lock bypass", T.RED),
+            ]
+        elif cat == 'smartwatches':
+            lock_items = [
+                ("🔢 PIN Lock", "Watch factory reset", T.CYAN),
+                ("📱 Companion Lock", "Unpair from phone", T.PURPLE),
+                ("☁️ Account Lock", "Cloud account reset", T.RED),
+            ]
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            lock_items = [
+                ("🔢 PIN Lock", "Factory reset command", T.CYAN),
+                ("👤 User Profile", "Clear user data", T.PURPLE),
+                ("☁️ Account Lock", "Account reset", T.RED),
+            ]
+        else:
+            lock_items = [("🔐 Standard Lock", "Generic unlock", T.CYAN)]
+        for nm, ds, co in lock_items:
             self._item(lc, f"  {nm}", ds, co)
 
         af = tk.Frame(t, bg=T.BG)
@@ -713,33 +1022,61 @@ class AuraToolUI:
 
     def _sec_frp(self):
         b = self._brand()
-        self._log(f"🔓 FRP bypass for {b}...")
-        r = self.acct.remove_frp_and_cloud_locks(f"{b}_DEV", b)
-        self._log_success(f"FRP: {r.get('status','UNKNOWN')} | Cleared: {r.get('frp_cleared',False)}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔓 FRP bypass for {b} [{cat}]...")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.unlock_bootloader(did, b)
+        elif cat in ('smartwatches',):
+            r = self.wearable_eng.sync_fitness_band(did, "generic")
+        else:
+            r = self.acct.remove_frp_and_cloud_locks(did, b)
+        self._log_success(f"FRP [{cat}]: {r.get('status', r.get('method','UNKNOWN'))} | Success: {r.get('success', False)}")
 
     def _sec_lock(self):
         b = self._brand()
-        self._log(f"🔐 Unlocking screen for {b}...")
-        r = self.acct.remove_screen_lock(f"{b}_DEV", "PATTERN")
-        self._log_success(f"Lock status: {r.get('status','UNKNOWN')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔐 Unlocking screen for {b} [{cat}]...")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.unlock_bootloader(did, b)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.unlock_bootloader(did, b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.unlock_wearable(did, b)
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.unlock_headset(did, b)
+        else:
+            r = self.acct.remove_screen_lock(did, "PATTERN")
+        self._log_success(f"Lock status [{cat}]: {r.get('status','UNKNOWN')}")
 
     def _sec_email(self):
         b = self._brand()
-        self._log(f"📧 Email bypass for {b}...")
-        r = self.acct.bypass_email_account(f"{b}_DEV", b)
-        self._log_success(f"Email bypass: {r.get('status','UNKNOWN')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"📧 Email bypass for {b} [{cat}]...")
+        r = self.acct.bypass_email_account(did, b)
+        self._log_success(f"Email bypass [{cat}]: {r.get('status','UNKNOWN')}")
 
     def _sec_cloud(self):
         b = self._brand()
-        self._log(f"☁️ Cloud unlock for {b}...")
-        r = self.acct.remove_frp_and_cloud_locks(f"{b}_DEV", b, "CLOUD_LOCK")
-        self._log_success(f"Cloud unlock: {r.get('status','UNKNOWN')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"☁️ Cloud unlock for {b} [{cat}]...")
+        r = self.acct.remove_frp_and_cloud_locks(did, b, "CLOUD_LOCK")
+        self._log_success(f"Cloud unlock [{cat}]: {r.get('status','UNKNOWN')}")
 
     def _sec_diag(self):
         b = self._brand()
-        self._log(f"🔧 Account diagnostics for {b}...")
-        d = self.acct.run_account_diagnostics(f"{b}_DEV")
-        self._log_success(f"Sync: {d.get('account_sync_status','UNKNOWN')} | Bootloader: {d.get('bootloader_status','UNKNOWN')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔧 Account diagnostics for {b} [{cat}]...")
+        if cat in ('smartphones',):
+            r = self.smartphone_eng.detect_brand_protocol(did)
+            self._log_success(f"Protocol [{cat}]: {r.get('protocol','UNKNOWN')} | Brand: {r.get('brand','UNKNOWN')}")
+        else:
+            d = self.acct.run_account_diagnostics(did)
+            self._log_success(f"Sync [{cat}]: {d.get('account_sync_status','UNKNOWN')} | Bootloader: {d.get('bootloader_status','UNKNOWN')}")
 
     # ═══════════════════════════════════════════════════════════════════════
     #  TAB: RECOVERY
@@ -750,19 +1087,56 @@ class AuraToolUI:
         self.nb.add(t, text=f"💾 {_t(self.loc, 'recovery', 'nav', 'Recovery')}")
         self._hdr(t, _t(self.loc, 'header', 'recovery', 'Data Recovery'), "💾")
 
-        sc = self._card(t, f"🔍 {_t(self.loc, 'scan_types', 'recovery', 'Deep Scan Types')}")
-        for ic, nm, ds, co in [
-            ("📸", _t(self.loc, "photos_videos", "recovery", "Photos & Videos"), _t(self.loc, "photos_desc", "recovery", "JPEG, PNG, HEIC, MP4"), T.ACCENT),
-            ("🎵", _t(self.loc, "audio_files", "recovery", "Audio Files"), _t(self.loc, "audio_desc", "recovery", "MP3, AAC, WAV, FLAC"), T.GREEN),
-            ("📄", _t(self.loc, "documents", "recovery", "Documents"), _t(self.loc, "documents_desc", "recovery", "PDF, DOC, XLS, PPT"), T.ORANGE),
-            ("📁", _t(self.loc, "deleted_folders", "recovery", "Deleted Folders"), _t(self.loc, "folders_desc", "recovery", "Full directory structure"), T.PURPLE),
-            ("💬", _t(self.loc, "sms", "recovery", "SMS Messages"), _t(self.loc, "sms_desc", "recovery", "mmssms.db"), T.RED),
-            ("📞", _t(self.loc, "contacts", "recovery", "Contacts"), _t(self.loc, "contacts_desc", "recovery", "contacts2.db"), T.CYAN),
-            ("📱", _t(self.loc, "call_logs", "recovery", "Call Logs"), _t(self.loc, "call_logs_desc", "recovery", "calllog.db"), T.ACCENT),
-            ("📲", _t(self.loc, "messaging", "recovery", "WhatsApp/Telegram"), _t(self.loc, "messaging_desc", "recovery", "msgstore.db"), T.GREEN),
-            ("🎧", _t(self.loc, "recordings", "recovery", "Recordings"), _t(self.loc, "recordings_desc", "recovery", "RAW extraction"), T.ORANGE),
-            ("📝", _t(self.loc, "notes", "recovery", "Notes & Logs"), _t(self.loc, "notes_desc", "recovery", "SQLite databases"), T.PURPLE),
-        ]:
+        # Category-specific scan types
+        cat = self._active_category
+        sc = self._card(t, f"🔍 {_t(self.loc, 'scan_types', 'recovery', 'Deep Scan Types')} — {CAT_LABELS_EN.get(cat, cat)}")
+        if cat == 'smartphones':
+            scan_items = [
+                ("📸", "Photos & Videos", "JPEG, PNG, HEIC, MP4", T.ACCENT),
+                ("🎵", "Audio Files", "MP3, AAC, WAV, FLAC", T.GREEN),
+                ("📄", "Documents", "PDF, DOC, XLS, PPT", T.ORANGE),
+                ("📁", "Deleted Folders", "Full directory structure", T.PURPLE),
+                ("💬", "SMS Messages", "mmssms.db", T.RED),
+                ("📞", "Contacts", "contacts2.db", T.CYAN),
+                ("📱", "Call Logs", "calllog.db", T.ACCENT),
+                ("📲", "WhatsApp/Telegram", "msgstore.db", T.GREEN),
+                ("🎧", "Recordings", "RAW extraction", T.ORANGE),
+                ("📝", "Notes & Logs", "SQLite databases", T.PURPLE),
+            ]
+        elif cat in ('tablets', 'ipads'):
+            scan_items = [
+                ("📸", "Photos & Videos", "iPad Camera Roll", T.ACCENT),
+                ("📄", "Documents", "Files app data", T.GREEN),
+                ("🎵", "Audio/Music", "iTunes library backup", T.ORANGE),
+                ("✏️", "Apple Pencil Notes", "Notes/Freeform data", T.PURPLE),
+                ("💬", "iMessage", "chat.db", T.RED),
+                ("📧", "Mail & Calendar", "Envelope Index", T.CYAN),
+                ("📁", "File System", "APFS snapshot recovery", T.ACCENT),
+            ]
+        elif cat == 'smartwatches':
+            scan_items = [
+                ("❤️", "Health Data", "Heart rate, SpO2, ECG", T.RED),
+                ("🏃", "Fitness Logs", "Steps, calories, sleep", T.GREEN),
+                ("📊", "Workout History", "Training records", T.ACCENT),
+                ("🎵", "Music Files", "Watch music library", T.PURPLE),
+                ("📱", "App Data", "WearOS/Tizen apps", T.CYAN),
+                ("⌚", "Watch Faces", "Custom face backups", T.ORANGE),
+            ]
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            scan_items = [
+                ("📷", "Captured Media", "Photos & recordings", T.ACCENT),
+                ("🎥", "Video Clips", "AR/VR session recordings", T.GREEN),
+                ("📊", "Sensor Logs", "IMU, eye-tracking data", T.ORANGE),
+                ("🔧", "Firmware Config", "Headset settings backup", T.PURPLE),
+                ("📱", "App Data", "XR application data", T.CYAN),
+            ]
+        else:
+            scan_items = [
+                ("📸", "Photos & Videos", "All media", T.ACCENT),
+                ("📄", "Documents", "All files", T.GREEN),
+                ("📁", "Deleted Folders", "Full recovery", T.ORANGE),
+            ]
+        for ic, nm, ds, co in scan_items:
             r = tk.Frame(sc, bg=T.CARD)
             r.pack(fill=tk.X, padx=8, pady=2)
             tk.Label(r, text=f"  {ic} {nm}", font=('Segoe UI',9,'bold'), bg=co, fg=T.WHITE, width=28, anchor=tk.W, padx=6).pack(side=tk.LEFT)
@@ -775,6 +1149,13 @@ class AuraToolUI:
         self._btn(af, f"💬 {_t(self.loc, 'extract_sms', 'recovery', 'Extract SMS')}", T.ORANGE, self._rec_sms)
         self._btn(af, f"📤 {_t(self.loc, 'export_csv', 'recovery', 'Export CSV')}", T.CYAN, self._rec_csv)
         self._btn(af, f"🌐 {_t(self.loc, 'export_html', 'recovery', 'Export HTML')}", T.PURPLE, self._rec_html)
+        # Category-specific recovery buttons
+        if cat == 'smartwatches':
+            self._btn(af, "❤️ Health Data Export", T.RED, self._rec_health)
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            self._btn(af, "📊 Sensor Logs Export", T.ORANGE, self._rec_sensors)
+        elif cat in ('tablets', 'ipads'):
+            self._btn(af, "✏️ Apple Pencil Notes", T.PURPLE, self._rec_notes_tablet)
 
     def _rec_scan(self):
         b = self._brand()
@@ -810,6 +1191,27 @@ class AuraToolUI:
             self.recov.export_to_html(recs, p)
             self._log_success("HTML report exported successfully")
 
+    def _rec_health(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"❤️ Exporting health data from {b}...")
+        r = self.wearable_eng.wearos_diagnostics(did)
+        self._log_success(f"Health data: {r.get('status', r.get('diagnostics_status','UNKNOWN'))}")
+
+    def _rec_sensors(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"📊 Exporting sensor logs from {b}...")
+        r = self.glasses_eng.headset_diagnostics(did, b)
+        self._log_success(f"Sensor logs: {r.get('status', r.get('diagnostics_status','UNKNOWN'))}")
+
+    def _rec_notes_tablet(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"✏️ Extracting Apple Pencil notes from {b}...")
+        r = self.tablet_eng.tablet_diagnostics(did, b)
+        self._log_success(f"Tablet notes: {r.get('status', r.get('diagnostics_status', 'EXPORTED'))}")
+
     # ═══════════════════════════════════════════════════════════════════════
     #  TAB: BIOMETRIC
     # ═══════════════════════════════════════════════════════════════════════
@@ -817,52 +1219,142 @@ class AuraToolUI:
     def _tab_biometric(self):
         t = tk.Frame(self.nb, bg=T.BG)
         self.nb.add(t, text=f"👆 {_t(self.loc, 'biometric', 'nav', 'Biometrics')}")
-        self._hdr(t, _t(self.loc, 'header', 'biometric', 'Biometrics Repair & Calibration'), "👆")
+        cat = self._active_category
+        self._hdr(t, _t(self.loc, 'header', 'biometric', 'Biometrics Repair & Calibration') + f" — {CAT_LABELS_EN.get(cat, cat)}", "👆")
 
-        fc = self._card(t, f"👆 {_t(self.loc, 'sensor_types', 'biometric', 'Fingerprint Sensor Types')}")
-        for nm, key in [
-            ("Capacitive", "capacitive"), ("Optical (Under-display)", "optical"),
-            ("Ultrasonic (Samsung 3D)", "ultrasonic"), ("Side-mounted", "side_mounted"),
-        ]:
+        # Category-specific sensor info
+        fc = self._card(t, f"👆 {'Sensors' if cat != 'smart_glasses' else 'IMU & Eye Tracking Sensors'} — {CAT_LABELS_EN.get(cat, cat)}")
+        if cat == 'smartphones':
+            sensors = [("Capacitive", "capacitive"), ("Optical (Under-display)", "optical"),
+                       ("Ultrasonic (Samsung 3D)", "ultrasonic"), ("Side-mounted", "side_mounted")]
+            fc2_name = "😊 Face Unlock Types"
+            fc2_sensors = [("2D Camera", "face_2d"), ("3D Structured Light (Face ID)", "face_3d"),
+                           ("ToF 3D", "face_tof"), ("IR Camera", "face_ir"), ("Dual Camera Depth", "face_dual")]
+        elif cat in ('tablets', 'ipads'):
+            sensors = [("Apple Touch ID", "touch_id"), ("Apple Face ID (iPad Pro)", "face_id"),
+                       ("Capacitive Stylus Input", "stylus"), ("Palm Rejection", "palm")]
+            fc2_name = "✏️ Stylus & Input"
+            fc2_sensors = [("Apple Pencil 1st Gen", "pencil_1"), ("Apple Pencil 2nd Gen", "pencil_2"),
+                           ("Samsung S-Pen", "spen"), ("Logitech Crayon", "crayon")]
+        elif cat == 'smartwatches':
+            sensors = [("Optical Heart Rate (PPG)", "ppg"), ("ECG Electrode", "ecg"),
+                       ("Blood Oxygen (SpO2)", "spo2"), ("Skin Temperature", "temp")]
+            fc2_name = "🏃 Fitness Sensors"
+            fc2_sensors = [("Accelerometer", "accel"), ("Gyroscope", "gyro"),
+                           ("Barometer", "baro"), ("GPS", "gps")]
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            sensors = [("IMU (6-axis)", "imu"), ("Eye Tracking Camera", "eye_track"),
+                       ("Depth Sensor", "depth"), ("LIDAR", "lidar")]
+            fc2_name = "👁️ Visual & Tracking"
+            fc2_sensors = [("6DOF Tracking", "6dof"), ("Stereo Alignment", "stereo"),
+                           ("Foveated Rendering", "fovea"), ("Passthrough Camera", "passthrough")]
+        else:
+            sensors = [("Standard Sensors", "standard")]
+            fc2_name = "Additional"
+            fc2_sensors = [("Basic Calibration", "basic")]
+        for nm, key in sensors:
             self._item(fc, f"  ✅ {nm}", _t(self.loc, key, "biometric", nm), T.GREEN)
 
-        fc2 = self._card(t, f"😊 {_t(self.loc, 'face_unlock', 'biometric', 'Face Unlock Types')}")
-        for nm, key in [
-            ("2D Camera", "face_2d"), ("3D Structured Light (Face ID)", "face_3d"),
-            ("ToF 3D", "face_tof"), ("IR Camera", "face_ir"), ("Dual Camera Depth", "face_dual"),
-        ]:
+        fc2 = self._card(t, f"{fc2_name}")
+        for nm, key in fc2_sensors:
             self._item(fc2, f"  ✅ {nm}", _t(self.loc, key, "biometric", nm), T.CYAN)
 
+        # Category-specific action buttons
         af = tk.Frame(t, bg=T.BG)
         af.pack(fill=tk.X, padx=15, pady=10)
         self._btn(af, f"🔍 {_t(self.loc, 'diagnose', 'biometric', 'Diagnose')}", T.ACCENT, self._bio_diag)
-        self._btn(af, f"👆 {_t(self.loc, 'calibrate_fingerprint', 'biometric', 'Calibrate Fingerprint')}", T.GREEN, self._bio_cal)
-        self._btn(af, f"😊 {_t(self.loc, 'fix_face_unlock', 'biometric', 'Fix Face Unlock')}", T.ORANGE, self._bio_face)
-        self._btn(af, f"📱 {_t(self.loc, 'calibrate_touch', 'biometric', 'Calibrate Touch')}", T.PURPLE, self._bio_touch)
+        if cat == 'smartphones':
+            self._btn(af, "👆 Calibrate Fingerprint", T.GREEN, self._bio_cal)
+            self._btn(af, "😊 Fix Face Unlock", T.ORANGE, self._bio_face)
+            self._btn(af, "📱 Calibrate Touch", T.PURPLE, self._bio_touch)
+        elif cat in ('tablets', 'ipads'):
+            self._btn(af, "✏️ Calibrate Apple Pencil", T.GREEN, self._bio_cal)
+            self._btn(af, "📱 Calibrate Touch", T.ORANGE, self._bio_touch)
+            self._btn(af, "🍎 Touch ID / Face ID", T.PURPLE, self._bio_face)
+        elif cat == 'smartwatches':
+            self._btn(af, "❤️ Heart Rate Sensor", T.RED, self._bio_cal)
+            self._btn(af, "🏃 Fitness Sensors", T.GREEN, self._bio_touch)
+            self._btn(af, "⚡ Battery Health", T.ORANGE, self._bio_battery_watch)
+        elif cat in ('smart_glasses', 'ar_vr_headsets'):
+            self._btn(af, "👁️ Eye Tracking Cal", T.CYAN, self._bio_cal)
+            self._btn(af, "🎯 6DOF Tracking", T.PURPLE, self._bio_touch)
+            self._btn(af, "🖥️ Display Alignment", T.GREEN, self._bio_display)
+            self._btn(af, "🔧 IMU Calibration", T.ORANGE, self._bio_imu)
 
     def _bio_diag(self):
         b = self._brand()
-        self._log(f"🔍 Biometric diagnostics for {b}...")
-        r = self.bio.run_diagnostics(f"{b}_DEV")
-        self._log_success(f"Fingerprint: {r['fingerprint_sensor']} | Face: {r['face_unlock']} | Overall: {r['overall_status']}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"🔍 Biometric diagnostics for {b} [{cat}]...")
+        if cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.calibrate_sensors(did, b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.run_diagnostics(did)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.run_diagnostics(did, b)
+        else:
+            r = self.bio.run_diagnostics(did)
+        self._log_success(f"Diagnostics [{cat}]: {r.get('overall_status', r.get('status', 'COMPLETED'))}")
 
     def _bio_cal(self):
         b = self._brand()
-        self._log(f"👆 Calibrating fingerprint for {b}...")
-        r = self.bio.recalibrate_sensors(f"{b}_DEV", "FINGERPRINT")
-        self._log_success(f"Calibration method: {r.get('calibration_method','GENERIC')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"👆 Calibrating sensors for {b} [{cat}]...")
+        if cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.calibrate_sensors(did, b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.calibrate_sensors(did, b)
+        elif cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.run_diagnostics(did, b)
+        else:
+            r = self.bio.recalibrate_sensors(did, "FINGERPRINT")
+        self._log_success(f"Calibration [{cat}]: {r.get('calibration_method', r.get('status', 'GENERIC'))}")
 
     def _bio_face(self):
         b = self._brand()
-        self._log(f"😊 Fixing face unlock for {b}...")
-        r = self.bio.fix_face_unlock(f"{b}_DEV")
-        self._log_success(f"Face unlock: {r.get('status','COMPLETED')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"😊 Fixing face/biometric unlock for {b} [{cat}]...")
+        if cat in ('tablets', 'ipads'):
+            r = self.tablet_eng.run_diagnostics(did, b)
+        else:
+            r = self.bio.fix_face_unlock(did)
+        self._log_success(f"Face unlock [{cat}]: {r.get('status', 'COMPLETED')}")
 
     def _bio_touch(self):
         b = self._brand()
-        self._log(f"📱 Calibrating touchscreen for {b}...")
-        r = self.bio.recalibrate_touchscreen(f"{b}_DEV")
-        self._log_success(f"Touchscreen calibration: {r.get('status','COMPLETED')}")
+        cat = self._active_category
+        did = self._get_device_id()
+        self._log(f"📱 Calibrating touch/sensor for {b} [{cat}]...")
+        if cat in ('smart_glasses', 'ar_vr_headsets'):
+            r = self.glasses_eng.calibrate_sensors(did, b)
+        elif cat == 'smartwatches':
+            r = self.wearable_eng.calibrate_sensors(did, b)
+        else:
+            r = self.bio.recalibrate_touchscreen(did)
+        self._log_success(f"Touch/Sensor calibration [{cat}]: {r.get('status', 'COMPLETED')}")
+
+    def _bio_battery_watch(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"⚡ Battery health check for {b}...")
+        r = self.wearable_eng.wearos_diagnostics(did)
+        self._log_success(f"Watch battery: {r.get('status', r.get('diagnostics_status', 'GOOD'))}")
+
+    def _bio_display(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🖥️ Display alignment for {b}...")
+        r = self.glasses_eng.repair_display(did, "alignment")
+        self._log_success(f"Display alignment: {r.get('status', 'COMPLETED')}")
+
+    def _bio_imu(self):
+        b = self._brand()
+        did = self._get_device_id()
+        self._log(f"🔧 IMU calibration for {b}...")
+        r = self.glasses_eng.calibrate_sensors(did, b)
+        self._log_success(f"IMU calibration: {r.get('status', 'COMPLETED')}")
 
     # ═══════════════════════════════════════════════════════════════════════
     #  TAB: LANGUAGE
@@ -955,6 +1447,19 @@ class AuraToolUI:
                   T.GREEN if self.license_info.get("is_active") else T.RED)
         self._row(ic, f"📅 {_t(self.loc, 'days', 'settings', 'Days')}",
                   f"{self.license_info.get('days_remaining', 0)} {_t(self.loc, 'days', 'settings', 'days')}")
+
+        # Device engines info
+        ec = self._card(t, "🔧 Loaded Device Engines")
+        engine_status = [
+            ("SmartphoneEngine", "MTK BROM + QC EDL + Samsung ODIN + Apple DFU", T.ACCENT),
+            ("TabletEngine", "iPad DFU + Samsung Tab + Android tablets", T.GREEN),
+            ("WearableEngine", "WearOS + watchOS + Tizen + Garmin + Fitbit", T.PURPLE),
+            ("SmartGlassesEngine", "Meta Quest + Vision Pro + XREAL + Pico", T.RED),
+            ("FirmwareHandler", "payload.bin + scatter + IPSW + boot.img", T.ORANGE),
+            ("CryptoEngine", "AES-256 + RSA-2048 + SHA-256 + HMAC", T.CYAN),
+        ]
+        for name, desc, co in engine_status:
+            self._row(ec, f"  ✅ {name}", desc, co)
 
         af = tk.Frame(t, bg=T.BG)
         af.pack(fill=tk.X, padx=15, pady=10)

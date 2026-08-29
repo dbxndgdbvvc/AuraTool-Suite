@@ -19,6 +19,7 @@ import platform
 import shutil
 import subprocess
 import time
+from pathlib import Path
 
 logger = logging.getLogger("AuraTool.Wearables")
 
