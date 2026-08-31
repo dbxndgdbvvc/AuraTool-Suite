@@ -36,7 +36,7 @@ tqdm>=4.64.0
 Pillow>=9.0.0
 
 # ═══ Build Tools ═══
-pyinstaller>=5.0
+pyinstaller>=6.22.2
 
 # ═══ Testing ═══
 pytest>=7.0.0
