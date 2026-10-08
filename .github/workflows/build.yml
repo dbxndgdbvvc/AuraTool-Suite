@@ -96,7 +96,7 @@ jobs:
           timeout 5 dist/AuraTool-Suite 2>&1 || true
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.APP_NAME }}-Linux-x64
           path: dist/AuraTool-Suite
@@ -141,7 +141,7 @@ jobs:
           Write-Host "Binary launched successfully"
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.APP_NAME }}-Windows-x64
           path: dist/AuraTool-Suite.exe
